@@ -111,7 +111,7 @@
 
   function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
 
-  /** Pomakni kutove prema središtu (odbaci sjenu i rub papira). */
+  /** Pomakni kutove prema središtu (frac > 0) ili od središta (frac < 0). */
   function inset(quad, frac) {
     var cx = 0, cy = 0;
     quad.forEach(function (p) { cx += p.x / 4; cy += p.y / 4; });
@@ -210,7 +210,7 @@
     }
     var found = findDocument(toGray(small, sw, sh), sw, sh);
     if (!found) return null;
-    var q = inset(found.quad, 0.012).map(function (p) { return { x: p.x / sw * full.width, y: p.y / sh * full.height }; });
+    var q = inset(found.quad, -0.015).map(function (p) { return { x: p.x / sw * full.width, y: p.y / sh * full.height }; });
     return { cropped: warp(full, q, maxSide || 2000), quad: q };
   }
 

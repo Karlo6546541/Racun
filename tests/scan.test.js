@@ -12,7 +12,7 @@ function photo(W, H, cx, cy, rw, rh, deg) {
     let g = 70 + 20 * Math.sin(x / 37) ; // pozadina s varijacijom
     if (Math.abs(u) < rw / 2 && Math.abs(v) < rh / 2) {
       g = 235;
-      if (Math.abs(v) < rh / 2 - 30 && Math.floor((v + rh / 2) / 14) % 3 === 0 && Math.abs(u) < rw / 2 - 20) g = 40; // crte teksta
+      if (Math.abs(v) < rh / 2 - 60 && Math.floor((v + rh / 2) / 14) % 3 === 0 && Math.abs(u) < rw / 2 - 20) g = 40; // crte teksta
     }
     const i = (y * W + x) * 4; data[i] = data[i + 1] = data[i + 2] = g; data[i + 3] = 255;
   }
@@ -30,10 +30,12 @@ test('izrezuje nagnut račun na tamnoj pozadini', () => {
   // očekivane dimenzije ~ 420×900 (minus mali rub)
   assert.ok(Math.abs(w - 420) < 45, 'širina ' + w);
   assert.ok(Math.abs(h - 900) < 60, 'visina ' + h);
-  // gotovo nigdje ne smije biti tamne pozadine (tekst je ≈ 1/3 redaka)
-  let darkEdge = 0, count = 0;
-  for (let x = 0; x < w; x++) for (const y of [2, h - 3]) { count++; if (data[(y * w + x) * 4] < 120) darkEdge++; }
-  assert.ok(darkEdge / count < 0.1, 'pozadina na rubu: ' + darkEdge / count);
+  // ostatak pozadine na rubu smije biti samo tanka crta: već na 5% visine mora biti papir
+  for (const y of [Math.round(h * 0.05), h - 1 - Math.round(h * 0.05)]) {
+    let bright = 0, total = 0;
+    for (let x = Math.round(w * 0.1); x < w * 0.9; x++) { total++; if (data[(y * w + x) * 4] > 150) bright++; }
+    assert.ok(bright / total > 0.9, 'pozadina na y=' + y + ': svijetlo ' + (bright / total).toFixed(2));
+  }
 });
 
 test('račun bez nagiba', () => {

@@ -225,7 +225,7 @@
   }
   /** Crno-bijela slika s pojačanim kontrastom za bolje čitanje teksta. */
   function prepareForOcr(img) {
-    var c = drawScaled(img, 2200);
+    var c = drawScaled(img, 2600);
     var ctx = c.getContext('2d');
     var d = ctx.getImageData(0, 0, c.width, c.height);
     var px = d.data;
@@ -410,17 +410,65 @@
     return scriptCache[src];
   }
 
-  /** Traži QR kod na slici. Vraća tekst koda ili null. */
+  /** Ima li tekst izgled računa? (ignoriramo QR kodove koji nisu fiskalni) */
+  function isReceiptQr(text) { return !!(text && P.parseFiscalQr(text)); }
+
+  function scaledCanvas(c, max) {
+    var sc = Math.min(1, max / Math.max(c.width, c.height));
+    if (sc === 1) return c;
+    var o = document.createElement('canvas');
+    o.width = Math.round(c.width * sc); o.height = Math.round(c.height * sc);
+    o.getContext('2d').drawImage(c, 0, 0, o.width, o.height);
+    return o;
+  }
+
+  /**
+   * Traži fiskalni QR kod. Najprije ugrađeni čitač preglednika (brz i otporan na loše slike),
+   * zatim jsQR na nekoliko veličina — dekoder često bolje radi na manjoj slici nego na velikoj.
+   */
   function readQr(canvases) {
-    return loadScript(OCR_BASE.replace('tesseract/', 'jsQR.js')).then(function () {
-      for (var i = 0; i < canvases.length; i++) {
-        var c = canvases[i];
-        var d = c.getContext('2d').getImageData(0, 0, c.width, c.height);
-        var code = window.jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
-        if (code && code.data) return code.data;
-      }
-      return null;
-    }).catch(function () { return null; });
+    var native = null;
+    if ('BarcodeDetector' in window) {
+      try { native = new window.BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { native = null; }
+    }
+    var viaNative = native
+      ? canvases.reduce(function (chain, c) {
+          return chain.then(function (found) {
+            if (found) return found;
+            return native.detect(c).then(function (codes) {
+              for (var i = 0; i < codes.length; i++) if (isReceiptQr(codes[i].rawValue)) return codes[i].rawValue;
+              return null;
+            }).catch(function () { return null; });
+          });
+        }, Promise.resolve(null))
+      : Promise.resolve(null);
+
+    return viaNative.then(function (found) {
+      if (found) return found;
+      return loadScript(OCR_BASE.replace('tesseract/', 'jsQR.js')).then(function () {
+        var tried = {}, jobs = [];
+        canvases.forEach(function (c, ci) {
+          [1000, 800, 1400, 600, 1800].forEach(function (max) {
+            var sc = scaledCanvas(c, max), key = ci + ':' + sc.width + 'x' + sc.height;
+            if (tried[key]) return;
+            tried[key] = 1; jobs.push(sc);
+          });
+        });
+        // Svaki pokušaj u zasebnom koraku da se zaslon ne zamrzne
+        return jobs.reduce(function (chain, c) {
+          return chain.then(function (res) {
+            if (res) return res;
+            return new Promise(function (resolve) {
+              setTimeout(function () {
+                var d = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+                var code = window.jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
+                resolve(code && isReceiptQr(code.data) ? code.data : null);
+              }, 0);
+            });
+          });
+        }, Promise.resolve(null));
+      }).catch(function () { return null; });
+    });
   }
 
   function canvasFromImageData(id) {
@@ -439,18 +487,18 @@
     $('#cropToggle').hidden = true;
     loadImage(file).then(function (img) {
       if (runId !== state.ocrRun) return;
-      var full = drawScaled(img, 2200);
+      var full = drawScaled(img, 3000);
 
       // 1) Izreži račun s pozadine (ako ga uspijemo pronaći)
       var cropped = null;
       try {
         var fd = full.getContext('2d').getImageData(0, 0, full.width, full.height);
-        var res = window.RacunScan.cropReceipt(fd, 2000);
+        var res = window.RacunScan.cropReceipt(fd, 2600);
         if (res) cropped = canvasFromImageData(res.cropped);
       } catch (e) { console.error(e); }
       var work = cropped || full;
 
-      return Promise.all([toJpeg(work), cropped ? toJpeg(full) : null, readQr(cropped ? [cropped, full] : [full])])
+      return Promise.all([toJpeg(drawScaled(work, 1600)), cropped ? toJpeg(drawScaled(full, 1600)) : null, readQr(cropped ? [cropped, full] : [full])])
         .then(function (r) {
           if (runId !== state.ocrRun) return;
           state.draftImage = r[0];

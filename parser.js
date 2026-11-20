@@ -23,6 +23,23 @@
     return y + '-' + pad(m) + '-' + pad(d);
   }
 
+  /** Ako broj nije valjan, probaj zamijeniti 8/6/9 nulom (česta OCR greška). Vraća broj ili null. */
+  function repairDigits(str, ok) {
+    var n = parseInt(str, 10);
+    if (ok(n)) return n;
+    var idx = [];
+    for (var i = 0; i < str.length; i++) if ('869'.indexOf(str[i]) !== -1) idx.push(i);
+    if (idx.length > 5) idx = idx.slice(0, 5);
+    var best = null, bestCount = 99;
+    for (var mask = 1; mask < (1 << idx.length); mask++) {
+      var chars = str.split(''), count = 0;
+      for (var b = 0; b < idx.length; b++) if (mask & (1 << b)) { chars[idx[b]] = '0'; count++; }
+      var v = parseInt(chars.join(''), 10);
+      if (count < bestCount && ok(v)) { best = v; bestCount = count; }
+    }
+    return best;
+  }
+
   /** Pronađi datum kupnje. Vraća 'YYYY-MM-DD' ili null. */
   function findDate(text) {
     // OCR često zamijeni nulu slovom O
@@ -32,8 +49,15 @@
     var m;
     // dd.mm.yyyy  dd/mm/yyyy  dd-mm-yyyy  (+ dd.mm.yy)
     var re1 = /(\d{1,2})\s?[.\/\-]\s?(\d{1,2})\s?[.\/\-]\s?(\d{4}|\d{2})(?!\d)/g;
+    var thisYear = new Date().getFullYear();
     while ((m = re1.exec(t))) {
-      var iso = toIso(parseInt(m[3], 10), parseInt(m[2], 10), parseInt(m[1], 10));
+      var d = repairDigits(m[1], function (v) { return v >= 1 && v <= 31; });
+      var mo = repairDigits(m[2], function (v) { return v >= 1 && v <= 12; });
+      var y = m[3].length === 4
+        ? repairDigits(m[3], function (v) { return v >= 2000 && v <= thisYear + 1; })
+        : parseInt(m[3], 10);
+      if (d === null || mo === null || y === null) continue;
+      var iso = toIso(y, mo, d);
       if (iso) found.push(iso);
     }
     // yyyy-mm-dd
@@ -59,9 +83,12 @@
     return isNaN(n) ? null : n;
   }
 
-  var AMOUNT_RE = /(\d{1,3}(?:[.\s]\d{3})*[.,]\s?\d{2}|\d+[.,]\s?\d{2})(?!\d)/g;
+  var AMOUNT_RE = /(\d{1,3}(?:[.\s]\d{3})*[.,]\s?\d{2}|\d+[.,]\s?\d{2})\d?(?!\d)/g;
+  // datumi (17.08.2026.) i vremena (10:30) nisu iznosi
+  var DATE_TIME_RE = /\d{1,2}\s?[.\/\-]\s?\d{1,2}\s?[.\/\-]\s?\d{2,4}\.?|\d{1,2}\s?:\s?\d{2}(?::\d{2})?/g;
 
   function amountsIn(line) {
+    line = line.replace(DATE_TIME_RE, ' ');
     var out = [];
     var m;
     AMOUNT_RE.lastIndex = 0;
@@ -79,7 +106,7 @@
     for (var i = 0; i < lines.length; i++) {
       var low = lines[i].toLowerCase();
       var isTotal = TOTAL_WORDS.some(function (w) { return low.indexOf(w) !== -1; });
-      var isNot = NOT_TOTAL_WORDS.some(function (w) { return low.indexOf(w) !== -1; });
+      var isNot = NOT_TOTAL_WORDS.some(function (w) { return low.indexOf(w) !== -1; }) || /\bbez\b/.test(low);
       if (!isTotal || isNot) continue;
       var nums = amountsIn(lines[i]);
       // ponekad je iznos u sljedećem retku
@@ -87,13 +114,26 @@
       if (nums.length) candidates.push(nums[nums.length - 1]);
     }
     if (candidates.length) return Math.max.apply(null, candidates);
-    // Rezerva: najveći iznos na računu
+
     var all = [];
+    lines.forEach(function (l) { all = all.concat(amountsIn(l)); });
+    var sums = all.filter(function (c, ci) {
+      for (var a = 0; a < all.length; a++) {
+        if (a === ci) continue;
+        for (var b = a + 1; b < all.length; b++) {
+          if (b !== ci && Math.abs(all[a] + all[b] - c) < 0.011) return true;
+        }
+      }
+      return false;
+    });
+    if (sums.length) return Math.max.apply(null, sums);
+    // Rezerva: najveći iznos na računu (bez redaka poput "povrat")
+    var rest = [];
     lines.forEach(function (l) {
       if (NOT_TOTAL_WORDS.some(function (w) { return l.toLowerCase().indexOf(w) !== -1; })) return;
-      all = all.concat(amountsIn(l));
+      rest = rest.concat(amountsIn(l));
     });
-    return all.length ? Math.max.apply(null, all) : null;
+    return rest.length ? Math.max.apply(null, rest) : null;
   }
 
   /** Pronađi naziv trgovine (obično na vrhu računa). */

@@ -72,4 +72,31 @@ test('QR koji nije račun se ignorira', () => {
   assert.strictEqual(P.parseFiscalQr(''), null);
 });
 
+const stvarniOcr = `AMPER, obrt za elektroinstalacijske radovi
+Ulica Svjetla 7, 100800 Zagreb
+OIB: 96060088062
+Radionica Zagreb
+Račun: 1/1/1
+Datum i vrijeme: 17.08.2826. 10:38
+Operater: Marko Marić
+Elektroinstalacijski radovi sai
+4 ga, aa 158,06
+Ukupno bez poreza: 300, 0
+Porez: 75,68
+Ukupno: 375,096
+Porez Stopi
+POV 25,80'
+dh 308,00 75,0`;
+test('stvarna fotografija zaslona: pogrešno pročitana godina i ukupno', () => {
+  const r = P.parseReceipt(stvarniOcr);
+  assert.strictEqual(r.date, '2026-08-17');
+  assert.ok(Math.abs(r.total - 375) < 0.2, 'ukupno ' + r.total);
+});
+test('datum se ne smije pročitati kao iznos', () => {
+  assert.strictEqual(P.findTotal('Datum: 17.08.2026. 10:30\nGotovina 12,50'), 12.5);
+});
+test('ukupno kao zbroj osnovice i poreza kad nema ključne riječi', () => {
+  assert.strictEqual(P.findTotal('Osnovica 300,00\nPDV 75,00\nza 375,00 EUR kartica'), 375);
+});
+
 console.log(`\n${passed} testova prošlo`);

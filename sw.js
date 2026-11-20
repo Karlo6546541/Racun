@@ -1,5 +1,5 @@
 /* Service worker: aplikacija radi i bez interneta. */
-var VERSION = 'racuni-v2';
+var VERSION = 'racuni-v3';
 var SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'parser.js', 'scan.js', 'manifest.json', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', function (e) {
