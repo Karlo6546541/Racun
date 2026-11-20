@@ -62,4 +62,14 @@ test('prazan tekst', () => {
   assert.deepStrictEqual(P.parseReceipt(''), { store: '', date: null, total: null });
 });
 
+test('fiskalni QR kod', () => {
+  const r = P.parseFiscalQr('https://porezna-uprava.gov.hr/rn?jir=a1b2c3d4-0000-1111-2222-333344445555&datv=20250314_1742&izn=1.149,99');
+  assert.deepStrictEqual(r, { date: '2025-03-14', total: 1149.99 });
+  assert.deepStrictEqual(P.parseFiscalQr('https://porezna-uprava.gov.hr/rn?jir=x&datv=20241102_0905&izn=13,47'), { date: '2024-11-02', total: 13.47 });
+});
+test('QR koji nije račun se ignorira', () => {
+  assert.strictEqual(P.parseFiscalQr('https://example.com/?izn=5'), null);
+  assert.strictEqual(P.parseFiscalQr(''), null);
+});
+
 console.log(`\n${passed} testova prošlo`);

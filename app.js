@@ -210,10 +210,11 @@
     });
   }
   function drawScaled(img, max) {
-    var scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+    var scale = Math.min(1, max / Math.max(iw, ih));
     var c = document.createElement('canvas');
-    c.width = Math.round(img.naturalWidth * scale);
-    c.height = Math.round(img.naturalHeight * scale);
+    c.width = Math.round(iw * scale);
+    c.height = Math.round(ih * scale);
     c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
     return c;
   }
@@ -297,11 +298,13 @@
         $('#ocrRawWrap').hidden = !raw.trim();
         status.hidden = true;
         var done = $('#ocrDone');
-        var got = [found.store, found.date, found.total != null].filter(Boolean).length;
+        var got = [found.store, found.date, found.total != null, state.qrFound].filter(Boolean).length;
         done.hidden = false;
         if (got) {
           done.className = 'hint ok';
-          done.textContent = '✅ Račun pročitan. Provjerite podatke i ispravite ako treba.';
+          done.textContent = state.qrFound
+            ? '✅ QR kod pročitan: datum i iznos su točni. Provjerite ostalo.'
+            : '✅ Račun pročitan. Provjerite podatke i ispravite ako treba.';
         } else {
           done.className = 'hint warn';
           done.textContent = 'Nisam uspio pročitati račun. Upišite podatke ručno — slika je svejedno spremljena.';
@@ -394,21 +397,99 @@
     if (imageFile) handleImage(imageFile);
   }
 
+  var scriptCache = {};
+  function loadScript(src) {
+    if (!scriptCache[src]) {
+      scriptCache[src] = new Promise(function (resolve, reject) {
+        var el = document.createElement('script');
+        el.src = src; el.onload = resolve;
+        el.onerror = function () { delete scriptCache[src]; reject(new Error('load')); };
+        document.head.appendChild(el);
+      });
+    }
+    return scriptCache[src];
+  }
+
+  /** Traži QR kod na slici. Vraća tekst koda ili null. */
+  function readQr(canvases) {
+    return loadScript(OCR_BASE.replace('tesseract/', 'jsQR.js')).then(function () {
+      for (var i = 0; i < canvases.length; i++) {
+        var c = canvases[i];
+        var d = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+        var code = window.jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
+        if (code && code.data) return code.data;
+      }
+      return null;
+    }).catch(function () { return null; });
+  }
+
+  function canvasFromImageData(id) {
+    var c = document.createElement('canvas');
+    c.width = id.width; c.height = id.height;
+    c.getContext('2d').putImageData(new ImageData(id.data, id.width, id.height), 0, 0);
+    return c;
+  }
+  function toJpeg(canvas) {
+    return new Promise(function (resolve) { canvas.toBlob(resolve, 'image/jpeg', 0.8); });
+  }
+
   function handleImage(file) {
     var runId = state.ocrRun;
+    state.qrFound = false;
+    $('#cropToggle').hidden = true;
     loadImage(file).then(function (img) {
       if (runId !== state.ocrRun) return;
-      compress(img).then(function (blob) {
-        if (runId !== state.ocrRun) return;
-        state.draftImage = blob;
-        $('#formImageWrap').hidden = false;
-        $('#formImage').src = URL.createObjectURL(blob);
-      });
-      runOcr(img, runId);
-    }).catch(function () {
+      var full = drawScaled(img, 2200);
+
+      // 1) Izreži račun s pozadine (ako ga uspijemo pronaći)
+      var cropped = null;
+      try {
+        var fd = full.getContext('2d').getImageData(0, 0, full.width, full.height);
+        var res = window.RacunScan.cropReceipt(fd, 2000);
+        if (res) cropped = canvasFromImageData(res.cropped);
+      } catch (e) { console.error(e); }
+      var work = cropped || full;
+
+      return Promise.all([toJpeg(work), cropped ? toJpeg(full) : null, readQr(cropped ? [cropped, full] : [full])])
+        .then(function (r) {
+          if (runId !== state.ocrRun) return;
+          state.draftImage = r[0];
+          state.originalImage = r[1];
+          $('#formImageWrap').hidden = false;
+          $('#formImage').src = URL.createObjectURL(r[0]);
+          if (cropped) {
+            var t = $('#cropToggle');
+            t.hidden = false; t.dataset.mode = 'cropped';
+            t.textContent = '✂️ Račun izrezan s pozadine · Prikaži original';
+          }
+
+          // 2) QR kod: točan datum i iznos
+          var qr = r[2] ? P.parseFiscalQr(r[2]) : null;
+          if (qr) {
+            state.qrFound = true;
+            if (qr.date) { form.date.value = qr.date; delete form.date.dataset.auto; }
+            if (qr.total != null) form.total.value = qr.total.toFixed(2).replace('.', ',');
+            updateWarrantyResult();
+          }
+
+          // 3) Čitanje teksta (naziv trgovine i sve što QR nije dao)
+          runOcr(work, runId);
+        });
+    }).catch(function (e) {
+      console.error(e);
       toast('Ne mogu otvoriti tu sliku. Pokušajte ponovno.');
     });
   }
+
+  $('#cropToggle').addEventListener('click', function () {
+    var t = $('#cropToggle');
+    if (!state.originalImage) return;
+    var toOriginal = t.dataset.mode === 'cropped';
+    var tmp = state.draftImage; state.draftImage = state.originalImage; state.originalImage = tmp;
+    t.dataset.mode = toOriginal ? 'original' : 'cropped';
+    t.textContent = toOriginal ? '🖼️ Prikazan original · Izreži račun' : '✂️ Račun izrezan s pozadine · Prikaži original';
+    $('#formImage').src = URL.createObjectURL(state.draftImage);
+  });
 
   function onPicked(e) {
     var file = e.target.files && e.target.files[0];

@@ -122,7 +122,31 @@
     return d.toISOString().slice(0, 10);
   }
 
+  /**
+   * Fiskalni QR kod hrvatskog računa je poveznica poput
+   * https://porezna-uprava.gov.hr/rn?jir=...&datv=20250314_1742&izn=329,99
+   * Vraća { date, total } ili null ako tekst nije takav kod.
+   */
+  function parseFiscalQr(text) {
+    if (!text || !/porezna-uprava|[?&](jir|zki)=/i.test(text)) return null;
+    var q = text.indexOf('?') === -1 ? '' : text.slice(text.indexOf('?') + 1);
+    var params = {};
+    q.split('&').forEach(function (kv) {
+      var i = kv.indexOf('=');
+      if (i > 0) { try { params[kv.slice(0, i).toLowerCase()] = decodeURIComponent(kv.slice(i + 1)); } catch (e) { params[kv.slice(0, i).toLowerCase()] = kv.slice(i + 1); } }
+    });
+    var out = { date: null, total: null };
+    var m = /^(\d{4})(\d{2})(\d{2})/.exec((params.datv || '').replace(/\D/g, '').length >= 8 ? (params.datv || '').replace(/\D/g, '') : '');
+    if (m) out.date = toIso(+m[1], +m[2], +m[3]);
+    if (params.izn) {
+      var n = parseAmount(params.izn.replace(/[^\d.,]/g, ''));
+      if (n !== null) out.total = n;
+    }
+    return out.date || out.total != null ? out : null;
+  }
+
   var api = {
+    parseFiscalQr: parseFiscalQr,
     parseReceipt: parseReceipt, findDate: findDate, findTotal: findTotal,
     findStore: findStore, parseAmount: parseAmount, addMonths: addMonths
   };
