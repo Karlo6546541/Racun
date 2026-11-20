@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Moji Računi</title>
+  <meta name="description" content="Slikaj račun, aplikacija ga sama pročita i pamti do kada vrijedi garancija.">
+  <meta name="theme-color" content="#1d6b4f">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Računi">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-btn" id="backBtn" hidden aria-label="Natrag">←</button>
+    <h1 id="title">Moji Računi</h1>
+    <button class="icon-btn" id="menuBtn" aria-label="Postavke">⋮</button>
+  </header>
+
+  <main>
+    <!-- ===== POČETNI ZASLON ===== -->
+    <section id="view-list" class="view">
+      <div id="alertBox" class="alert" hidden></div>
+
+      <div class="big-actions">
+        <label class="btn btn-primary btn-huge">
+          <span class="btn-ico">📷</span>
+          <span>Slikaj račun</span>
+          <input type="file" accept="image/*" capture="environment" id="cameraInput" hidden>
+        </label>
+        <div class="row-2">
+          <label class="btn btn-secondary">
+            🖼️ Iz galerije
+            <input type="file" accept="image/*" id="galleryInput" hidden>
+          </label>
+          <button class="btn btn-secondary" id="manualBtn">✍️ Upiši ručno</button>
+        </div>
+      </div>
+
+      <div id="listControls" hidden>
+        <input type="search" id="search" class="search" placeholder="🔍 Traži (npr. televizor, Konzum…)" autocomplete="off">
+        <div class="chips" id="filterChips">
+          <button class="chip active" data-filter="all">Svi</button>
+          <button class="chip" data-filter="active">✅ Garancija vrijedi</button>
+          <button class="chip" data-filter="soon">⚠️ Uskoro ističe</button>
+          <button class="chip" data-filter="expired">Isteklo</button>
+        </div>
+      </div>
+
+      <ul id="list" class="cards"></ul>
+
+      <div id="empty" class="empty" hidden>
+        <div class="empty-ico">🧾</div>
+        <h2>Još nemate spremljenih računa</h2>
+        <p>Pritisnite <b>Slikaj račun</b> i uslikajte račun.<br>Aplikacija će sama pročitati trgovinu, datum i iznos.</p>
+        <p class="muted">Svi računi se spremaju samo na vašem mobitelu.</p>
+      </div>
+    </section>
+
+    <!-- ===== UNOS / UREĐIVANJE ===== -->
+    <section id="view-form" class="view" hidden>
+      <div id="formImageWrap" class="form-image" hidden>
+        <img id="formImage" alt="Slika računa">
+        <div id="ocrStatus" class="ocr-status" hidden>
+          <div class="spinner"></div>
+          <div>
+            <b id="ocrText">Čitam račun…</b>
+            <div class="progress"><div id="ocrBar"></div></div>
+          </div>
+        </div>
+      </div>
+      <div id="ocrDone" class="hint ok" hidden>✅ Račun pročitan. Provjerite podatke i ispravite ako treba.</div>
+
+      <form id="receiptForm" autocomplete="off">
+        <label class="field">
+          <span>Što ste kupili? <em>(npr. Perilica rublja)</em></span>
+          <input type="text" name="item" placeholder="Naziv proizvoda">
+        </label>
+        <label class="field">
+          <span>Trgovina</span>
+          <input type="text" name="store" placeholder="npr. Links, Sancta Domenica…">
+        </label>
+        <div class="row-2">
+          <label class="field">
+            <span>Datum kupnje</span>
+            <input type="date" name="date" required>
+          </label>
+          <label class="field">
+            <span>Cijena (€)</span>
+            <input type="text" name="total" inputmode="decimal" placeholder="0,00">
+          </label>
+        </div>
+
+        <fieldset class="field">
+          <legend>Garancija</legend>
+          <div class="chips wrap" id="warrantyChips">
+            <button type="button" class="chip" data-months="0">Bez garancije</button>
+            <button type="button" class="chip" data-months="12">1 godina</button>
+            <button type="button" class="chip active" data-months="24">2 godine</button>
+            <button type="button" class="chip" data-months="36">3 godine</button>
+            <button type="button" class="chip" data-months="60">5 godina</button>
+            <button type="button" class="chip" data-months="custom">Drugo…</button>
+          </div>
+          <label class="field" id="customWarranty" hidden>
+            <span>Garancija vrijedi do</span>
+            <input type="date" name="warrantyUntil">
+          </label>
+          <p class="warranty-result" id="warrantyResult"></p>
+        </fieldset>
+
+        <label class="field">
+          <span>Kategorija</span>
+          <select name="category">
+            <option value="">— odaberite —</option>
+            <option>📺 Elektronika</option>
+            <option>🏠 Kućanski aparati</option>
+            <option>🛋️ Namještaj</option>
+            <option>👕 Odjeća i obuća</option>
+            <option>🔧 Alati</option>
+            <option>🚗 Auto</option>
+            <option>🛒 Namirnice</option>
+            <option>💊 Zdravlje</option>
+            <option>📦 Ostalo</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Bilješka <em>(nije obavezno)</em></span>
+          <textarea name="note" rows="2" placeholder="npr. serijski broj, gdje je kutija…"></textarea>
+        </label>
+
+        <details id="ocrRawWrap" class="raw" hidden>
+          <summary>Prikaži prepoznati tekst</summary>
+          <pre id="ocrRaw"></pre>
+        </details>
+
+        <button type="submit" class="btn btn-primary btn-huge">💾 Spremi račun</button>
+      </form>
+    </section>
+
+    <!-- ===== DETALJI ===== -->
+    <section id="view-detail" class="view" hidden></section>
+  </main>
+
+  <!-- Izbornik -->
+  <dialog id="menu" class="sheet">
+    <h2>Postavke</h2>
+    <button class="btn btn-secondary" id="exportBtn">⬇️ Spremi sigurnosnu kopiju</button>
+    <label class="btn btn-secondary">
+      ⬆️ Vrati iz sigurnosne kopije
+      <input type="file" accept="application/json,.json" id="importInput" hidden>
+    </label>
+    <button class="btn btn-secondary" id="installBtn" hidden>📲 Dodaj na početni zaslon</button>
+    <p class="muted small">Računi se čuvaju samo na ovom uređaju. Povremeno spremite sigurnosnu kopiju (npr. na Google Drive ili e-mail) da ih ne izgubite ako promijenite mobitel.</p>
+    <button class="btn btn-ghost" id="closeMenu">Zatvori</button>
+  </dialog>
+
+  <!-- Slika preko cijelog zaslona -->
+  <dialog id="viewer" class="viewer"><img id="viewerImg" alt="Račun"></dialog>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="parser.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
