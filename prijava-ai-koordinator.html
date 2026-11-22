@@ -180,6 +180,32 @@ svg .strong{fill:var(--ink);font-weight:500}
 .letter ul{margin:0;padding-left:1.2rem;display:grid;gap:.35rem}
 .toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--card);padding:.5rem 1rem;font-size:.85rem;z-index:40;border-radius:8px}
 .legend-list{display:grid;gap:.3rem;font-size:.8rem;margin-top:.7rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+/* council, tools, projects */
+.cv{display:grid;gap:.5rem;align-content:start}
+.cv .top{display:flex;gap:.7rem;align-items:center}
+.av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:600;font-size:1.15rem;color:var(--accent-ink);background:var(--accent);flex:none}
+.cv p{font-size:.82rem}
+.cv ul{margin:0;padding-left:1.1rem;font-size:.8rem;color:var(--muted)}
+.vote{font-family:var(--f-mono);font-size:.68rem;padding:.12rem .55rem;border-radius:99px;border:1px solid currentColor;margin-left:auto;white-space:nowrap}
+.vote.za{color:var(--ok);background:var(--ok-soft)}.vote.uv{color:var(--warn);background:var(--warn-soft)}.vote.pr{color:var(--bad);background:var(--bad-soft)}.vote.su{color:var(--muted)}
+.decision{border-radius:12px;padding:1rem 1.15rem;background:var(--accent);color:var(--accent-ink)}
+.decision.uv{background:var(--s-pilot);color:#1b1300}.decision.pr{background:var(--bad);color:#fff}
+.decision h2{font-size:2rem}
+.decision ul{margin:.4rem 0 0;padding-left:1.1rem;font-size:.86rem}
+.tcard{display:grid;gap:.5rem;align-content:start}
+.tcard dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.2rem .7rem;font-size:.82rem}
+.tcard dt{font-family:var(--f-mono);font-size:.66rem;text-transform:uppercase;color:var(--muted);padding-top:.15rem}
+.tcard dd{margin:0}
+table.mx td,table.mx th{text-align:center}
+table.mx td:first-child,table.mx th:first-child{text-align:left}
+.mx button{width:100%;padding:.3rem .2rem;font-size:.78rem}
+.m0{background:var(--bad-soft);color:var(--bad)}.m1{background:var(--warn-soft);color:var(--warn)}.m2{background:var(--ok-soft);color:var(--ok)}
+.pj{display:grid;gap:.5rem;align-content:start}
+.pj .tl{display:flex;gap:.4rem;flex-wrap:wrap}
+.pj h4{display:flex;justify-content:space-between;gap:.6rem;align-items:center}
+.pj dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.25rem .7rem;font-size:.82rem}
+.pj dt{font-family:var(--f-mono);font-size:.66rem;text-transform:uppercase;color:var(--muted);padding-top:.15rem}
+.pj dd{margin:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -188,6 +214,9 @@ svg .strong{fill:var(--ink);font-weight:500}
   <div class="brand"><b>AI program</b><span>EKO MEĐIMURJE · Šenkovec</span></div>
   <a class="nav" href="#pregled" data-v="pregled"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Pregled</a>
   <a class="nav" href="#procesi" data-v="procesi"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 7l3 9M16 7l-3 9"/></svg>Mapa procesa</a>
+  <a class="nav" href="#projekti" data-v="projekti"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h14M4 18h8"/><circle cx="18" cy="6" r="2"/><circle cx="20" cy="18" r="2"/></svg>Projekti</a>
+  <a class="nav" href="#vijece" data-v="vijece"><svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.5"/><circle cx="5" cy="17" r="2.5"/><circle cx="19" cy="17" r="2.5"/><path d="M10 8l-4 7M14 8l4 7M8 17h8"/></svg>Vijeće</a>
+  <a class="nav" href="#alati" data-v="alati"><svg viewBox="0 0 24 24"><path d="M14 6l4 4-9 9H5v-4z"/><path d="M13 7l4 4"/></svg>Alati</a>
   <a class="nav" href="#agenti" data-v="agenti"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="11" rx="2"/><path d="M12 4v4M9 13h.01M15 13h.01"/></svg>AI agenti</a>
   <a class="nav" href="#sop" data-v="sop"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg>SOP i upute</a>
   <a class="nav" href="#registar" data-v="registar"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>AI registar</a>
@@ -207,7 +236,7 @@ svg .strong{fill:var(--ink);font-weight:500}
   <div class="g-wide">
     <div class="card"><h3>Kumulativna ušteda kroz 12 mjeseci</h3><div class="sub">Svaki proces počinje štedjeti od mjeseca pokretanja. Potvrđeno je ono što je odobrio voditelj odjela.</div><div class="legend" id="lg-line"></div><div id="ch-line"></div></div>
     <div class="card"><h3>Status ušteda</h3><div class="sub">Udio godišnje uštede po statusu.</div><div class="donut-wrap"><div id="ch-donut"></div><div class="legend" id="lg-donut"></div></div>
-      <div class="row" style="margin-top:.9rem"><label class="f" style="flex:1">Godišnji trošak AI alata (€)<input id="tools" type="number" min="0" step="500"></label>
+      <div class="row" style="margin-top:.9rem"><div class="f" style="flex:1">Trošak alata<a href="#alati" id="tools-l" style="font-size:.95rem;padding-top:.45rem;font-weight:600"></a></div>
       <label class="f" style="flex:1">Bonus na potvrđeno (%)<input id="bonus" type="number" min="0" max="50"></label></div></div>
   </div>
   <div class="g2">
@@ -226,8 +255,8 @@ svg .strong{fill:var(--ink);font-weight:500}
 <section class="view" id="v-procesi">
   <div class="head"><div><div class="label">Mapiranje procesa</div><h1>Mapa procesa i ušteda</h1>
   <p>Svaki odjel, svaki proces: koliko sati mjesečno troši, koliko se može automatizirati i koliko je to teško uvesti. Cijena sata mijenja sve izračune.</p></div>
-  <label class="f">Cijena radnog sata (€)<input id="rate" type="number" min="5" max="200"></label></div>
-  <div class="card"><h3>Procesi</h3><div class="sub">Brojke su ilustrativne. Mijenjaj sate i postotak automatizacije izravno u tablici, graf i ukupne brojke osvježavaju se odmah.</div>
+  <div class="row"><label class="f">Cijena radnog sata (€)<input id="rate" type="number" min="5" max="200"></label><label class="f">Ostvarenje uštede (%)<input id="real" type="number" min="10" max="100"></label></div></div>
+  <div class="card"><h3>Procesi</h3><div class="sub">Brojke su ilustrativne i namjerno umjerene: ušteda se množi faktorom ostvarenja jer se u praksi ne iskoristi svaka oslobođena minuta. Mijenjaj sate i postotak automatizacije izravno u tablici, graf i ukupne brojke osvježavaju se odmah.</div>
     <div class="scroll"><table id="proc"><thead><tr><th>#</th><th>Odjel</th><th>Proces</th><th class="n">h/mj</th><th class="n">Autom. %</th><th class="n">Teškoća 1-5</th><th class="n">Start (mj.)</th><th class="n">Ušteda/god</th><th>Status</th><th></th></tr></thead><tbody></tbody></table></div></div>
   <div class="g-wide">
     <div class="card"><h3>Matrica prioriteta</h3><div class="sub">Visoko i lijevo znači velika ušteda uz laku provedbu. Veličina kruga je broj sati. Brojevi odgovaraju tablici.</div><div id="ch-scatter"></div></div>
@@ -237,6 +266,43 @@ svg .strong{fill:var(--ink);font-weight:500}
       <div class="row"><label class="f" style="flex:1">h/mj<input id="np-h" type="number" min="1" value="40" required></label><label class="f" style="flex:1">Autom. %<input id="np-a" type="number" min="5" max="95" value="50" required></label></div>
       <button class="primary" type="submit">Dodaj u mapu</button></form></div>
   </div>
+</section>
+
+<!-- ============ PROJEKTI ============ -->
+<section class="view" id="v-projekti">
+  <div class="head"><div><div class="label">Portfelj</div><h1>Projekti AI programa</h1>
+  <p>Sedam projekata s vlasnikom, alatom, rokom i mjerom uspjeha. Statusi su pošteni: prototipovi u ovoj aplikaciji stvarno postoje, ostalo je plan. Status promijeni tek kad projekt stvarno napreduje.</p></div></div>
+  <div class="kpis" id="pj-k"></div>
+  <div class="card"><h3>Vremenski plan</h3><div class="sub">Dvanaest mjeseci od prosinca 2026.</div><div class="legend" id="lg-pj"></div><div class="scroll"><div id="ch-gantt" style="min-width:560px"></div></div></div>
+  <div class="g2" id="pj-cards"></div>
+</section>
+
+<!-- ============ VIJEĆE ============ -->
+<section class="view" id="v-vijece">
+  <div class="head"><div><div class="label">Odlučivanje</div><h1>AI vijeće</h1>
+  <p>Svaki prijedlog prije pilota pregleda vijeće uloga: Skeptik, Kontroler, Kvaliteta, Operativa, Marketer i SEO. Svaka uloga glasa iz svoje perspektive, a koordinator sastavlja odluku s uvjetima.</p></div></div>
+  <div class="g-wide">
+    <div class="card"><h3>Prijedlog</h3><div class="sub">Odaberi projekt iz portfelja ili upiši vlastiti prijedlog.</div>
+      <label class="f">Projekt<select id="cv-sel"></select></label>
+      <div id="cv-custom" hidden style="margin-top:.7rem"><div class="form">
+        <label class="f" style="grid-column:1/-1">Naziv<input id="cu-n" value="Novi prijedlog"></label>
+        <label class="f">h/mj<input id="cu-h" type="number" min="1" value="30"></label><label class="f">Autom. %<input id="cu-a" type="number" min="5" max="95" value="40"></label><label class="f">Teškoća 1-5<input id="cu-d" type="number" min="1" max="5" value="3"></label></div>
+        <div class="row" style="margin-top:.6rem"><label class="chk"><input type="checkbox" id="cu-cf"> vidljivo kupcu</label><label class="chk"><input type="checkbox" id="cu-cd"> podaci kupca</label><label class="chk"><input type="checkbox" id="cu-web"> web sadržaj</label><label class="chk"><input type="checkbox" id="cu-pd"> osobni podaci</label><label class="chk"><input type="checkbox" id="cu-hr"> odluke o ljudima</label></div></div>
+      <div id="cv-sum" style="margin-top:.8rem"></div></div>
+    <div id="cv-dec"></div>
+  </div>
+  <div class="g3" id="council"></div>
+  <div class="card"><h3>Vijeće s vanjskim modelima</h3><div class="sub">Isto vijeće možeš odraditi s pravim modelima. Svakoj ulozi dodijeli model, kopiraj prompt i zalijepi ga. Ne šalji povjerljive podatke kupaca, vidi matricu u alatima.</div><div class="scroll"><table id="prompts"><thead><tr><th>Uloga</th><th>Model</th><th>Fokus</th><th></th></tr></thead><tbody></tbody></table></div><pre id="prompt-box" hidden></pre></div>
+  <div class="card"><h3>Dnevnik odluka</h3><div class="sub">Svaka odluka vijeća ostaje zapisana.</div><div class="scroll"><table id="dlog"><thead><tr><th>Datum</th><th>Prijedlog</th><th class="n">Ocjena</th><th>Odluka</th><th></th></tr></thead><tbody></tbody></table></div></div>
+</section>
+
+<!-- ============ ALATI ============ -->
+<section class="view" id="v-alati">
+  <div class="head"><div><div class="label">Alati i podaci</div><h1>Skup AI alata</h1>
+  <p>Svaki alat ima svoju ulogu, broj korisnika i cijenu. Matrica pokazuje koji se podaci smiju u koji alat. Cijene su procjene za izračun, uredi ih prema stvarnoj ponudi.</p></div></div>
+  <div class="kpis" id="tl-k"></div>
+  <div class="g2" id="tl-cards"></div>
+  <div class="card"><h3>Matrica: koji podaci u koji alat</h3><div class="sub">Klikni ćeliju da promijeniš. Uvjetno znači samo uz ugovor, odobrenje koordinatora i anonimizaciju.</div><div class="scroll"><table class="mx" id="mx"></table></div></div>
 </section>
 
 <!-- ============ AGENTI ============ -->
@@ -331,6 +397,7 @@ svg .strong{fill:var(--ink);font-weight:500}
         <li><b>AI agenti:</b> obrada upita kupaca, 8D izvješća, provjera certifikata 3.1 i prijedlog tehnološkog lista.</li>
         <li><b>Radne upute i SOP:</b> praćenje svake izmjene dokumentacije nakon uvođenja AI rješenja.</li>
         <li><b>Obuka:</b> mreža AI ambasadora po odjelima, moduli obuke i provjera znanja.</li>
+        <li><b>Alati i vijeće:</b> skup alata (Claude Code, Gemini, ChatGPT Codex, Grok) s pravilima o podacima i vijeće uloga koje procjenjuje svaki prijedlog prije pilota.</li>
         <li><b>Pravila:</b> registar rješenja s razvrstavanjem rizika prema EU AI Actu i GDPR-u.</li>
         <li><b>Izvještavanje:</b> potvrđene uštede i mjesečni izvještaj za upravu, uz bonus vezan uz potvrđene uštede.</li>
       </ul>
@@ -340,7 +407,7 @@ svg .strong{fill:var(--ink);font-weight:500}
       <div class="row" style="margin-top:1rem"><button class="primary" type="button" data-copy="letter">Kopiraj zamolbu</button></div></div>
     <div class="grid" style="display:grid;gap:16px;align-content:start">
       <div class="card"><h3>Primjer: upit kupca u pet minuta</h3><div class="sub">Opis koji oglas traži uz životopis.</div><div class="letter" id="example">
-        <p><b>Problem.</b> Upit kupca stiže e-poštom s crtežima i nepotpunim zahtjevima. Tehnolog ručno čita materijal, norme (EN 1090, ISO 3834, EN 10204 3.1), površinsku zaštitu i rok, pa kupcu piše dodatna pitanja. U izračunu aplikacije to je 120 sati mjesečno.</p>
+        <p><b>Problem.</b> Upit kupca stiže e-poštom s crtežima i nepotpunim zahtjevima. Tehnolog ručno čita materijal, norme (EN 1090, ISO 3834, EN 10204 3.1), površinsku zaštitu i rok, pa kupcu piše dodatna pitanja. U izračunu aplikacije to je oko 80 sati mjesečno, od čega se realno ostvari tek trećina.</p>
         <p><b>Rješenje.</b> Agent čita upit, izvlači zahtjeve u karticu, označava što nedostaje i priprema odgovor. Tehnolog pregledava i šalje. Kalkulaciju i odluku o ponudi radi čovjek.</p>
         <p><b>Mjerenje.</b> Prosječno vrijeme obrade mjeri se prije i poslije pilota. Ušteda ide u mapu kao Pilot, a nakon potvrde voditelja prodaje postaje Potvrđeno.</p>
         <p><b>Dokumentacija.</b> Promjena je upisana u SOP pregleda zahtjeva kupca (ISO 9001, točka 8.2.3) i u AI registar.</p></div>
@@ -361,31 +428,45 @@ const short=v=>v>=1000?Math.round(v/1000).toLocaleString("hr-HR")+" tis.":Math.r
 function toast(t){const e=$("#toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,1800)}
 const STATUS=["Ideja","Pilot","Potvrđeno"];
 const COL={Ideja:"var(--s-idea)",Pilot:"var(--s-pilot)","Potvrđeno":"var(--s-ok)"};
-const DEPTS=["Prodaja i nabava","Tehnologija","Kvaliteta","Proizvodnja","Održavanje","HR i HSE","Financije"];
+const DEPTS=["Prodaja i nabava","Tehnologija","Kvaliteta","Proizvodnja","Održavanje","HR i HSE","Financije","Marketing i web","Uprava"];
 const MONTHS=["pro","sij","velj","ožu","tra","svi","lip","srp","kol","ruj","lis","stu"];
 
 /* ---------- stanje ---------- */
-const DEFAULT=()=>({rate:18,bonus:10,tools:7200,
+const DEFAULT=()=>({rate:22,real:70,bonus:10,extra:600,
+ tl:{claude:{u:3,p:25},codex:{u:1,p:25},gemini:{u:8,p:20},grok:{u:1,p:30}},
+ dm:{claude:[2,2,1,0],codex:[2,1,0,0],gemini:[2,2,1,0],grok:[2,0,0,0]},
  procs:[
-  {id:"rfq",o:"Prodaja i nabava",p:"Obrada upita kupaca i priprema ponude",h:120,a:70,s:"Pilot",d:2,st:1},
-  {id:"8d",o:"Kvaliteta",p:"Izrada 8D izvješća i evidencija nesukladnosti",h:60,a:55,s:"Ideja",d:2,st:3},
-  {id:"cert",o:"Kvaliteta",p:"Provjera certifikata 3.1 i mapa sljedivosti",h:90,a:65,s:"Potvrđeno",d:3,st:0},
-  {id:"tech",o:"Tehnologija",p:"Izrada tehnoloških listova iz crteža",h:140,a:40,s:"Ideja",d:4,st:5},
-  {id:"rn",o:"Proizvodnja",p:"Unos radnih naloga i povratnih informacija iz pogona",h:80,a:50,s:"Pilot",d:3,st:2},
-  {id:"odrz",o:"Održavanje",p:"Evidencija kvarova i tjedna izvješća",h:40,a:45,s:"Ideja",d:2,st:6},
-  {id:"chat",o:"HR i HSE",p:"Odgovori na pitanja o radnim uputama i pravilima",h:30,a:60,s:"Ideja",d:3,st:4},
-  {id:"fin",o:"Financije",p:"Razvrstavanje i knjiženje ulaznih računa",h:70,a:60,s:"Potvrđeno",d:2,st:0}],
+  {id:"rfq",o:"Prodaja i nabava",p:"Obrada upita kupaca i priprema ponude",h:80,a:35,s:"Pilot",d:2,st:1},
+  {id:"8d",o:"Kvaliteta",p:"Izrada 8D izvješća i evidencija nesukladnosti",h:30,a:40,s:"Ideja",d:2,st:3},
+  {id:"cert",o:"Kvaliteta",p:"Provjera certifikata 3.1 i mapa sljedivosti",h:60,a:45,s:"Pilot",d:3,st:2},
+  {id:"tech",o:"Tehnologija",p:"Izrada tehnoloških listova iz crteža",h:100,a:25,s:"Ideja",d:4,st:5},
+  {id:"rn",o:"Proizvodnja",p:"Unos radnih naloga i povratnih informacija iz pogona",h:70,a:30,s:"Ideja",d:3,st:4},
+  {id:"odrz",o:"Održavanje",p:"Evidencija kvarova i tjedna izvješća",h:25,a:30,s:"Ideja",d:2,st:6},
+  {id:"chat",o:"HR i HSE",p:"Odgovori na pitanja o radnim uputama i pravilima",h:20,a:40,s:"Ideja",d:3,st:6},
+  {id:"fin",o:"Financije",p:"Razvrstavanje i knjiženje ulaznih računa",h:50,a:45,s:"Potvrđeno",d:2,st:0},
+  {id:"mkt",o:"Marketing i web",p:"Tehnički sadržaj za web i priprema materijala",h:14,a:40,s:"Ideja",d:2,st:4},
+  {id:"izv",o:"Uprava",p:"Mjesečno izvještavanje o uštedama",h:12,a:55,s:"Pilot",d:1,st:0}],
+ pj:[
+  {id:"rfq",n:"Agent za upite kupaca",o:"Prodaja i nabava",tools:["claude","gemini"],s:"Prototip",from:0,to:3,cf:1,cd:1,web:0,pd:0,problem:"Upit stiže e-poštom s crtežima i nepotpunim zahtjevima. Tehnolog ga ručno čita i piše dodatna pitanja kupcu.",sol:"Alat izrađen u Claude Codeu izvlači zahtjeve u karticu upita. Gemini čita PDF crteže i tablice. Odgovor šalje čovjek.",kpi:"Prosječno vrijeme obrade upita i udio upita s potpunom karticom."},
+  {id:"cert",n:"Provjera certifikata 3.1",o:"Kvaliteta",tools:["claude","codex"],s:"Prototip",from:1,to:3,cf:0,cd:1,web:0,pd:0,problem:"Kontrolor ručno uspoređuje kemijski sastav i broj taline s certifikatom i normom.",sol:"Skripta uspoređuje vrijednosti s granicama razreda i računa CEV. Claude Code piše skriptu, Codex je pregledava kao drugo mišljenje.",kpi:"Vrijeme provjere po isporuci i broj uhvaćenih odstupanja."},
+  {id:"8d",n:"Asistent za 8D izvješća",o:"Kvaliteta",tools:["claude"],s:"Prototip",from:2,to:4,cf:0,cd:1,web:0,pd:0,problem:"8D izvješća se pišu s nule, uzroci se traže po sjećanju i razlikuju se od slučaja do slučaja.",sol:"Asistent razvrstava vrstu greške i priprema nacrt D1 do D8. Voditelj kvalitete potvrđuje uzrok i mjere.",kpi:"Vrijeme do prvog nacrta i broj izvješća zatvorenih u roku."},
+  {id:"tech",n:"Tehnološki list iz crteža",o:"Tehnologija",tools:["gemini","claude"],s:"Prijedlog",from:4,to:9,cf:0,cd:1,web:0,pd:0,problem:"Tehnolog iz crteža ručno slaže operacije i vremena, često iz sličnih prijašnjih naloga.",sol:"Gemini čita crtež, Claude predlaže redoslijed operacija iz arhive naloga. Tehnolog odobrava svaki list.",kpi:"Vrijeme izrade lista i odstupanje planiranog od stvarnog vremena."},
+  {id:"chat",n:"Asistent za radne upute",o:"HR i HSE",tools:["claude","gemini"],s:"Prijedlog",from:5,to:7,cf:0,cd:0,web:0,pd:0,problem:"Pitanja o uputama i pravilima stalno završavaju kod istih ljudi.",sol:"Asistent odgovara samo iz odobrenih dokumenata i navodi izvor. Za zaštitu na radu upućuje na voditelja HSE.",kpi:"Broj pitanja koja stignu do voditelja i zadovoljstvo korisnika."},
+  {id:"mkt",n:"Tehnički sadržaj za web i SEO",o:"Marketing i web",tools:["grok","gemini"],s:"Prijedlog",from:3,to:8,cf:1,cd:0,web:1,pd:0,problem:"Web ne objašnjava što tvrtka stvarno radi: norme, materijale, zavarivanje, kontrolu.",sol:"Grok istražuje što kupci traže i što rade konkurenti, Gemini priprema nacrte stranica. Tehnolog provjerava svaku činjenicu prije objave.",kpi:"Broj upita s weba i položaj za ključne pojmove."},
+  {id:"izv",n:"Radna ploča AI programa",o:"Uprava",tools:["claude"],s:"Prototip",from:0,to:1,cf:0,cd:0,web:0,pd:0,problem:"Uštede se ne prate na jednom mjestu, pa uprava ne vidi što je potvrđeno.",sol:"Ova aplikacija: mapa procesa, uštede po statusu, mjesečni izvještaj. Izrađena u Claude Codeu.",kpi:"Postotak procesa s potvrđenom uštedom i točnost procjena."}],
+ dec:[],rm:{skeptik:"grok",kontroler:"claude",kvaliteta:"claude",operativa:"codex",marketer:"gemini",seo:"gemini"},
  reg:[
-  {n:"Agent za upite kupaca",o:"Voditelj prodaje",u:"proc",pd:1,cd:1,a:"Odobreno"},
-  {n:"Provjera certifikata 3.1",o:"Voditelj kvalitete",u:"proc",pd:0,cd:1,a:"Odobreno"},
-  {n:"Asistent za radne upute",o:"Voditelj HSE",u:"chat",pd:0,cd:0,a:"U pregledu"},
+  {n:"Agent za upite kupaca",o:"Voditelj prodaje",u:"proc",pd:0,cd:1,a:"U pregledu"},
+  {n:"Provjera certifikata 3.1",o:"Voditelj kvalitete",u:"proc",pd:0,cd:1,a:"U pregledu"},
+  {n:"Asistent za radne upute",o:"Voditelj HSE",u:"chat",pd:0,cd:0,a:"Prijedlog"},
   {n:"Razvrstavanje ulaznih računa",o:"Voditelj financija",u:"proc",pd:0,cd:0,a:"Odobreno"}],
  sop:{},
- amb:{"Prodaja i nabava":{n:"",emp:28,tr:12},"Tehnologija":{n:"",emp:34,tr:20},"Kvaliteta":{n:"",emp:32,tr:18},"Proizvodnja":{n:"",emp:228,tr:40},"Održavanje":{n:"",emp:26,tr:8},"HR i HSE":{n:"",emp:18,tr:6},"Financije":{n:"",emp:22,tr:15},"Uprava":{n:"",emp:12,tr:10}}});
+ amb:{"Prodaja i nabava":{n:"",emp:28,tr:8},"Tehnologija":{n:"",emp:34,tr:14},"Kvaliteta":{n:"",emp:32,tr:12},"Proizvodnja":{n:"",emp:222,tr:24},"Održavanje":{n:"",emp:26,tr:5},"HR i HSE":{n:"",emp:18,tr:4},"Financije":{n:"",emp:22,tr:10},"Marketing i web":{n:"",emp:6,tr:3},"Uprava":{n:"",emp:12,tr:8}}});
 let S=DEFAULT();
-try{const sv=JSON.parse(localStorage.getItem("eko-app-v2")||"null");if(sv&&sv.procs)S=Object.assign(DEFAULT(),sv)}catch(e){}
-let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem("eko-app-v2",JSON.stringify(S))}catch(e){}},200)}
-const sav=p=>p.h*12*p.a/100*S.rate;
+try{const sv=JSON.parse(localStorage.getItem("eko-app-v3")||"null");if(sv&&sv.procs)S=Object.assign(DEFAULT(),sv)}catch(e){}
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem("eko-app-v3",JSON.stringify(S))}catch(e){}},200)}
+const sav=p=>p.h*12*p.a/100*S.rate*S.real/100;
+const toolsCost=()=>Object.values(S.tl).reduce((a,t)=>a+t.u*t.p,0)*12+S.extra;
 const sumBy=(f,pred)=>S.procs.filter(pred||(()=>true)).reduce((a,p)=>a+f(p),0);
 
 /* ---------- grafovi ---------- */
@@ -427,10 +508,10 @@ function ring(pct,color){const r=34,C=2*Math.PI*r;return`<svg viewBox="0 0 84 84
 /* ---------- pregled ---------- */
 function totals(){const t=s=>sumBy(sav,p=>p.s===s);return{ok:t("Potvrđeno"),pi:t("Pilot"),id:t("Ideja"),all:sumBy(sav)}}
 function renderDash(){
-  const T=totals(),hrs=sumBy(p=>p.h*12*p.a/100,p=>p.s==="Potvrđeno"),net=T.ok-S.tools;
+  const T=totals(),hrs=sumBy(p=>p.h*12*p.a/100,p=>p.s==="Potvrđeno"),net=T.ok-toolsCost();
   $("#kpis").innerHTML=
    `<div class="kpi hi"><div class="label">Potvrđena ušteda godišnje</div><div class="v">${eur(T.ok)}</div><div class="d">${S.procs.filter(p=>p.s==="Potvrđeno").length} potvrđena procesa</div></div>
-    <div class="kpi"><div class="label">Neto nakon troška alata</div><div class="v" style="color:${net>=0?"var(--ok)":"var(--bad)"}">${eur(net)}</div><div class="d">trošak alata ${eur(S.tools)}</div></div>
+    <div class="kpi"><div class="label">Neto nakon troška alata</div><div class="v" style="color:${net>=0?"var(--ok)":"var(--bad)"}">${eur(net)}</div><div class="d">trošak alata ${eur(toolsCost())}</div></div>
     <div class="kpi"><div class="label">U pilotu</div><div class="v">${eur(T.pi)}</div><div class="d">čeka potvrdu odjela</div></div>
     <div class="kpi"><div class="label">Sati oslobođeno godišnje</div><div class="v">${Math.round(hrs).toLocaleString("hr-HR")}</div><div class="d">samo potvrđeni procesi</div></div>
     <div class="kpi"><div class="label">Osnovica bonusa (${S.bonus}%)</div><div class="v">${eur(T.ok*S.bonus/100)}</div><div class="d">samo na potvrđeno</div></div>`;
@@ -455,7 +536,7 @@ function renderDash(){
 `MJESEČNI IZVJEŠTAJ O AI PROGRAMU, studeni 2026.
 
 Potvrđene uštede (godišnje): ${eur(T.ok)}
-Neto nakon troška alata (${eur(S.tools)}): ${eur(net)}
+Neto nakon troška alata (${eur(toolsCost())}): ${eur(net)}
 U pilotu, čeka potvrdu: ${eur(T.pi)}
 Ideje u mapi: ${eur(T.id)}
 Oslobođeno sati godišnje (potvrđeno): ${Math.round(hrs).toLocaleString("hr-HR")}
@@ -464,12 +545,15 @@ Osnovica bonusa (${S.bonus}%): ${eur(T.ok*S.bonus/100)}
 Najveće prilike:
 ${top.map((p,i)=>`${i+1}. ${p.o}: ${p.p} (${eur(sav(p))}/god, ${p.s})`).join("\n")||"-"}
 
+Projekti: ${S.pj.length}, od toga ${S.pj.filter(x=>x.s!=="Prijedlog").length} u prototipu ili dalje.
 Obuka: ${trainedTotal()}% zaposlenika obučeno.
 Registar: ${S.reg.length} rješenja, ${S.reg.filter(r=>risk(r)[0]==="vis").length} visokog rizika.`;
 }
 const COVER=[
  ["1","Mapiranje procesa i uštede","Što rade odjeli i gdje AI štedi vrijeme i novac","procesi"],
  ["2","AI agenti i automatizacije","Upiti kupaca, 8D, certifikati 3.1, tehnološki list","agenti"],
+ ["2","Projekti i skup alata","Claude Code, Gemini, Codex, Grok i portfelj projekata","projekti"],
+ ["2","AI vijeće za odluke","Skeptik, Kontroler, Kvaliteta, Marketer i SEO glasaju","vijece"],
  ["3","Radne upute i SOP-ovi","Izmjena dokumentacije nakon svakog uvođenja","sop"],
  ["4","Obuka i AI ambasadori","Mreža ambasadora po odjelima, moduli, provjera znanja","obuka"],
  ["5","Pravila, GDPR i EU AI Act","Registar rješenja i razvrstavanje rizika","registar"],
@@ -496,8 +580,8 @@ $("#np-o").innerHTML=DEPTS.map(d=>`<option>${d}</option>`).join("");
 $("#proc-form").addEventListener("submit",e=>{e.preventDefault();
   S.procs.push({id:"n"+Date.now(),o:$("#np-o").value,p:$("#np-p").value.trim(),h:+$("#np-h").value,a:+$("#np-a").value,s:"Ideja",d:3,st:6});
   e.target.reset();$("#np-o").innerHTML=DEPTS.map(d=>`<option>${d}</option>`).join("");save();renderAll();toast("Proces dodan")});
+$("#real").addEventListener("input",e=>{S.real=Math.min(100,+e.target.value||0);save();renderProcCharts();renderDash();renderPj()});
 $("#rate").addEventListener("input",e=>{S.rate=+e.target.value||0;save();renderProcCharts();renderDash()});
-$("#tools").addEventListener("input",e=>{S.tools=+e.target.value||0;save();renderDash()});
 $("#bonus").addEventListener("input",e=>{S.bonus=+e.target.value||0;save();renderDash()});
 $("#reset").onclick=()=>{S=DEFAULT();save();renderAll();toast("Vraćeni primjeri")};
 
@@ -607,6 +691,8 @@ $("#agtabs").addEventListener("click",e=>{const b=e.target.closest("button[data-
 
 /* ---------- SOP ---------- */
 const SOPS={
+ mkt:{docs:[["RU-MK-002","Objava sadržaja na web i društvene mreže"]],chg:"Svaki tekst koji je pripremio AI provjerava tehnolog za činjenice (norme, materijali, mogućnosti). Bez te potvrde se ne objavljuje."},
+ izv:{docs:[["POL-AI-02","Mjesečno izvještavanje o AI programu"]],chg:"Izvještaj upravi generira se iz mape procesa. Uštede postaju potvrđene tek nakon potpisa voditelja odjela."},
  rfq:{docs:[["SOP-7.2","Pregled zahtjeva kupca (ISO 9001, 8.2.3)"],["RU-PR-012","Obrada upita i priprema ponude"]],chg:"Dodaj korak: tehnolog pregledava karticu upita koju je pripremio AI agent i potvrđuje je prije slanja pitanja kupcu. Evidentiraj verziju kartice uz ponudu."},
  "8d":{docs:[["SOP-10.2","Nesukladnost i korektivne mjere (ISO 9001, 10.2)"],["RU-KV-021","Izrada 8D izvješća"]],chg:"AI priprema nacrt opisa problema i popisa mogućih uzroka. Voditelj kvalitete potvrđuje uzrok i mjere. U izvješću naznači da je nacrt pripremljen AI alatom."},
  cert:{docs:[["RU-KV-030","Dokumentacija isporuke i mapa sljedivosti"],["SOP-8.5","Sljedivost i identifikacija (ISO 9001, 8.5.2)"]],chg:"Dodaj automatsku provjeru podudarnosti broja taline i kemijskog sastava s certifikatom 3.1 (EN 10204). Odstupanja pregledava kontrolor kvalitete."},
@@ -681,17 +767,127 @@ let qs=[];function renderQuiz(){$("#quiz").innerHTML=QZ.map((q,i)=>`<div class="
 $("#quiz").addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b||qs[+b.dataset.q]!==undefined)return;qs[+b.dataset.q]=+b.dataset.o;renderQuiz()});
 $("#qreset").onclick=()=>{qs=[];renderQuiz()};
 
+/* ---------- alati ---------- */
+const TOOLS=[
+ {id:"claude",n:"Claude / Claude Code",use:"Razvoj internih alata i skripti, analiza dugih dokumenata, pisanje radnih uputa i SOP-ova.",best:"Strukturiran tekst, kod, dugi dokumenti",watch:"Vlasnik procesa pregledava svaki rezultat",council:"Kontroler i Kvaliteta"},
+ {id:"codex",n:"ChatGPT / Codex",use:"Skripte i automatizacije (izvozi iz ERP-a, Excel) i drugo mišljenje na kod koji je napisao drugi alat.",best:"Brze skripte, pregled koda",watch:"Bez podataka kupaca i osobnih podataka",council:"Operativa"},
+ {id:"gemini",n:"Gemini",use:"Čitanje PDF crteža i skeniranih dokumenata, rad s Google Workspaceom ako ga tvrtka koristi, nacrti tekstova.",best:"Slike, PDF-ovi, tablice",watch:"Crteži kupaca samo uz ugovor i odobrenje",council:"Marketer i SEO"},
+ {id:"grok",n:"Grok",use:"Brzo istraživanje tržišta i novosti te kritički pogled kao Skeptik u vijeću.",best:"Aktualne informacije, oštar kritički ton",watch:"Samo javni podaci, činjenice se provjeravaju",council:"Skeptik"}];
+const TN=Object.fromEntries(TOOLS.map(t=>[t.id,t.n.split(" /")[0]]));
+const DC=["Javno","Interno","Povjerljivo (crteži kupca)","Osobni podaci"],ML=["Ne","Uvjetno","Da"];
+function renderToolsK(){
+  const tc=toolsCost(),users=Object.values(S.tl).reduce((a,t)=>a+t.u,0),T=totals();
+  $("#tl-k").innerHTML=`<div class="kpi hi"><div class="label">Godišnji trošak alata</div><div class="v">${eur(tc)}</div><div class="d">licence i ostalo</div></div>
+   <div class="kpi"><div class="label">Korisnika</div><div class="v">${users}</div><div class="d">od ${Object.values(S.amb).reduce((a,v)=>a+v.emp,0)} zaposlenih</div></div>
+   <div class="kpi"><div class="label">Potvrđeno / trošak</div><div class="v">${(T.ok/tc).toFixed(1).replace(".",",")}×</div><div class="d">potencijal ${(T.all/tc).toFixed(1).replace(".",",")}×</div></div>`;
+  $("#tools-l").textContent=eur(tc)+" godišnje";
+}
+function renderTools(){
+  renderToolsK();
+  $("#tl-cards").innerHTML=TOOLS.map(t=>{const v=S.tl[t.id];return`<div class="card tcard" data-t="${t.id}"><h3>${t.n}</h3>
+   <dl><dt>Uloga</dt><dd>${t.use}</dd><dt>Dobro za</dt><dd>${t.best}</dd><dt>Oprez</dt><dd>${t.watch}</dd><dt>U vijeću</dt><dd>${t.council}</dd></dl>
+   <div class="row"><label class="f">Korisnika<input type="number" min="0" data-f="u" value="${v.u}"></label><label class="f">€ po korisniku mj. (procjena)<input type="number" min="0" data-f="p" value="${v.p}"></label><span class="mono muted" style="font-size:.78rem">${eur(v.u*v.p*12)}/god</span></div></div>`}).join("")+
+   `<div class="card tcard"><h3>Ostali troškovi</h3><dl><dt>Što</dt><dd>Pristup API-ju, integracije, vanjska pomoć pri uvođenju, obuka.</dd></dl><label class="f">€ godišnje<input id="extra" type="number" min="0" value="${S.extra}"></label></div>`;
+  $("#mx").innerHTML=`<thead><tr><th>Vrsta podataka</th>${TOOLS.map(t=>`<th>${TN[t.id]}</th>`).join("")}</tr></thead><tbody>${DC.map((c,ci)=>`<tr><td>${c}</td>${TOOLS.map(t=>{const v=S.dm[t.id][ci];return`<td><button type="button" class="m${v}" data-mt="${t.id}" data-mc="${ci}">${ML[v]}</button></td>`}).join("")}</tr>`).join("")}</tbody>`;
+}
+$("#tl-cards").addEventListener("input",e=>{const c=e.target.closest("[data-t]"),f=e.target.dataset.f;
+  if(e.target.id==="extra"){S.extra=Math.max(0,+e.target.value||0)}else if(c&&f){S.tl[c.dataset.t][f]=Math.max(0,+e.target.value||0);c.querySelector(".mono").textContent=eur(S.tl[c.dataset.t].u*S.tl[c.dataset.t].p*12)+"/god"}else return;
+  save();renderToolsK();renderDash()});
+$("#mx").addEventListener("click",e=>{const b=e.target.closest("[data-mt]");if(!b)return;const a=S.dm[b.dataset.mt],i=+b.dataset.mc;a[i]=(a[i]+1)%3;save();renderTools()});
+
+/* ---------- projekti ---------- */
+const PS=["Prijedlog","Prototip","Pilot","Produkcija"],PC={Prijedlog:"var(--s-idea)",Prototip:"var(--blue)",Pilot:"var(--s-pilot)",Produkcija:"var(--s-ok)"};
+const procOf=id=>S.procs.find(p=>p.id===id);
+function gantt(){
+  const W=720,L=200,RH=34,T=26,cw=(W-L-8)/12,H=T+S.pj.length*RH+6;let g="";
+  MONTHS.forEach((m,i)=>{g+=`<line class="grid" x1="${L+i*cw}" x2="${L+i*cw}" y1="${T-4}" y2="${H-4}"/><text class="ax" x="${L+i*cw+cw/2}" y="14" text-anchor="middle">${m}</text>`});
+  S.pj.forEach((j,i)=>{const y=T+i*RH;g+=`<text class="ax strong" x="0" y="${y+RH/2+3}">${esc(j.n.length>27?j.n.slice(0,26)+"…":j.n)}</text><rect x="${L+j.from*cw+2}" y="${y+6}" width="${(j.to-j.from+1)*cw-4}" height="${RH-14}" rx="5" style="fill:${PC[j.s]}"><title>${esc(j.n)}: ${j.s}</title></rect>`});
+  return`<svg class="ch" viewBox="0 0 ${W} ${H}" role="img" aria-label="Vremenski plan projekata">${g}</svg>`}
+function renderPj(){
+  const tot=S.pj.reduce((a,j)=>{const p=procOf(j.id);return a+(p?sav(p):0)},0),adv=S.pj.filter(j=>j.s!=="Prijedlog").length;
+  $("#pj-k").innerHTML=`<div class="kpi hi"><div class="label">Projekata u portfelju</div><div class="v">${S.pj.length}</div></div><div class="kpi"><div class="label">Prototip ili dalje</div><div class="v">${adv}</div><div class="d">ostalo su prijedlozi</div></div><div class="kpi"><div class="label">Planirana ušteda portfelja</div><div class="v">${eur(tot)}</div><div class="d">godišnje, uz faktor ostvarenja ${S.real}%</div></div>`;
+  $("#lg-pj").innerHTML=legend(PS.map(s=>[s,PC[s]]));$("#ch-gantt").innerHTML=gantt();
+  $("#pj-cards").innerHTML=S.pj.map((j,i)=>{const p=procOf(j.id);return`<div class="card pj"><h4><span>${esc(j.n)}</span><select data-j="${i}" aria-label="Status projekta">${PS.map(s=>`<option${s===j.s?" selected":""}>${s}</option>`).join("")}</select></h4>
+   <div class="tl">${j.tools.map(t=>`<span class="tag">${TN[t]}</span>`).join("")}</div>
+   <dl><dt>Odjel</dt><dd>${esc(j.o)}</dd><dt>Problem</dt><dd>${j.problem}</dd><dt>Rješenje</dt><dd>${j.sol}</dd><dt>Mjera</dt><dd>${j.kpi}</dd><dt>Učinak</dt><dd>${p?`oko ${Math.round(p.h*12*p.a/100*S.real/100)} sati i ${eur(sav(p))} godišnje (${p.h} h/mj, ${p.a}% automatizacije, ostvarenje ${S.real}%)`:"-"}</dd></dl>
+   <div class="row"><button type="button" data-cv="${j.id}">Pošalji u vijeće</button></div></div>`}).join("")}
+$("#pj-cards").addEventListener("change",e=>{const s=e.target.closest("select[data-j]");if(!s)return;S.pj[+s.dataset.j].s=s.value;save();renderPj();renderCouncil();renderDash()});
+$("#pj-cards").addEventListener("click",e=>{const b=e.target.closest("[data-cv]");if(!b)return;$("#cv-sel").value=b.dataset.cv;location.hash="#vijece";renderCouncil()});
+
+/* ---------- vijeće ---------- */
+const ROLES=[
+ {k:"skeptik",n:"Skeptik",ini:"S",w:1.2,focus:"Traži slabe točke: preoptimistične pretpostavke, rizik neuspjeha i prekratke rokove."},
+ {k:"kontroler",n:"Kontroler",ini:"K",w:1.3,focus:"Gleda trošak uvođenja, povrat u mjesecima i stvarnu uštedu."},
+ {k:"kvaliteta",n:"Kvaliteta i compliance",ini:"Q",w:1.3,focus:"Gleda ISO 9001, GDPR, EU AI Act i zaštitu podataka kupaca."},
+ {k:"operativa",n:"Operativa",ini:"O",w:1,focus:"Gleda hoće li ljudi to stvarno koristiti i koliko je posla za provedbu."},
+ {k:"marketer",n:"Marketer",ini:"M",w:.6,focus:"Gleda vrijednost za kupca: brži odgovor, jasnija ponuda, povjerenje."},
+ {k:"seo",n:"SEO i web",ini:"W",w:.4,focus:"Gleda koliko projekt donosi upita preko weba i tražilica."}];
+function fillSel(){const s=$("#cv-sel"),cur=s.value;s.innerHTML=S.pj.map(j=>`<option value="${j.id}">${esc(j.n)}</option>`).join("")+'<option value="custom">Vlastiti prijedlog</option>';
+  if([...s.options].some(o=>o.value===cur))s.value=cur}
+function cvInput(){const v=$("#cv-sel").value;
+  if(v==="custom")return{n:$("#cu-n").value||"Prijedlog",o:"-",h:+$("#cu-h").value||1,a:+$("#cu-a").value||1,d:+$("#cu-d").value||3,cf:$("#cu-cf").checked,cd:$("#cu-cd").checked,web:$("#cu-web").checked,pd:$("#cu-pd").checked,hr:$("#cu-hr").checked,s:"Prijedlog",docs:1};
+  const j=S.pj.find(x=>x.id===v)||S.pj[0],p=procOf(j.id)||{h:20,a:30,d:3};
+  return{n:j.n,o:j.o,h:p.h,a:p.a,d:p.d,cf:!!j.cf,cd:!!j.cd,web:!!j.web,pd:!!j.pd,hr:0,s:j.s,docs:p.id?docsOf(p).length:1}}
+function evalCouncil(x){
+  const sv=x.h*12*x.a/100*S.rate*S.real/100,cost=800+x.d*1200,pb=sv>0?cost/(sv/12):99,out=[];
+  {let sc=75,w=[];if(x.a>50){sc-=25;w.push("Pretpostavka od "+x.a+"% automatizacije je agresivna i rijetko se ostvari.")}else if(x.a>35){sc-=8;w.push("Automatizacija od "+x.a+"% je gornja granica realnog.")}
+   if(x.s==="Prijedlog"){sc-=10;w.push("Nema nikakvog mjerenja stanja prije, ušteda je pretpostavka.")}
+   if(x.d>=4){sc-=15;w.push("Teškoća "+x.d+"/5: rizik kašnjenja i prekoračenja.")}
+   if(x.cf){sc-=5;w.push("Greška bi došla do kupca.")}
+   out.push({k:"skeptik",sc,why:w.length?w:["Pretpostavke su umjerene. Traži mjerenje prije i poslije pilota."],cond:["Izmjeri stanje prije pilota (vrijeme obrade, broj grešaka)"]})}
+  out.push({k:"kontroler",sc:pb<=6?90:pb<=12?75:pb<=18?55:30,why:["Uvođenje oko "+eur(cost)+", ušteda oko "+eur(sv)+" godišnje, povrat za "+(pb>60?"više od 60":pb.toFixed(1).replace(".",","))+" mjeseci."],cond:pb>12?["Smanji opseg ili trošak uvođenja prije odobrenja"]:[]});
+  {let sc=88,w=[],c=[];if(x.hr){sc-=55;w.push("Odluke o zaposlenicima su visoki rizik prema EU AI Actu.");c.push("Pravni pregled prije uvođenja")}
+   if(x.pd){sc-=15;w.push("Osobni podaci: treba pravna osnova i DPIA po potrebi.");c.push("Provjera GDPR osnove")}
+   if(x.cd){sc-=12;w.push("Podaci kupca: samo odobreni alati i ugovor o povjerljivosti.");c.push("Koristiti samo alate označene u matrici za povjerljive podatke")}
+   if(x.cf){sc-=4;w.push("Rezultat ide kupcu, potreban pregled čovjeka.");c.push("Čovjek potvrđuje svaki izlaz prema kupcu")}
+   c.push("Izmijeniti "+x.docs+" dokumenata (SOP i radne upute) i obučiti korisnike");
+   out.push({k:"kvaliteta",sc,veto:!!x.hr,why:w.length?w:["Nema posebnih zapreka. Upis u registar i izmjena uputa."],cond:c})}
+  out.push({k:"operativa",sc:Math.max(20,92-x.d*10+(x.h>=60?6:0)),why:["Teškoća "+x.d+"/5, oko "+x.h+" sati mjesečno ručnog rada.",x.h>=60?"Dovoljno posla da se uvođenje ljudima isplati.":"Mali obujam: korisnici možda neće steći naviku."],cond:["Imenuj ambasadora u odjelu i održi radionicu od sat vremena"]});
+  out.push({k:"marketer",sc:Math.min(95,35+(x.cf?35:0)+(x.web?20:0)+(x.a>=40?5:0)),why:[x.cf?"Kupac to vidi: brži i precizniji odgovor je prednost kod kupaca iz rudarstva, građevine i cestogradnje.":"Interni učinak koji kupac ne vidi, slab prodajni argument."],cond:[]});
+  out.push(x.web?{k:"seo",sc:85,why:["Stranice o normama (EN 1090, ISO 3834), materijalima i kontroli privlače upite iz tražilica."],cond:["Svaku činjenicu na stranici potvrđuje tehnolog"]}:{k:"seo",sc:null,why:["Nije moje područje. Suzdržan."],cond:[]});
+  return{sv,cost,pb,rs:out.map(r=>{const R=ROLES.find(q=>q.k===r.k),sc=r.sc===null?null:Math.max(0,Math.min(100,Math.round(r.sc)));return Object.assign(r,{R,sc,vote:sc===null?"su":sc>=70?"za":sc>=50?"uv":"pr"})})}}
+const VL={za:"ZA",uv:"UVJETNO",pr:"PROTIV",su:"SUZDRŽAN"};
+let lastDec=null;
+function renderCouncil(){
+  fillSel();$("#cv-custom").hidden=$("#cv-sel").value!=="custom";
+  const x=cvInput(),E=evalCouncil(x);let ws=0,wt=0;E.rs.forEach(r=>{if(r.sc!==null){ws+=r.sc*r.R.w;wt+=r.R.w}});
+  const score=wt?Math.round(ws/wt):0,veto=E.rs.some(r=>r.veto),kon=E.rs.find(r=>r.k==="kontroler");
+  let t,cls="";if(veto){t="Ne uvoditi bez pravnog pregleda";cls="pr"}else if(score>=72&&kon.vote!=="pr"){t="Odobriti pilot od 8 tjedana"}else if(score>=55){t="Pilot uz uvjete";cls="uv"}else{t="Odgoditi i prepraviti prijedlog";cls="pr"}
+  lastDec={n:x.n,t,score};
+  $("#cv-sum").innerHTML=`<div class="kpis" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="kpi"><div class="label">Ušteda godišnje</div><div class="v">${eur(E.sv)}</div></div><div class="kpi"><div class="label">Uvođenje (procjena)</div><div class="v">${eur(E.cost)}</div></div></div>`;
+  $("#council").innerHTML=E.rs.map(r=>`<div class="card cv"><div class="top"><span class="av">${r.R.ini}</span><div><b>${r.R.n}</b><div class="label">${TN[S.rm[r.k]]||""}</div></div><span class="vote ${r.vote}">${VL[r.vote]}</span></div>
+   ${r.sc===null?"":`<div class="gauge"><i class="${r.sc>=70?"bg-ok":r.sc>=50?"":"bg-bad"}" style="width:${r.sc}%;${r.sc>=50&&r.sc<70?"background:var(--s-pilot)":""}"></i></div>`}
+   ${r.why.map(w=>`<p>${w}</p>`).join("")}</div>`).join("");
+  const conds=[...new Set(E.rs.flatMap(r=>r.cond))];
+  $("#cv-dec").innerHTML=`<div class="decision ${cls}"><div class="label" style="color:inherit;opacity:.85">Odluka vijeća · ocjena ${score}/100</div><h2>${t}</h2>
+   <ul>${conds.map(c=>`<li>${c}</li>`).join("")}</ul>
+   <p style="margin-top:.7rem;font-size:.84rem">Sljedeći korak: vlasnik odjela ${esc(x.o)}, rok 8 tjedana, mjera: vrijeme i broj grešaka prije i poslije.</p>
+   <div class="row" style="margin-top:.8rem"><button type="button" id="cv-save" style="background:rgba(255,255,255,.2);color:inherit;border-color:rgba(255,255,255,.55)">Spremi u dnevnik</button></div></div>`;
+  $("#prompts tbody").innerHTML=ROLES.map(r=>`<tr><td><b>${r.n}</b></td><td><select data-rm="${r.k}" aria-label="Model za ${r.n}">${TOOLS.map(t=>`<option value="${t.id}"${S.rm[r.k]===t.id?" selected":""}>${TN[t.id]}</option>`).join("")}</select></td><td style="min-width:220px;font-size:.82rem">${r.focus}</td><td><button type="button" data-pr="${r.k}">Kopiraj prompt</button></td></tr>`).join("");
+  $("#dlog tbody").innerHTML=S.dec.length?S.dec.map((d,i)=>`<tr><td>${d.d}</td><td>${esc(d.n)}</td><td class="n mono">${d.score}</td><td>${esc(d.t)}</td><td><button class="ghost" type="button" data-dd="${i}" aria-label="Obriši">✕</button></td></tr>`).join(""):'<tr><td colspan="5" class="muted">Još nema spremljenih odluka.</td></tr>';
+}
+$("#cv-sel").addEventListener("change",renderCouncil);
+$("#cv-custom").addEventListener("input",renderCouncil);
+$("#v-vijece").addEventListener("change",e=>{const m=e.target.closest("[data-rm]");if(m){S.rm[m.dataset.rm]=m.value;save();renderCouncil()}});
+$("#v-vijece").addEventListener("click",e=>{
+  if(e.target.id==="cv-save"&&lastDec){S.dec.unshift({d:new Date().toLocaleDateString("hr-HR"),n:lastDec.n,t:lastDec.t,score:lastDec.score});S.dec=S.dec.slice(0,20);save();renderCouncil();toast("Odluka spremljena");return}
+  const d=e.target.closest("[data-dd]");if(d){S.dec.splice(+d.dataset.dd,1);save();renderCouncil();return}
+  const b=e.target.closest("[data-pr]");if(!b)return;const r=ROLES.find(q=>q.k===b.dataset.pr),x=cvInput();
+  const txt=`Uloga: ${r.n}. ${r.focus}\nTvrtka: metaloprerađivačka proizvodnja, oko 400 zaposlenika, kupci iz rudarstva, građevine i cestogradnje.\nPrijedlog: ${x.n}. Odjel: ${x.o}. Ručnog rada: ${x.h} h mjesečno, očekivana automatizacija ${x.a}%, teškoća uvođenja ${x.d}/5.\nZadatak: ocijeni prijedlog isključivo iz svoje uloge. Odgovori s glasom (ZA, UVJETNO ili PROTIV) i najviše tri rečenice obrazloženja. Ne izmišljaj brojke koje nisu navedene.`;
+  const box=$("#prompt-box");box.textContent=txt;box.hidden=false;box.className="draft";
+  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("Prompt kopiran"),()=>{const rg=document.createRange();rg.selectNodeContents(box);const s=getSelection();s.removeAllRanges();s.addRange(rg);toast("Označeno, pritisni Ctrl+C")})});
+
 /* ---------- prijava, kopiranje, tema, rute ---------- */
 [["in-name","j-name"],["in-tel","j-tel"],["in-mail","j-mail"]].forEach(([i,c])=>{const el=$("#"+i);el.addEventListener("input",()=>$$("."+c).forEach(n=>n.textContent=el.value))});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-copy]");if(!b)return;const n=$("#"+b.dataset.copy);const txt=(n.innerText||n.textContent).trim();
   (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("Kopirano"),()=>{const r=document.createRange();r.selectNodeContents(n);const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Označeno, pritisni Ctrl+C")})});
 $("#theme").onclick=()=>{const r=document.documentElement;const d=r.dataset.theme==="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);r.dataset.theme=d?"light":"dark"};
-const VIEWS=["pregled","procesi","agenti","sop","registar","obuka","prijava"];
+const VIEWS=["pregled","procesi","projekti","vijece","alati","agenti","sop","registar","obuka","prijava"];
 function route(){const h=(location.hash||"#pregled").slice(1);const v=VIEWS.includes(h)?h:"pregled";
   $$(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));$$("a.nav").forEach(a=>a.classList.toggle("on",a.dataset.v===v));scrollTo(0,0)}
 addEventListener("hashchange",route);
 
-function renderAll(){$("#rate").value=S.rate;$("#tools").value=S.tools;$("#bonus").value=S.bonus;
-  renderProcTable();renderProcCharts();renderSopAll();renderReg();renderAmb();renderDash()}
+function renderAll(){$("#rate").value=S.rate;$("#real").value=S.real;$("#bonus").value=S.bonus;
+  renderProcTable();renderProcCharts();renderSopAll();renderReg();renderAmb();renderDash();renderPj();renderCouncil();renderTools()}
 renderAll();renderQuiz();runRfq();runNcr();runCert();runTech();route();
 </script>
