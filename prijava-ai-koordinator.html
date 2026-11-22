@@ -221,23 +221,47 @@ table.mx td:first-child,table.mx th:first-child{text-align:left}
 .sc .ba{display:grid;grid-template-columns:auto 1fr;gap:.2rem .7rem;font-size:.82rem}
 .sc .ba dt{font-family:var(--f-mono);font-size:.66rem;text-transform:uppercase;color:var(--muted);padding-top:.15rem}
 .sc .ba dd{margin:0}
+.grp{font-family:var(--f-mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--side-muted);padding:.7rem .7rem .2rem;opacity:.8}
+@media (max-width:860px){.grp{display:none}}
+details.case{border-top:1px solid var(--line);padding-top:.5rem}
+details.case summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.tlist{list-style:none;margin:.3rem 0 0;padding:0;display:grid;gap:.3rem;font-size:.82rem}
+.tlist li{display:grid;grid-template-columns:34px 1fr;gap:.5rem}
+.ba2{display:grid;grid-template-columns:minmax(110px,1fr) minmax(80px,1.2fr) 100px;gap:.6rem;align-items:center;font-size:.8rem;margin-top:.45rem}
+.ba2>div{display:grid;gap:3px}
+.ul{margin:.2rem 0 0;padding-left:1.1rem;font-size:.82rem}
+@media (max-width:560px){.ba2{grid-template-columns:1fr}}
+.mini{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:.8rem;align-items:center;text-decoration:none;color:var(--ink);padding:.55rem .2rem;border-bottom:1px solid var(--line)}
+.mini small{display:block;color:var(--muted);font-size:.76rem}
+.mini:hover b{color:var(--accent)}
+#tour{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(320px,calc(100vw - 32px));background:var(--ink);color:var(--card);border-radius:14px;padding:.9rem 1rem;z-index:35;display:grid;gap:.4rem;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+#tour[hidden]{display:none}
+#tour .label{color:inherit;opacity:.7}#tour b{font-family:var(--f-display);font-size:1.3rem}#tour p{font-size:.85rem}
+#tour button{background:transparent;color:inherit;border-color:rgba(255,255,255,.35)}
+#tour button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+#tour-open{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:35;background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.25);border-radius:99px;padding:.6rem 1.1rem}
+#tour-open[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
 <div class="app">
 <aside class="side" aria-label="Navigacija">
   <div class="brand"><b>AI program</b><span>EKO MEĐIMURJE · Šenkovec</span></div>
-  <a class="nav" href="#pregled" data-v="pregled"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Pregled</a>
+  <div class="grp">Počni</div>
+  <a class="nav" href="#pregled" data-v="pregled"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Početna</a>
+  <a class="nav" href="#prijava" data-v="prijava"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>Moja prijava</a>
+  <div class="grp">Planiranje</div>
   <a class="nav" href="#procesi" data-v="procesi"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 7l3 9M16 7l-3 9"/></svg>Mapa procesa</a>
-  <a class="nav" href="#simulacija" data-v="simulacija"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M7 15l4-5 3 3 5-7"/></svg>Simulacija</a>
   <a class="nav" href="#projekti" data-v="projekti"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h14M4 18h8"/><circle cx="18" cy="6" r="2"/><circle cx="20" cy="18" r="2"/></svg>Projekti</a>
   <a class="nav" href="#vijece" data-v="vijece"><svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.5"/><circle cx="5" cy="17" r="2.5"/><circle cx="19" cy="17" r="2.5"/><path d="M10 8l-4 7M14 8l4 7M8 17h8"/></svg>Vijeće</a>
-  <a class="nav" href="#alati" data-v="alati"><svg viewBox="0 0 24 24"><path d="M14 6l4 4-9 9H5v-4z"/><path d="M13 7l4 4"/></svg>Alati</a>
+  <div class="grp">Radni alati</div>
   <a class="nav" href="#agenti" data-v="agenti"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="11" rx="2"/><path d="M12 4v4M9 13h.01M15 13h.01"/></svg>AI agenti</a>
+  <a class="nav" href="#simulacija" data-v="simulacija"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M7 15l4-5 3 3 5-7"/></svg>Simulacija</a>
+  <a class="nav" href="#alati" data-v="alati"><svg viewBox="0 0 24 24"><path d="M14 6l4 4-9 9H5v-4z"/><path d="M13 7l4 4"/></svg>Alati</a>
+  <div class="grp">Kontrola</div>
   <a class="nav" href="#sop" data-v="sop"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg>SOP i upute</a>
   <a class="nav" href="#registar" data-v="registar"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>AI registar</a>
   <a class="nav" href="#obuka" data-v="obuka"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5a3 3 0 010 6M18 14c2 .7 3 2.5 3 5"/></svg>Obuka</a>
-  <a class="nav" href="#prijava" data-v="prijava"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>Moja prijava</a>
   <div class="sp"></div>
   <button class="theme" id="theme" type="button">Svijetla / tamna</button>
 </aside>
@@ -254,8 +278,9 @@ table.mx td:first-child,table.mx th:first-child{text-align:left}
       <a class="stepc" href="#procesi"><span class="no">1</span><b>Mapiraj</b><span class="t">Upiši odjele, procese, sate i cijenu rada. Aplikacija izračuna gdje je ušteda najveća.</span></a>
       <a class="stepc" href="#simulacija"><span class="no">2</span><b>Isprobaj i odluči</b><span class="t">Pusti agente na simuliranom poslovanju, pitaj vijeće za mišljenje o prijedlogu.</span></a>
       <a class="stepc" href="#sop"><span class="no">3</span><b>Uvedi i izvijesti</b><span class="t">Izmijeni SOP-ove, upiši rješenje u registar, obuči ljude i pošalji izvještaj upravi.</span></a></div>
-    <div class="chips"><span class="chip"><i style="background:var(--s-ok)"></i>Izračuni rade stvarno, u pregledniku</span><span class="chip"><i style="background:var(--s-pilot)"></i>Brojke procesa su ilustrativne</span><span class="chip"><i style="background:var(--blue)"></i>Kupci u simulaciji su izmišljeni</span></div>
-    <div class="row"><span class="label">Obilazak za dvije minute:</span><a class="btn" href="#simulacija">Simulacija</a><a class="btn" href="#agenti">Agenti</a><a class="btn" href="#vijece">Vijeće</a><a class="btn" href="#projekti">Projekti</a><a class="btn" href="#prijava">Moja prijava</a></div></div>
+    <div class="chips"><span class="chip"><i style="background:var(--s-ok)"></i>Izračuni rade stvarno, u pregledniku</span><span class="chip"><i style="background:var(--s-pilot)"></i>Brojke procesa su ilustrativne</span><span class="chip"><i style="background:var(--blue)"></i>Kupci i studije slučaja su modelirani, ne stvarni</span></div>
+    <div class="row"><button class="primary" type="button" data-tour>Pokreni obilazak (1 min)</button><a class="btn" href="#prijava">Zamolba i prijava</a><span class="label">Brzo:</span><a class="btn" href="#simulacija">Simulacija</a><a class="btn" href="#agenti">Agenti</a><a class="btn" href="#vijece">Vijeće</a><a class="btn" href="#projekti">Projekti</a><a class="btn" href="#prijava">Moja prijava</a></div></div>
+  <div class="card"><h3>Projekti na jednom mjestu</h3><div class="sub">Status, alati i planirana ušteda. Klikni za detalje i studiju slučaja.</div><div id="pj-mini"></div></div>
   <div class="kpis" id="kpis"></div>
   <div class="g-wide">
     <div class="card"><h3>Kumulativna ušteda kroz 12 mjeseci</h3><div class="sub">Svaki proces počinje štedjeti od mjeseca pokretanja. Potvrđeno je ono što je odobrio voditelj odjela.</div><div class="legend" id="lg-line"></div><div id="ch-line"></div></div>
@@ -465,6 +490,8 @@ table.mx td:first-child,table.mx th:first-child{text-align:left}
 </main>
 </div>
 <div id="toast" class="toast" hidden></div>
+<div id="tour" role="dialog" aria-label="Obilazak" hidden></div>
+<button id="tour-open" type="button">Obilazak aplikacije</button>
 
 <script>
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -850,14 +877,14 @@ function gantt(){
   MONTHS.forEach((m,i)=>{g+=`<line class="grid" x1="${L+i*cw}" x2="${L+i*cw}" y1="${T-4}" y2="${H-4}"/><text class="ax" x="${L+i*cw+cw/2}" y="14" text-anchor="middle">${m}</text>`});
   S.pj.forEach((j,i)=>{const y=T+i*RH;g+=`<text class="ax strong" x="0" y="${y+RH/2+3}">${esc(j.n.length>27?j.n.slice(0,26)+"…":j.n)}</text><rect x="${L+j.from*cw+2}" y="${y+6}" width="${(j.to-j.from+1)*cw-4}" height="${RH-14}" rx="5" style="fill:${PC[j.s]}"><title>${esc(j.n)}: ${j.s}</title></rect>`});
   return`<svg class="ch" viewBox="0 0 ${W} ${H}" role="img" aria-label="Vremenski plan projekata">${g}</svg>`}
-function renderPj(){
+function renderPj(){renderPjMini();
   const tot=S.pj.reduce((a,j)=>{const p=procOf(j.id);return a+(p?sav(p):0)},0),adv=S.pj.filter(j=>j.s!=="Prijedlog").length;
   $("#pj-k").innerHTML=`<div class="kpi hi"><div class="label">Projekata u portfelju</div><div class="v">${S.pj.length}</div></div><div class="kpi"><div class="label">Prototip ili dalje</div><div class="v">${adv}</div><div class="d">ostalo su prijedlozi</div></div><div class="kpi"><div class="label">Planirana ušteda portfelja</div><div class="v">${eur(tot)}</div><div class="d">godišnje, uz faktor ostvarenja ${S.real}%</div></div>`;
   $("#lg-pj").innerHTML=legend(PS.map(s=>[s,PC[s]]));$("#ch-gantt").innerHTML=gantt();
   $("#pj-cards").innerHTML=S.pj.map((j,i)=>{const p=procOf(j.id);return`<div class="card pj"><h4><span>${esc(j.n)}</span><select data-j="${i}" aria-label="Status projekta">${PS.map(s=>`<option${s===j.s?" selected":""}>${s}</option>`).join("")}</select></h4>
    <div class="tl">${j.tools.map(t=>`<span class="tag">${TN[t]}</span>`).join("")}</div>
    <dl><dt>Odjel</dt><dd>${esc(j.o)}</dd><dt>Problem</dt><dd>${j.problem}</dd><dt>Rješenje</dt><dd>${j.sol}</dd><dt>Mjera</dt><dd>${j.kpi}</dd><dt>Učinak</dt><dd>${p?`oko ${Math.round(p.h*12*p.a/100*S.real/100)} sati i ${eur(sav(p))} godišnje (${p.h} h/mj, ${p.a}% automatizacije, ostvarenje ${S.real}%)`:"-"}</dd></dl>
-   <div class="row"><button type="button" data-cv="${j.id}">Pošalji u vijeće</button></div></div>`}).join("")}
+   ${caseHtml(j)}<div class="row"><button type="button" data-cv="${j.id}">Pošalji u vijeće</button></div></div>`}).join("")}
 $("#pj-cards").addEventListener("change",e=>{const s=e.target.closest("select[data-j]");if(!s)return;S.pj[+s.dataset.j].s=s.value;save();renderPj();renderCouncil();renderDash()});
 $("#pj-cards").addEventListener("click",e=>{const b=e.target.closest("[data-cv]");if(!b)return;$("#cv-sel").value=b.dataset.cv;location.hash="#vijece";renderCouncil()});
 
@@ -984,6 +1011,49 @@ function openAgent(tab,fn){location.hash="#agenti";$(`#agtabs button[data-p="${t
 $("#sc-rfq").onclick=()=>openAgent("rfq",()=>{$("#rfq-in").value=RFQS[0];runRfq()});
 $("#sc-cert").onclick=()=>openAgent("cert",()=>{$("#c-g").value="S355J2";EL.forEach(e=>$("#c-"+e).value=CV[e]);runCert()});
 $("#sc-ncr").onclick=()=>openAgent("ncr",runNcr);
+
+/* ---------- studije slučaja i obilazak ---------- */
+const CASES={
+ rfq:{sit:"Prodaja i nabava prima 20 do 30 upita mjesečno, svaki s crtežima i dugom e-poštom. Tehnolog ručno traži materijal, norme, površinsku zaštitu i rok, pa kupcu piše dodatna pitanja. Uobičajeno su potrebna dva kruga pitanja.",
+  steps:[["T1","Izmjeriti stanje na 30 prošlih upita: vrijeme obrade i broj dodatnih pitanja"],["T2","Prototip alata u Claude Codeu koji izvlači zahtjeve u karticu upita"],["T3","Test na 50 prošlih upita uz usporedbu s ručnim čitanjem, Gemini za PDF crteže"],["T4","Pilot s dva tehnologa, svaki nacrt odgovora pregledava čovjek"],["T8","Pregled mjerenja i odluka vijeća o prelasku u produkciju"]],
+  res:[["Vrijeme obrade upita",50,30,"min"],["Potpuni upiti pri prvom čitanju",55,85,"%"],["Krugovi dodatnih pitanja",2.1,1.3,""]],
+  les:["Agent ne smije slati odgovor kupcu bez pregleda tehnologa.","Pitanja kupcu moraju biti uvijek istim redoslijedom, inače ih kupci previđaju."],
+  risk:["Crteži kupaca idu samo u alate označene u matrici za povjerljive podatke.","Kartica upita sprema se uz ponudu radi sljedivosti."]},
+ cert:{sit:"Kvaliteta prima certifikat 3.1 uz svaku isporuku čelika. Kemijski sastav i broj taline uspoređuju se ručno s normom, a kod velikog broja isporuka provjera se svodi na uzorak.",
+  steps:[["T2","Pretvoriti granice razreda (EN 10025) u tablicu i potvrditi ih s voditeljem kvalitete"],["T3","Skripta izračunava CEV i označava elemente iznad granice, Codex pregledava kod"],["T4","Paralelna provjera: ručno i skriptom na 40 isporuka"],["T6","Provjera 100% isporuka prije puštanja materijala u rezanje"]],
+  res:[["Vrijeme provjere po isporuci",12,5,"min"],["Isporuke provjerene u cijelosti",30,100,"%"]],
+  les:["Granice razreda mora potvrditi čovjek, ne alat.","Odstupanje nikad ne blokira automatski, nego ide kontroloru na odluku."],
+  risk:["Podaci dobavljača ostaju interni.","Svaka promjena granica ide kroz reviziju dokumenta."]},
+ "8d":{sit:"8D izvješća pišu se od nule, uzroci se traže po sjećanju, a kvaliteta izvješća ovisi o osobi koja ga piše.",
+  steps:[["T3","Razvrstati prošle nesukladnosti po vrsti: zavar, dimenzije, zaštita, materijal"],["T4","Asistent priprema nacrt D1 do D8 s popisom mogućih uzroka po vrsti"],["T6","Voditelj kvalitete potvrđuje uzrok i mjere, bilježi se razlika od nacrta"]],
+  res:[["Vrijeme do prvog nacrta",180,60,"min"],["8D zatvoreno u roku",60,80,"%"]],
+  les:["Popis mogućih uzroka je početak razgovora, ne zaključak.","Najviše vrijedi ujednačena struktura izvješća."],
+  risk:["Podaci kupca u opisu problema samo u odobrenim alatima."]},
+ izv:{sit:"Uštede od uvođenja AI-ja nisu praćene na jednom mjestu, pa uprava ne vidi što je potvrđeno, a što procjena.",
+  steps:[["T1","Mapa procesa sa satima, postotkom automatizacije i statusom"],["T2","Izračun uštede s faktorom ostvarenja da se ne precijene rezultati"],["T3","Mjesečni izvještaj koji se generira iz mape"]],
+  res:[["Priprema izvještaja mjesečno",4,1,"h"]],
+  les:["Ušteda je potvrđena tek kad je potpiše voditelj odjela.","Faktor ostvarenja sprječava preoptimistične brojke."],
+  risk:["Brojke su procjene dok ih odjeli ne potvrde."]}};
+function caseHtml(j){
+  const c=CASES[j.id];
+  const steps=c?c.steps:[["T1","Izmjeriti stanje prije uvođenja"],["T4","Prototip i test na prošlim primjerima"],["T8","Pilot i odluka vijeća"]];
+  let h=`<details class="case"><summary>Studija slučaja</summary><div class="chip" style="margin:.5rem 0">Modelirani slučaj: brojke su procjene, ne stvarno poslovanje</div>`;
+  if(c)h+=`<p style="font-size:.85rem;margin-bottom:.6rem">${c.sit}</p>`;
+  h+=`<div class="label">Tijek</div><ol class="tlist">${steps.map(s=>`<li><b class="mono">${s[0]}</b><span>${s[1]}</span></li>`).join("")}</ol>`;
+  if(c){h+=`<div class="label" style="margin-top:.7rem">Prije i poslije</div>`+c.res.map(r=>{const mx=Math.max(r[1],r[2]);return`<div class="ba2"><span>${r[0]}</span><div><div class="gauge"><i style="width:${r[1]/mx*100}%;background:var(--s-idea)"></i></div><div class="gauge"><i class="bg-ok" style="width:${r[2]/mx*100}%"></i></div></div><span class="mono">${String(r[1]).replace(".",",")} → ${String(r[2]).replace(".",",")} ${r[3]}</span></div>`}).join("");
+   h+=`<div class="g2" style="margin-top:.7rem"><div><div class="label">Pouke</div><ul class="ul">${c.les.map(x=>`<li>${x}</li>`).join("")}</ul></div><div><div class="label">Rizici i mjere</div><ul class="ul">${c.risk.map(x=>`<li>${x}</li>`).join("")}</ul></div></div>`}
+  else h+=`<p class="muted" style="font-size:.82rem;margin-top:.6rem">Još nema rezultata. Projekt je u planu, mjera uspjeha: ${j.kpi}</p>`;
+  return h+`</details>`}
+function renderPjMini(){
+  $("#pj-mini").innerHTML=S.pj.map(j=>{const p=procOf(j.id);return`<a href="#projekti" class="mini"><span><b>${esc(j.n)}</b><small>${esc(j.o)} · ${j.tools.map(t=>TN[t]).join(", ")}</small></span><span class="pill ${j.s==="Prijedlog"?"Ideja":j.s==="Prototip"?"Pilot":"Potvrđeno"}">${j.s}</span><span class="mono">${p?eur(sav(p)):"-"}</span></a>`}).join("")}
+const TOUR=[["pregled","Početna","Cijeli program na jednom ekranu: uštede, projekti i izvještaj za upravu."],["procesi","Mapa procesa","Ovdje se upisuju procesi, sati i postotak automatizacije. Sve brojke u aplikaciji računaju se odavde."],["simulacija","Simulacija","Dvanaest tjedana izmišljenog poslovanja prolazi kroz prave agente, uz izmjereno skraćenje vremena."],["projekti","Projekti","Sedam projekata s vremenskim planom. Otvori Studiju slučaja na kartici da vidiš tijek i rezultate."],["vijece","Vijeće","Šest uloga ocjenjuje prijedlog i donosi odluku s uvjetima."],["agenti","AI agenti","Radni alati: upiti kupaca, 8D, certifikati 3.1 i tehnološki list."],["sop","Dokumentacija i obuka","SOP-ovi, registar rješenja i ambasadori: ono što osigurava da uvođenje ostane uredno."],["prijava","Moja prijava","Zamolba i opis primjera, spremni za kopiranje."]];
+let tourI=-1;
+function tourShow(i){tourI=i;const b=$("#tour"),o=$("#tour-open");if(i<0||i>=TOUR.length){b.hidden=true;o.hidden=false;return}
+  const t=TOUR[i];location.hash="#"+t[0];o.hidden=true;b.hidden=false;
+  b.innerHTML=`<div class="label">Obilazak · korak ${i+1} od ${TOUR.length}</div><b>${t[1]}</b><p>${t[2]}</p><div class="row"><button type="button" data-tn="-1"${i===0?" disabled":""}>Natrag</button><button class="primary" type="button" data-tn="1">${i===TOUR.length-1?"Završi":"Dalje"}</button><button class="ghost" type="button" data-tn="x">Zatvori</button></div>`}
+$("#tour").addEventListener("click",e=>{const b=e.target.closest("[data-tn]");if(!b)return;const v=b.dataset.tn;if(v==="x")tourShow(-1);else tourShow(tourI+ +v)});
+$("#tour-open").onclick=()=>tourShow(0);
+document.addEventListener("click",e=>{if(e.target.closest("[data-tour]"))tourShow(0)});
 
 /* ---------- prijava, kopiranje, tema, rute ---------- */
 [["in-name","j-name"],["in-tel","j-tel"],["in-mail","j-mail"]].forEach(([i,c])=>{const el=$("#"+i);el.addEventListener("input",()=>$$("."+c).forEach(n=>n.textContent=el.value))});
