@@ -206,6 +206,21 @@ table.mx td:first-child,table.mx th:first-child{text-align:left}
 .pj dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.25rem .7rem;font-size:.82rem}
 .pj dt{font-family:var(--f-mono);font-size:.66rem;text-transform:uppercase;color:var(--muted);padding-top:.15rem}
 .pj dd{margin:0}
+.intro{display:grid;gap:1rem;background:var(--card)}
+.intro h2{font-size:clamp(1.5rem,3vw,2.1rem);max-width:30ch}
+.steps3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.stepc{display:grid;gap:.3rem;align-content:start;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:.8rem .95rem;background:var(--soft)}
+.stepc:hover{border-color:var(--accent)}
+.stepc .no{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--f-display);font-weight:600}
+.stepc b{font-family:var(--f-display);font-size:1.2rem;font-weight:600}
+.stepc span.t{font-size:.82rem;color:var(--muted)}
+.chips{display:flex;gap:.5rem;flex-wrap:wrap}
+.chip{font-size:.74rem;padding:.2rem .65rem;border-radius:99px;border:1px solid var(--line);color:var(--muted);background:var(--card)}
+.chip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.sc{display:grid;gap:.4rem;align-content:start}
+.sc .ba{display:grid;grid-template-columns:auto 1fr;gap:.2rem .7rem;font-size:.82rem}
+.sc .ba dt{font-family:var(--f-mono);font-size:.66rem;text-transform:uppercase;color:var(--muted);padding-top:.15rem}
+.sc .ba dd{margin:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -214,6 +229,7 @@ table.mx td:first-child,table.mx th:first-child{text-align:left}
   <div class="brand"><b>AI program</b><span>EKO MEĐIMURJE · Šenkovec</span></div>
   <a class="nav" href="#pregled" data-v="pregled"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Pregled</a>
   <a class="nav" href="#procesi" data-v="procesi"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 7l3 9M16 7l-3 9"/></svg>Mapa procesa</a>
+  <a class="nav" href="#simulacija" data-v="simulacija"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M7 15l4-5 3 3 5-7"/></svg>Simulacija</a>
   <a class="nav" href="#projekti" data-v="projekti"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h14M4 18h8"/><circle cx="18" cy="6" r="2"/><circle cx="20" cy="18" r="2"/></svg>Projekti</a>
   <a class="nav" href="#vijece" data-v="vijece"><svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.5"/><circle cx="5" cy="17" r="2.5"/><circle cx="19" cy="17" r="2.5"/><path d="M10 8l-4 7M14 8l4 7M8 17h8"/></svg>Vijeće</a>
   <a class="nav" href="#alati" data-v="alati"><svg viewBox="0 0 24 24"><path d="M14 6l4 4-9 9H5v-4z"/><path d="M13 7l4 4"/></svg>Alati</a>
@@ -232,6 +248,14 @@ table.mx td:first-child,table.mx th:first-child{text-align:left}
   <div class="head"><div><div class="label">Izvještaj upravi · AI koordinator</div><h1>Gdje AI štedi novac</h1>
   <p>Radna ploča AI programa za metaloprerađivačku proizvodnju: što je potvrđeno, što je u pilotu, što tek čeka. Sve brojke dolaze iz mape procesa i mijenjaju se čim ih urediš.</p></div>
   <div class="row"><button type="button" id="reset">Vrati primjere</button></div></div>
+  <div class="card intro"><div><div class="label">Što je ova aplikacija</div><h2>Alat za uvođenje AI-ja u proizvodnu tvrtku: od ideje do izvještaja upravi.</h2>
+    <p class="muted" style="max-width:70ch;margin-top:.5rem">Pokazuje gdje AI štedi vrijeme i novac, daje radne alate za tehnologe i kvalitetu, pomaže odlučiti što uvesti i prati dokumentaciju, obuku i pravila.</p></div>
+    <div class="steps3">
+      <a class="stepc" href="#procesi"><span class="no">1</span><b>Mapiraj</b><span class="t">Upiši odjele, procese, sate i cijenu rada. Aplikacija izračuna gdje je ušteda najveća.</span></a>
+      <a class="stepc" href="#simulacija"><span class="no">2</span><b>Isprobaj i odluči</b><span class="t">Pusti agente na simuliranom poslovanju, pitaj vijeće za mišljenje o prijedlogu.</span></a>
+      <a class="stepc" href="#sop"><span class="no">3</span><b>Uvedi i izvijesti</b><span class="t">Izmijeni SOP-ove, upiši rješenje u registar, obuči ljude i pošalji izvještaj upravi.</span></a></div>
+    <div class="chips"><span class="chip"><i style="background:var(--s-ok)"></i>Izračuni rade stvarno, u pregledniku</span><span class="chip"><i style="background:var(--s-pilot)"></i>Brojke procesa su ilustrativne</span><span class="chip"><i style="background:var(--blue)"></i>Kupci u simulaciji su izmišljeni</span></div>
+    <div class="row"><span class="label">Obilazak za dvije minute:</span><a class="btn" href="#simulacija">Simulacija</a><a class="btn" href="#agenti">Agenti</a><a class="btn" href="#vijece">Vijeće</a><a class="btn" href="#projekti">Projekti</a><a class="btn" href="#prijava">Moja prijava</a></div></div>
   <div class="kpis" id="kpis"></div>
   <div class="g-wide">
     <div class="card"><h3>Kumulativna ušteda kroz 12 mjeseci</h3><div class="sub">Svaki proces počinje štedjeti od mjeseca pokretanja. Potvrđeno je ono što je odobrio voditelj odjela.</div><div class="legend" id="lg-line"></div><div id="ch-line"></div></div>
@@ -265,6 +289,27 @@ table.mx td:first-child,table.mx th:first-child{text-align:left}
       <label class="f">Proces<input id="np-p" required placeholder="npr. Priprema ponuda za cestogradnju"></label>
       <div class="row"><label class="f" style="flex:1">h/mj<input id="np-h" type="number" min="1" value="40" required></label><label class="f" style="flex:1">Autom. %<input id="np-a" type="number" min="5" max="95" value="50" required></label></div>
       <button class="primary" type="submit">Dodaj u mapu</button></form></div>
+  </div>
+</section>
+
+<!-- ============ SIMULACIJA ============ -->
+<section class="view" id="v-simulacija">
+  <div class="head"><div><div class="label">Simulirano poslovanje</div><h1>12 tjedana u tvornici</h1>
+  <p>Šest izmišljenih kupaca iz rudarstva, građevine i cestogradnje šalje upite, a dobavljači šalju certifikate čelika. Agenti ih stvarno obrađuju ovdje u pregledniku. Podaci su simulirani, izračun je pravi.</p></div>
+  <div class="row"><button type="button" id="sim-run">Nova simulacija</button><button class="primary" type="button" id="sim-apply">Preuzmi izmjereno u mapu procesa</button></div></div>
+  <div class="note">Simulirani podaci. Kupci, upiti i certifikati su izmišljeni i generirani nasumično (set <span class="mono" id="sim-seed">2026</span>). Ne prikazuju stvarno poslovanje nijedne tvrtke. Agent se uključuje u 4. tjednu, pa se vidi stepenica u vremenu obrade.</div>
+  <div class="kpis" id="sim-k"></div>
+  <div class="g-wide">
+    <div class="card"><h3>Vrijeme obrade upita po tjednima</h3><div class="sub">Minute po upitu. Crtkano je vrijeme bez agenta, puna crta je stvarni tijek u simulaciji.</div><div class="legend"><span><i style="background:var(--s-idea)"></i>Bez agenta</span><span><i style="background:var(--s-ok)"></i>S agentom od T4</span></div><div id="sim-line"></div></div>
+    <div class="card"><h3>Što kupci najčešće izostave</h3><div class="sub">Broj upita u kojima podatak nedostaje. To su pitanja koja agent postavlja umjesto tehnologa.</div><div class="hb" id="sim-miss"></div></div>
+  </div>
+  <div class="card"><h3>Obrađeni upiti</h3><div class="sub">Svaki redak je upit koji je agent pročitao. Ručno je procjena bez agenta, agent je vrijeme uz pregled tehnologa.</div><div class="scroll"><table id="sim-t"><thead><tr><th>#</th><th>Tjedan</th><th>Kupac</th><th>Dio</th><th class="n">Potpun</th><th>Klasa</th><th class="n">Ručno</th><th class="n">Agent</th><th>Nedostaje</th></tr></thead><tbody></tbody></table></div></div>
+  <div class="g2">
+    <div class="card"><h3>Certifikati čelika S355J2 (3.1)</h3><div class="sub">Šesnaest simuliranih talina provjereno prema granicama razreda i CEV-u.</div><div class="donut-wrap"><div id="sim-cd"></div><div id="sim-cl" style="font-size:.84rem;display:grid;gap:.4rem"></div></div></div>
+    <div class="card"><h3>Tri simulirana slučaja</h3><div class="sub">Otvori svaki u pravom alatu.</div><div style="display:grid;gap:.8rem">
+      <div class="sc"><b>Ponedjeljak 8:15, upit rudarskog kupca</b><dl class="ba"><dt>Prije</dt><dd>Tehnolog čita e-poštu i crtež, traži materijal i norme, piše kupcu pitanja. Oko 50 minuta.</dd><dt>Poslije</dt><dd>Agent izvuče zahtjeve i napiše pitanja, tehnolog pregleda. Oko 30 minuta.</dd></dl><div><button type="button" id="sc-rfq">Otvori u agentu</button></div></div>
+      <div class="sc"><b>Utorak, certifikat taline s previsokim sumporom</b><dl class="ba"><dt>Prije</dt><dd>Odstupanje se može propustiti pri ručnom prepisivanju.</dd><dt>Poslije</dt><dd>Provjera označi element koji prelazi granicu prije rezanja materijala.</dd></dl><div><button type="button" id="sc-cert">Otvori u provjeri</button></div></div>
+      <div class="sc"><b>Petak, kupac javlja pukotinu u zavaru</b><dl class="ba"><dt>Prije</dt><dd>8D se piše od nule, uzroci po sjećanju.</dd><dt>Poslije</dt><dd>Asistent razvrsta vrstu greške i pripremi nacrt D1 do D8 za voditelja kvalitete.</dd></dl><div><button type="button" id="sc-ncr">Otvori 8D</button></div></div></div></div>
   </div>
 </section>
 
@@ -397,6 +442,7 @@ table.mx td:first-child,table.mx th:first-child{text-align:left}
         <li><b>AI agenti:</b> obrada upita kupaca, 8D izvješća, provjera certifikata 3.1 i prijedlog tehnološkog lista.</li>
         <li><b>Radne upute i SOP:</b> praćenje svake izmjene dokumentacije nakon uvođenja AI rješenja.</li>
         <li><b>Obuka:</b> mreža AI ambasadora po odjelima, moduli obuke i provjera znanja.</li>
+        <li><b>Simulacija:</b> 12 tjedana simuliranog poslovanja (izmišljeni kupci) obrađeno pravim agentima, s izmjerenim skraćenjem vremena obrade.</li>
         <li><b>Alati i vijeće:</b> skup alata (Claude Code, Gemini, ChatGPT Codex, Grok) s pravilima o podacima i vijeće uloga koje procjenjuje svaki prijedlog prije pilota.</li>
         <li><b>Pravila:</b> registar rješenja s razvrstavanjem rizika prema EU AI Actu i GDPR-u.</li>
         <li><b>Izvještavanje:</b> potvrđene uštede i mjesečni izvještaj za upravu, uz bonus vezan uz potvrđene uštede.</li>
@@ -552,6 +598,7 @@ Registar: ${S.reg.length} rješenja, ${S.reg.filter(r=>risk(r)[0]==="vis").lengt
 const COVER=[
  ["1","Mapiranje procesa i uštede","Što rade odjeli i gdje AI štedi vrijeme i novac","procesi"],
  ["2","AI agenti i automatizacije","Upiti kupaca, 8D, certifikati 3.1, tehnološki list","agenti"],
+ ["2","Simulirano poslovanje","12 tjedana upita i certifikata kroz prave agente","simulacija"],
  ["2","Projekti i skup alata","Claude Code, Gemini, Codex, Grok i portfelj projekata","projekti"],
  ["2","AI vijeće za odluke","Skeptik, Kontroler, Kvaliteta, Marketer i SEO glasaju","vijece"],
  ["3","Radne upute i SOP-ovi","Izmjena dokumentacije nakon svakog uvođenja","sop"],
@@ -877,17 +924,78 @@ $("#v-vijece").addEventListener("click",e=>{
   const box=$("#prompt-box");box.textContent=txt;box.hidden=false;box.className="draft";
   (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("Prompt kopiran"),()=>{const rg=document.createRange();rg.selectNodeContents(box);const s=getSelection();s.removeAllRanges();s.addRange(rg);toast("Označeno, pritisni Ctrl+C")})});
 
+/* ---------- simulacija ---------- */
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const SIM_C=[["Rudnik Delta","rudarstvo"],["Nordcesta","cestogradnja"],["Bau Alpina","građevina"],["Kamenolom Vrh","rudarstvo"],["Strojogradnja Sava","građevina"],["Asfaltex","cestogradnja"]];
+const SIM_P=[["bracket assembly","BR"],["welded frame","RF"],["base plate with drill holes","BP"],["wear-plate holder","WP"],["support beam","SB"]];
+const SIM_M=["S235JR","S355J2+N","Hardox 450","S690QL"];
+const SIM_START=4;
+let simSeed=2026,simRes=null;
+function runSim(seed){
+  const r=rng(seed),pick=a=>a[Math.floor(r()*a.length)],inq=[];
+  for(let i=0;i<24;i++){
+    const c=pick(SIM_C),pt=pick(SIM_P),qty=pick([10,25,40,100,250,600]);
+    const L=[`Please quote ${qty} pcs of ${pt[0]}`+(r()<.8?` (drawing ${pt[1]}-${100+Math.floor(r()*900)}, PDF + STEP)`:"")+"."];
+    if(r()<.8)L.push("Material: "+pick(SIM_M)+".");
+    if(r()<.55)L.push(pick(["Welding according to ISO 3834-2, level ISO 5817 C.","EN 1090-2 EXC3 required.","EN 1090-2 EXC2 required."]));
+    if(r()<.5)L.push(pick(["Certificate EN 10204 3.1 required.","Inspection certificate 3.2 required."]));
+    if(r()<.65)L.push("Surface: "+pick(["shot blasting Sa 2.5 and painting RAL 7016.","hot-dip galvanized.","zinc plated.","powder coating RAL 9005."]));
+    if(r()<.7)L.push("Delivery: "+pick(["week 12/2027.","6 weeks.","week 20/2027, DAP."]));
+    const text=L.join("\n"),ch=analyse(text),miss=ch.filter(x=>!x[1].length);
+    const cx=(/EXC3|3\.2|Hardox|S690/i.test(text)?2:0)+(/ISO\s?3834|EXC|weld/i.test(text)?1:0)+(/galvan|paint|RAL|coating/i.test(text)?1:0);
+    const manual=Math.round(30+cx*7+miss.length*3+r()*8),agent=Math.round(18+cx*4+miss.length*2+r()*4),week=Math.floor(i/2)+1;
+    inq.push({i:i+1,week,c:c[0],sec:c[1],part:pt[0],qty,pct:Math.round((ch.length-miss.length)/ch.length*100),cls:cx>=3?"Složena":cx>=1?"Standardna":"Brza",manual,agent,act:week>=SIM_START?agent:manual,miss:miss.map(m=>m[0])});
+  }
+  const g=GR.S355J2,certs=[];
+  for(let i=0;i<16;i++){
+    const bad=r()<.14,v={C:.17+(r()-.5)*.05,Mn:1.4+(r()-.5)*.25,Si:.35+(r()-.5)*.2,P:.018+(r()-.5)*.012,S:.014+(r()-.5)*.014,Cr:.05,Mo:.01,V:.02,Ni:.04,Cu:.03};
+    if(bad){if(r()<.6)v.S=.026+r()*.008;else v.C=.205+r()*.02}
+    const cev=v.C+v.Mn/6+(v.Cr+v.Mo+v.V)/5+(v.Ni+v.Cu)/15,fails=[];
+    ["C","Mn","Si","P","S"].forEach(e=>{if(v[e]>g[e])fails.push(e+" "+v[e].toFixed(3)+" > "+g[e])});
+    if(cev>g.CEV)fails.push("CEV "+cev.toFixed(3)+" > "+g.CEV);
+    certs.push({heat:"T"+(40000+Math.floor(r()*9000)),fails});
+  }
+  simRes={inq,certs};
+}
+function renderSim(){
+  if(!simRes)runSim(simSeed);
+  const{inq,certs}=simRes,n=inq.length,avg=a=>a.reduce((x,y)=>x+y,0)/(a.length||1);
+  const mM=avg(inq.map(q=>q.manual)),mA=avg(inq.map(q=>q.agent)),sv=(mM-mA)/mM*100;
+  const hrs=inq.filter(q=>q.week>=SIM_START).reduce((a,q)=>a+q.manual-q.agent,0)/60;
+  const bad=certs.filter(c=>c.fails.length);
+  simRes.sv=Math.round(sv);
+  $("#sim-k").innerHTML=`<div class="kpi hi"><div class="label">Simuliranih upita</div><div class="v">${n}</div><div class="d">12 tjedana, 6 izmišljenih kupaca</div></div>
+   <div class="kpi"><div class="label">Obrada bez agenta</div><div class="v">${Math.round(mM)} min</div><div class="d">prosjek po upitu</div></div>
+   <div class="kpi"><div class="label">Obrada s agentom</div><div class="v">${Math.round(mA)} min</div><div class="d">uz pregled tehnologa</div></div>
+   <div class="kpi"><div class="label">Skraćenje</div><div class="v">${Math.round(sv)}%</div><div class="d">${hrs.toFixed(1).replace(".",",")} h u tjednima od uključenja</div></div>
+   <div class="kpi"><div class="label">Certifikata s odstupanjem</div><div class="v" style="color:${bad.length?"var(--bad)":"var(--ok)"}">${bad.length}/${certs.length}</div><div class="d">uhvaćeno prije proizvodnje</div></div>`;
+  const wk=[...Array(12)].map((_,i)=>i+1),wavg=(f,w)=>avg(inq.filter(q=>q.week===w).map(f));
+  $("#sim-line").innerHTML=lineChart([{data:wk.map(w=>wavg(q=>q.manual,w)),color:"var(--s-idea)",dash:1},{data:wk.map(w=>wavg(q=>q.act,w)),color:"var(--s-ok)",area:1}],wk.map(w=>"T"+w));
+  const cnt={};inq.forEach(q=>q.miss.forEach(m=>cnt[m]=(cnt[m]||0)+1));
+  const rows=Object.entries(cnt).sort((a,b)=>b[1]-a[1]),mx=rows[0]?rows[0][1]:1;
+  $("#sim-miss").innerHTML=rows.map(([k,v])=>`<div class="r"><span>${k}</span><div class="tr"><i class="c-Pilot" style="width:${v/mx*100}%"></i></div><span class="val">${v} od ${n}</span></div>`).join("")||'<p class="muted">Svi upiti su potpuni.</p>';
+  $("#sim-t tbody").innerHTML=inq.map(q=>`<tr><td class="mono">${q.i}</td><td class="mono">T${q.week}</td><td>${q.c}<br><span class="muted" style="font-size:.74rem">${q.sec}</span></td><td>${q.qty} × ${q.part}</td><td class="n mono">${q.pct}%</td><td><span class="pill ${q.cls==="Složena"?"Pilot":q.cls==="Brza"?"Potvrđeno":"Ideja"}">${q.cls}</span></td><td class="n mono">${q.manual}</td><td class="n mono">${q.week>=SIM_START?q.agent:"-"}</td><td style="font-size:.78rem">${q.miss.join(", ")||"-"}</td></tr>`).join("");
+  $("#sim-cd").innerHTML=donut([{v:certs.length-bad.length,c:"var(--s-ok)"},{v:bad.length,c:"var(--bad)"}],String(bad.length),"odstupanja");
+  $("#sim-cl").innerHTML=bad.length?bad.map(c=>`<div><b class="mono">${c.heat}</b> <span class="res-bad">${c.fails.join(", ")}</span></div>`).join(""):'<span class="muted">Nema odstupanja.</span>';
+}
+$("#sim-run").onclick=()=>{simSeed=Math.floor(Math.random()*90000)+1000;$("#sim-seed").textContent=simSeed;runSim(simSeed);renderSim()};
+$("#sim-apply").onclick=()=>{const p=procOf("rfq");if(!p||!simRes)return;p.a=Math.max(5,Math.min(90,simRes.sv));save();renderAll();toast("Mapa procesa: automatizacija upita je "+p.a+"%")};
+function openAgent(tab,fn){location.hash="#agenti";$(`#agtabs button[data-p="${tab}"]`).click();fn&&fn()}
+$("#sc-rfq").onclick=()=>openAgent("rfq",()=>{$("#rfq-in").value=RFQS[0];runRfq()});
+$("#sc-cert").onclick=()=>openAgent("cert",()=>{$("#c-g").value="S355J2";EL.forEach(e=>$("#c-"+e).value=CV[e]);runCert()});
+$("#sc-ncr").onclick=()=>openAgent("ncr",runNcr);
+
 /* ---------- prijava, kopiranje, tema, rute ---------- */
 [["in-name","j-name"],["in-tel","j-tel"],["in-mail","j-mail"]].forEach(([i,c])=>{const el=$("#"+i);el.addEventListener("input",()=>$$("."+c).forEach(n=>n.textContent=el.value))});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-copy]");if(!b)return;const n=$("#"+b.dataset.copy);const txt=(n.innerText||n.textContent).trim();
   (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("Kopirano"),()=>{const r=document.createRange();r.selectNodeContents(n);const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Označeno, pritisni Ctrl+C")})});
 $("#theme").onclick=()=>{const r=document.documentElement;const d=r.dataset.theme==="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);r.dataset.theme=d?"light":"dark"};
-const VIEWS=["pregled","procesi","projekti","vijece","alati","agenti","sop","registar","obuka","prijava"];
+const VIEWS=["pregled","procesi","simulacija","projekti","vijece","alati","agenti","sop","registar","obuka","prijava"];
 function route(){const h=(location.hash||"#pregled").slice(1);const v=VIEWS.includes(h)?h:"pregled";
   $$(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));$$("a.nav").forEach(a=>a.classList.toggle("on",a.dataset.v===v));scrollTo(0,0)}
 addEventListener("hashchange",route);
 
 function renderAll(){$("#rate").value=S.rate;$("#real").value=S.real;$("#bonus").value=S.bonus;
-  renderProcTable();renderProcCharts();renderSopAll();renderReg();renderAmb();renderDash();renderPj();renderCouncil();renderTools()}
+  renderProcTable();renderProcCharts();renderSopAll();renderReg();renderAmb();renderDash();renderPj();renderCouncil();renderTools();renderSim()}
 renderAll();renderQuiz();runRfq();runNcr();runCert();runTech();route();
 </script>
