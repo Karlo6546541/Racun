@@ -1,0 +1,364 @@
+<title>Prijava AI koordinator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: crtežni naslovni blok (title block) kao motiv; sekcije su "listovi" crteža s oznakom lista. */
+:root{
+  --bg:#eceeef; --paper:#f8f9f9; --ink:#17212b; --muted:#56636f; --line:#c5ccd1;
+  --accent:#0d6b5e; --accent-ink:#ffffff; --accent-soft:#d7ece8;
+  --warn:#9a6200; --warn-soft:#f6e8c8; --ok:#1d6b34; --ok-soft:#d9eddf; --bad:#a32a2a; --bad-soft:#f4dada;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12181e; --paper:#1a222a; --ink:#e6ebef; --muted:#9aa8b3; --line:#34414b;
+  --accent:#4cc2ae; --accent-ink:#06211c; --accent-soft:#16372f;
+  --warn:#e3b04b; --warn-soft:#3a2f14; --ok:#6fcf8c; --ok-soft:#153322; --bad:#f08a8a; --bad-soft:#3b1d1d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12181e; --paper:#1a222a; --ink:#e6ebef; --muted:#9aa8b3; --line:#34414b;
+  --accent:#4cc2ae; --accent-ink:#06211c; --accent-soft:#16372f;
+  --warn:#e3b04b; --warn-soft:#3a2f14; --ok:#6fcf8c; --ok-soft:#153322; --bad:#f08a8a; --bad-soft:#3b1d1d; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:20;background:var(--paper)}
+.wrap{max-width:1040px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;text-wrap:balance;margin:0;line-height:1.1}
+h2{font-size:2rem}h3{font-size:1.25rem}
+p{margin:0}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono)}
+.label{font-family:var(--f-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:var(--paper);border-bottom:1px solid var(--line);
+  margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px))}
+nav .wrap{display:flex;gap:4px;overflow-x:auto;align-items:center}
+nav a{white-space:nowrap;text-decoration:none;color:var(--muted);font-size:.85rem;padding:.7rem .7rem;border-bottom:2px solid transparent}
+nav a:hover{color:var(--ink);border-color:var(--accent)}
+nav .sp{flex:1}
+nav button{margin-left:8px}
+
+button,.btn{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:.45rem .8rem;cursor:pointer;border-radius:3px}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);padding:.45rem .6rem;border-radius:3px;min-width:0;max-width:100%}
+textarea{width:100%;font-family:var(--f-mono);font-size:.82rem;line-height:1.5}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:.78rem;color:var(--muted)}
+
+/* hero + title block */
+.hero{padding-block:2.2rem 1.6rem;display:grid;grid-template-columns:1.25fr 1fr;gap:2rem;align-items:end}
+.hero h1{font-size:clamp(2.6rem,7vw,4.6rem);font-weight:700}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero .lead{margin-top:1rem;max-width:46ch;color:var(--muted);font-size:1.05rem}
+.tb{border:2px solid var(--ink);background:var(--paper);display:grid;grid-template-columns:1fr 1fr;font-size:.8rem}
+.tb div{padding:.5rem .7rem;border:1px solid var(--ink);margin:-1px 0 0 -1px;min-width:0;overflow-wrap:anywhere}
+.tb .wide{grid-column:1/-1}
+.tb b{display:block;font-family:var(--f-mono);font-weight:400;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tb input{width:100%;border:0;border-bottom:1px dashed var(--line);padding:.1rem 0;background:transparent;border-radius:0;font-weight:500}
+
+section.sheet{background:var(--paper);border:1px solid var(--line);margin-block:1.5rem;padding:1.4rem clamp(1rem,3vw,2rem) 1.8rem;position:relative;scroll-margin-top:3.6rem}
+.sheet-h{display:flex;justify-content:space-between;gap:1rem;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:.6rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.sheet-h .label{white-space:nowrap}
+.note{font-size:.8rem;color:var(--muted);border-left:3px solid var(--warn);padding:.3rem .7rem;background:var(--warn-soft);margin-block:.9rem}
+
+.letter{display:grid;gap:.9rem;max-width:68ch}
+.letter .meta{font-size:.85rem;color:var(--muted)}
+.letter ul{margin:0;padding-left:1.2rem;display:grid;gap:.35rem}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin-block:1rem}
+.kpi{border:1px solid var(--line);padding:.7rem .9rem}
+.kpi .v{font-family:var(--f-display);font-size:2rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi.hi{border-color:var(--accent);background:var(--accent-soft)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.84rem;font-variant-numeric:tabular-nums}
+th{font-family:var(--f-mono);font-weight:400;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:left;padding:.4rem .6rem;border-bottom:1px solid var(--ink);white-space:nowrap}
+td{padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right}
+.bar{height:10px;background:var(--line);min-width:90px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.bar i.s-Ideja{background:var(--muted)} .bar i.s-Pilot{background:var(--warn)}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;padding:.12rem .5rem;border:1px solid currentColor;border-radius:99px;white-space:nowrap}
+.pill.Ideja{color:var(--muted)} .pill.Pilot{color:var(--warn);background:var(--warn-soft)} .pill.Potvrđeno{color:var(--ok);background:var(--ok-soft)}
+.pill.r-min{color:var(--ok);background:var(--ok-soft)} .pill.r-lim{color:var(--warn);background:var(--warn-soft)} .pill.r-vis{color:var(--bad);background:var(--bad-soft)}
+td button{padding:.15rem .1rem;border:0;background:none}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.two>*{min-width:0}
+.out{border:1px solid var(--line);padding:.9rem;background:var(--bg);font-size:.86rem;min-height:8rem}
+.out dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.25rem .8rem}
+.out dt{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);text-transform:uppercase;padding-top:.15rem}
+.out dd{margin:0;overflow-wrap:anywhere}
+.tag{display:inline-block;background:var(--accent-soft);color:var(--ink);padding:0 .45rem;margin:0 .25rem .2rem 0;font-family:var(--f-mono);font-size:.78rem}
+.miss{color:var(--bad)}
+pre.draft{white-space:pre-wrap;font-family:var(--f-mono);font-size:.78rem;margin:.6rem 0 0;padding:.7rem;border:1px dashed var(--line);background:var(--paper)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem;align-items:end;margin-bottom:1rem}
+
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+.step{border-top:3px solid var(--accent);padding-top:.6rem}
+.step h3{margin-bottom:.35rem}
+.step li{margin-bottom:.25rem}
+.step ul{padding-left:1.1rem;margin:0;font-size:.88rem}
+footer{padding-block:1.5rem 3rem;color:var(--muted);font-size:.8rem}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.5rem 1rem;font-size:.85rem;z-index:30;border-radius:3px}
+@media (max-width:760px){.hero,.two{grid-template-columns:1fr}.hero{align-items:start}}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .4s}}
+</style>
+
+<nav><div class="wrap">
+  <a href="#zamolba">Zamolba</a><a href="#primjer">Primjer iz prakse</a><a href="#mapa">Mapa procesa i uštede</a>
+  <a href="#rfq">AI agent za upite</a><a href="#sop">SOP sinkronizacija</a><a href="#registar">AI registar</a><a href="#plan">Plan 90 dana</a>
+  <span class="sp"></span><button id="theme" type="button" aria-label="Promijeni temu">Tema</button>
+</div></nav>
+
+<div class="wrap">
+<header class="hero">
+  <div>
+    <div class="label">Prijava na natječaj · Šenkovec, Međimurska županija</div>
+    <h1 style="margin-top:.6rem">AI koordinator<br><em>(m/ž)</em></h1>
+    <p class="lead">Zamolba je ujedno aplikacija. Umjesto da samo tvrdim što znam, ispod je pet radnih prototipa izrađenih za proizvodnu tvrtku poput EKO MEĐIMURJE: mapa procesa s izračunom ušteda, agent za upite kupaca, sinkronizacija SOP-ova, AI registar i plan prvih 90 dana.</p>
+  </div>
+  <div class="tb" aria-label="Naslovni blok prijave">
+    <div class="wide"><b>Kandidat</b><input id="in-name" value="Ime Prezime" aria-label="Ime i prezime"></div>
+    <div><b>Telefon</b><input id="in-tel" value="+385 9x xxx xxxx" aria-label="Telefon"></div>
+    <div><b>E-pošta</b><input id="in-mail" value="ime.prezime@email.com" aria-label="E-pošta"></div>
+    <div class="wide"><b>Pozicija</b>AI koordinator (m/ž), EKO MEĐIMURJE d.d.</div>
+    <div><b>Datum</b>22.11.2026.</div><div><b>Revizija</b>A · za pregled</div>
+  </div>
+</header>
+
+<section class="sheet" id="zamolba">
+  <div class="sheet-h"><h2>Zamolba</h2><span class="label">List 1 / 6</span></div>
+  <div class="letter" id="letter">
+    <p class="meta"><span class="j-name">Ime Prezime</span> · <span class="j-tel">+385 9x xxx xxxx</span> · <span class="j-mail">ime.prezime@email.com</span></p>
+    <p>Poštovani,</p>
+    <p>prijavljujem se na poziciju AI koordinatora u EKO MEĐIMURJE d.d. Tražite osobu koja ne priča o umjetnoj inteligenciji nego je koristi svaki dan i zna pokazati što je njome napravila. Zato uz ovu zamolbu šaljem i radnu aplikaciju koja se bavi upravo vašim zadacima iz oglasa.</p>
+    <p>Prototipi u ovoj prijavi pokrivaju svaku točku opisa posla:</p>
+    <ul>
+      <li><b>Mapiranje procesa i uštede:</b> tablica odjela i procesa s izračunom godišnje uštede u eurima i statusom Ideja, Pilot ili Potvrđeno, jer bonus vežete uz potvrđene uštede.</li>
+      <li><b>AI agent:</b> čitanje upita kupca (materijal, norme, količine, rok, površinska zaštita) i popis pitanja koja nedostaju, prije nego što tehnolog izgubi sat vremena.</li>
+      <li><b>Radne upute i SOP:</b> za svako AI rješenje automatski se prikazuje koje radne upute i SOP-ove sustava kvalitete treba izmijeniti i nacrt izmjene.</li>
+      <li><b>Pravila i zaštita podataka:</b> registar AI rješenja s razvrstavanjem rizika prema EU AI Actu i provjerom GDPR obveza.</li>
+      <li><b>Obuka i ambasadori:</b> plan mreže AI ambasadora po odjelima i prvih 90 dana rada.</li>
+    </ul>
+    <p>Svjestan sam da vaši kupci iz rudarstva, građevine i cestogradnje traže sljedivost, dokumentaciju i stabilnu kvalitetu. Zato AI rješenja vidim kao alat koji tehnologu, kontroloru kvalitete i referentu nabave oduzima prepisivanje i traženje, a odluku i potpis ostavlja čovjeku.</p>
+    <p>Životopis je u privitku. Rado ću na razgovoru uživo proći kroz prototipe i pokazati kako bi izgledali na vašim stvarnim podacima.</p>
+    <p>S poštovanjem,<br><b class="j-name">Ime Prezime</b></p>
+  </div>
+  <div class="note">Podaci u prototipima su ilustrativni primjeri izrađeni za ovu prijavu, a ne mjerenja iz vaše tvrtke ni iz prijašnjeg posla. Prije slanja upiši svoje podatke gore i, ako želiš, dopiši vlastiti stvarni primjer.</div>
+  <div class="row"><button class="primary" type="button" data-copy="letter">Kopiraj zamolbu</button></div>
+</section>
+
+<section class="sheet" id="primjer">
+  <div class="sheet-h"><h2>Primjer: upit kupca u pet minuta</h2><span class="label">List 2 / 6 · opis koji tražite u prijavi</span></div>
+  <div class="letter" id="example">
+    <p><b>Problem.</b> Upit kupca stiže e-poštom s crtežima i često nepotpunim zahtjevima. Tehnolog ga ručno čita, traži materijal, norme (npr. EN 1090, ISO 3834, EN 10204 3.1), površinsku zaštitu i rok, pa kupcu piše nova pitanja. U ilustrativnom izračunu to je oko 120 sati mjesečno.</p>
+    <p><b>Rješenje.</b> Agent čita tekst upita, izvlači tehničke zahtjeve u strukturiranu karticu, označava što nedostaje i priprema nacrt odgovora kupcu. Tehnolog pregleda karticu i šalje odgovor. Kalkulaciju i odluku o ponudi i dalje radi čovjek.</p>
+    <p><b>Mjerenje.</b> Prije uvođenja mjeri se prosječno vrijeme obrade upita, a nakon pilota ponovno. Ušteda ide u mapu ušteda kao „Pilot“, a tek nakon potvrde voditelja odjela postaje „Potvrđeno“.</p>
+    <p><b>Radna uputa.</b> Promjena je upisana u radnu uputu i SOP pregleda zahtjeva kupca (ISO 9001, točka 8.2.3), a rješenje je upisano u AI registar.</p>
+  </div>
+  <div class="row"><button class="primary" type="button" data-copy="example">Kopiraj opis primjera</button><a class="btn" href="#rfq" style="text-decoration:none">Isprobaj agenta ↓</a></div>
+</section>
+
+<section class="sheet" id="mapa">
+  <div class="sheet-h"><h2>Mapa procesa i uštede</h2><span class="label">List 3 / 6 · izvještaj upravi</span></div>
+  <p style="max-width:68ch;color:var(--muted)">Klikni status procesa da ga promijeniš. Bonus se računa samo na potvrđene uštede, pa prikaz razdvaja ideju, pilot i potvrđeno.</p>
+  <div class="form" style="max-width:520px;margin-top:1rem">
+    <label class="f">Cijena radnog sata (€)<input id="rate" type="number" min="5" max="200" value="18"></label>
+    <label class="f">Udio ušteđenog vremena koji bonus pokriva (%)<input id="bonus" type="number" min="0" max="50" value="10"></label>
+  </div>
+  <div class="kpis" id="kpis"></div>
+  <div class="scroll"><table id="proc"><thead><tr><th>Odjel</th><th>Proces</th><th class="n">h/mj</th><th class="n">Autom. %</th><th>Ušteda godišnje</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section class="sheet" id="rfq">
+  <div class="sheet-h"><h2>AI agent za upite kupaca</h2><span class="label">List 4 / 6 · radni prototip</span></div>
+  <div class="two">
+    <div>
+      <label class="f" for="rfq-in">Tekst upita kupca</label>
+      <textarea id="rfq-in" rows="13" spellcheck="false">Dear Sir/Madam,
+
+please quote 250 pcs of the attached bracket assembly (drawing BR-4471, PDF + STEP).
+Material: S355J2+N, plate 12 mm. Welding according to ISO 3834-2, acceptance level ISO 5817 C.
+Surface: shot blasting Sa 2.5 and painting RAL 7016.
+Inspection certificate EN 10204 3.1 required.
+Delivery: week 9/2027, DAP.
+
+Best regards,
+Anna Keller, Purchasing</textarea>
+      <div class="row"><button class="primary" id="rfq-run" type="button">Analiziraj upit</button><button id="rfq-sample2" type="button">Drugi primjer</button></div>
+    </div>
+    <div><div class="label" style="margin-bottom:.4rem">Kartica upita</div><div class="out" id="rfq-out"></div></div>
+  </div>
+  <div class="note">Ovaj demo prepoznaje obrasce pravilima u pregledniku i ne šalje podatke nigdje. U produkciji bi isti obrazac radio jezični model povezan s ERP-om i arhivom crteža, s pregledom čovjeka prije slanja.</div>
+</section>
+
+<section class="sheet" id="sop">
+  <div class="sheet-h"><h2>Sinkronizacija radnih uputa i SOP-ova</h2><span class="label">List 5 / 6 · sustav kvalitete</span></div>
+  <p style="max-width:68ch;color:var(--muted)">Kad AI rješenje promijeni način rada, izmjena mora ući u dokumentaciju. Odaberi rješenje i dobit ćeš popis dokumenata i nacrt izmjene.</p>
+  <div class="form" style="max-width:520px;margin-top:1rem"><label class="f">AI rješenje<select id="sop-sel"></select></label></div>
+  <div id="sop-out"></div>
+</section>
+
+<section class="sheet" id="registar">
+  <div class="sheet-h"><h2>Registar AI rješenja</h2><span class="label">List 6 / 6 · pravila, GDPR, EU AI Act</span></div>
+  <form class="form" id="reg-form">
+    <label class="f">Naziv rješenja<input id="r-name" required placeholder="npr. Asistent za 8D"></label>
+    <label class="f">Vlasnik<input id="r-owner" required placeholder="npr. Voditelj kvalitete"></label>
+    <label class="f">Namjena<select id="r-use">
+      <option value="proc">Proces u proizvodnji / dokumentacija</option>
+      <option value="chat">Chat ili asistent za zaposlenike</option>
+      <option value="hr">Odluke o zaposlenicima (zapošljavanje, ocjenjivanje)</option>
+      <option value="safety">Sigurnosna funkcija proizvoda ili stroja</option></select></label>
+    <label class="f">Osobni podaci<select id="r-pd"><option value="0">Ne</option><option value="1">Da</option></select></label>
+    <button class="primary" type="submit">Dodaj i procijeni</button>
+  </form>
+  <div class="scroll"><table id="reg"><thead><tr><th>Rješenje</th><th>Vlasnik</th><th>Razina rizika</th><th>Obveze</th><th>Odobrenje</th></tr></thead><tbody></tbody></table></div>
+  <div class="note">Razvrstavanje je pojednostavljeni alat za prvu procjenu. Konačnu ocjenu daje službenik za zaštitu podataka i pravna služba.</div>
+</section>
+
+<section class="sheet" id="plan">
+  <div class="sheet-h"><h2>Plan prvih 90 dana</h2><span class="label">Obuka · ambasadori · izvještavanje</span></div>
+  <div class="steps">
+    <div class="step"><h3>Dani 1–30: slušam i mapiram</h3><ul><li>Razgovori s voditeljima odjela: nabava, tehnologija, kvaliteta, proizvodnja, održavanje, financije.</li><li>Mapa procesa s procjenom sati i cijene.</li><li>Pravila korištenja AI-ja i prvi unosi u registar.</li><li>Odabir tri pilota s najvećim omjerom uštede i rizika.</li></ul></div>
+    <div class="step"><h3>Dani 31–60: pilotiram</h3><ul><li>Pilot agenta za upite kupaca i dokumentaciju kvalitete (certifikati, 8D).</li><li>Mjerenje stanja prije i poslije s voditeljima odjela.</li><li>Prva izmjena radnih uputa i SOP-ova.</li><li>Imenovanje jednog AI ambasadora po odjelu.</li></ul></div>
+    <div class="step"><h3>Dani 61–90: širim i izvještavam</h3><ul><li>Radionice od sat vremena za zaposlenike i voditelje, s primjerima iz njihova posla.</li><li>Prvo izvješće upravi: potvrđene uštede, planirane uštede, rizici.</li><li>Odluka o vanjskim partnerima gdje treba veći razvoj.</li><li>Tromjesečni ritam pregleda registra.</li></ul></div>
+  </div>
+  <div class="note">Podaci o tvrtki u ovoj prijavi preuzeti su iz oglasa. Za dublje poznavanje procesa spreman sam doći na razgovor i proći pogon.</div>
+</section>
+
+<footer>Prijava izrađena kao jedna datoteka bez poslužitelja. Podaci unesenih polja ostaju u tvom pregledniku.</footer>
+</div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const eur=n=>Math.round(n).toLocaleString("hr-HR")+" €";
+function toast(t){const e=$("#toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,1800)}
+
+/* tema */
+$("#theme").onclick=()=>{const r=document.documentElement;const d=r.dataset.theme==="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);r.dataset.theme=d?"light":"dark"};
+
+/* podaci kandidata u zamolbi */
+[["in-name","j-name"],["in-tel","j-tel"],["in-mail","j-mail"]].forEach(([i,c])=>{
+  const el=$("#"+i);const f=()=>document.querySelectorAll("."+c).forEach(n=>n.textContent=el.value);el.addEventListener("input",f)});
+
+/* kopiranje */
+document.addEventListener("click",e=>{const b=e.target.closest("[data-copy]");if(!b)return;
+  const node=$("#"+b.dataset.copy);const txt=node.innerText.trim();
+  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("Kopirano"),()=>{
+    const r=document.createRange();r.selectNodeContents(node);const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Označeno, pritisni Ctrl+C")})});
+
+/* mapa procesa */
+const STATUS=["Ideja","Pilot","Potvrđeno"];
+const procs=[
+ {o:"Prodaja i nabava",p:"Obrada upita kupaca i priprema ponude",h:120,a:70,s:"Pilot",id:"rfq"},
+ {o:"Kvaliteta",p:"Izrada 8D izvješća i evidencija nesukladnosti",h:60,a:55,s:"Ideja",id:"8d"},
+ {o:"Kvaliteta",p:"Dokumentacija isporuke (certifikati 3.1, mapa sljedivosti)",h:90,a:65,s:"Potvrđeno",id:"cert"},
+ {o:"Tehnologija",p:"Izrada tehnoloških listova iz crteža",h:140,a:40,s:"Ideja",id:"tech"},
+ {o:"Proizvodnja",p:"Unos radnih naloga i povratnih informacija iz pogona",h:80,a:50,s:"Pilot",id:"rn"},
+ {o:"Održavanje",p:"Evidencija kvarova i tjedna izvješća",h:40,a:45,s:"Ideja",id:"odrz"},
+ {o:"Ljudski resursi i HSE",p:"Odgovori na pitanja o radnim uputama i pravilima",h:30,a:60,s:"Ideja",id:"chat"},
+ {o:"Financije",p:"Razvrstavanje i knjiženje ulaznih računa",h:70,a:60,s:"Potvrđeno",id:"fin"}];
+try{const sv=JSON.parse(localStorage.getItem("eko-status")||"{}");procs.forEach(p=>{if(STATUS.includes(sv[p.id]))p.s=sv[p.id]})}catch(e){}
+function renderProcs(){
+  const rate=+$("#rate").value||0,bp=+$("#bonus").value||0;
+  const sav=p=>p.h*12*p.a/100*rate;
+  const max=Math.max(...procs.map(sav));
+  const tot=s=>procs.filter(p=>!s||p.s===s).reduce((a,p)=>a+sav(p),0);
+  const hrs=procs.filter(p=>p.s==="Potvrđeno").reduce((a,p)=>a+p.h*12*p.a/100,0);
+  $("#kpis").innerHTML=
+   `<div class="kpi hi"><div class="label">Potvrđeno godišnje</div><div class="v">${eur(tot("Potvrđeno"))}</div></div>
+    <div class="kpi"><div class="label">U pilotu</div><div class="v">${eur(tot("Pilot"))}</div></div>
+    <div class="kpi"><div class="label">Ideje</div><div class="v">${eur(tot("Ideja"))}</div></div>
+    <div class="kpi"><div class="label">Potvrđeni sati godišnje</div><div class="v">${Math.round(hrs).toLocaleString("hr-HR")} h</div></div>
+    <div class="kpi"><div class="label">Osnovica bonusa (${bp}%)</div><div class="v">${eur(tot("Potvrđeno")*bp/100)}</div></div>`;
+  $("#proc tbody").innerHTML=procs.map((p,i)=>`<tr><td>${p.o}</td><td>${p.p}</td><td class="n">${p.h}</td><td class="n">${p.a}</td>
+   <td><div style="display:flex;gap:.6rem;align-items:center"><div class="bar" style="flex:1"><i class="s-${p.s}" style="width:${sav(p)/max*100}%"></i></div><span style="min-width:5.5em;text-align:right">${eur(sav(p))}</span></div></td>
+   <td><button type="button" data-i="${i}" title="Promijeni status"><span class="pill ${p.s}">${p.s}</span></button></td></tr>`).join("");
+}
+$("#proc").addEventListener("click",e=>{const b=e.target.closest("button[data-i]");if(!b)return;const p=procs[+b.dataset.i];
+  p.s=STATUS[(STATUS.indexOf(p.s)+1)%3];try{const o={};procs.forEach(x=>o[x.id]=x.s);localStorage.setItem("eko-status",JSON.stringify(o))}catch(e){}renderProcs()});
+["rate","bonus"].forEach(i=>$("#"+i).addEventListener("input",renderProcs));
+renderProcs();
+
+/* RFQ agent */
+const samples=[$("#rfq-in").value,
+`Hello,
+
+we need an offer for 40 welded frames for a road-construction machine, drawing RF-210 rev. B (DWG attached).
+Material Hardox 450 and S690QL. Hot-dip galvanized after welding.
+EN 1090-2 EXC3 is required, certificate 3.2.
+Please send price and delivery time.
+
+Regards, M. Novak`];
+let sIdx=0;
+function analyse(t){
+  const find=(re)=>[...new Set((t.match(re)||[]).map(x=>x.replace(/\s+/g," ").trim()))];
+  const qty=find(/\b\d+\s*(pcs|pieces|units|kom|komada)\b/gi);
+  const mat=find(/\b(S\d{3}[A-Z0-9+]*|Hardox\s?\d{3}|1\.\d{4}|AISI\s?\d{3}|P\d{3}[A-Z]*)\b/g);
+  const std=find(/\b(EN\s?1090-?\d?(\s?EXC\d)?|ISO\s?3834-?\d|ISO\s?5817\s?(level\s)?[BCD]?|ISO\s?9001|EN\s?15085[-\d]*)\b/gi);
+  const cert=find(/\bEN\s?10204\s?(type\s)?3\.[12]\b|\bcertificate\s3\.[12]\b/gi);
+  const surf=find(/\b(shot\s?blasting\sSa\s?[\d.]+|hot-dip\sgalvaniz\w+|galvaniz\w+|powder\scoat\w*|paint\w*|RAL\s?\d{4}|zinc)\b/gi);
+  const date=find(/\b(week|KW|CW)\s?\d{1,2}(\/\d{2,4})?\b|\b\d{1,2}\.\d{1,2}\.\d{4}\b/gi);
+  const dwg=find(/\b(drawing\s[A-Z]{1,3}-?\d+(\srev\.?\s?\w)?|STEP|DWG|PDF|IGES)\b/gi);
+  const checks=[
+    ["Količina",qty,"Koliko komada i je li moguće više količinskih razreda?"],
+    ["Materijal",mat,"Koja je oznaka materijala i traži li se certifikat taline?"],
+    ["Norme i zavarivanje",std,"Koja razina izvedbe (EXC) i razina prihvatljivosti zavara?"],
+    ["Certifikat",cert,"Koji je tip certifikata (3.1 ili 3.2) i tko je treća strana?"],
+    ["Površinska zaštita",surf,"Kakva je zaštita i kada se radi: prije ili poslije zavarivanja?"],
+    ["Rok isporuke",date,"Koji je traženi rok isporuke i uvjeti isporuke (Incoterms)?"],
+    ["Crteži",dwg,"Možete li poslati crtež u PDF i 3D formatu?"]];
+  return checks;
+}
+function runRfq(){
+  const checks=analyse($("#rfq-in").value);
+  const miss=checks.filter(c=>!c[1].length);
+  const got=checks.length-miss.length;
+  const html=`<dl>${checks.map(c=>`<dt>${c[0]}</dt><dd>${c[1].length?c[1].map(x=>`<span class="tag">${x.replace(/</g,"&lt;")}</span>`).join(""):'<span class="miss">nedostaje</span>'}</dd>`).join("")}</dl>
+  <p style="margin-top:.7rem"><span class="pill ${miss.length?"Pilot":"Potvrđeno"}">${got}/${checks.length} zahtjeva prepoznato</span></p>
+  <pre class="draft">${miss.length?"Dear customer,\n\nthank you for your inquiry. To prepare an accurate offer, please confirm:\n"+miss.map(c=>"- "+c[2]).join("\n")+"\n\nBest regards":"Dear customer,\n\nthank you for your inquiry. All technical requirements are clear. We will send the offer with price and lead time.\n\nBest regards"}</pre>`;
+  $("#rfq-out").innerHTML=html;
+}
+$("#rfq-run").onclick=runRfq;
+$("#rfq-sample2").onclick=()=>{sIdx=(sIdx+1)%samples.length;$("#rfq-in").value=samples[sIdx];runRfq()};
+runRfq();
+
+/* SOP sinkronizacija */
+const sops={
+ rfq:{docs:[["SOP-7.2","Pregled zahtjeva kupca (ISO 9001, 8.2.3)"],["RU-PR-012","Obrada upita i priprema ponude"]],chg:"Dodaj korak: tehnolog pregledava karticu upita koju je pripremio AI agent i potvrđuje prije slanja pitanja kupcu. Dodaj evidenciju verzije kartice."},
+ "8d":{docs:[["SOP-10.2","Nesukladnost i korektivne mjere (ISO 9001, 10.2)"],["RU-KV-021","Izrada 8D izvješća"]],chg:"AI priprema nacrt opisa problema i popisa uzroka. Voditelj kvalitete potvrđuje uzrok i mjere. Upiši da je nacrt pripremljen AI alatom."},
+ cert:{docs:[["RU-KV-030","Dokumentacija isporuke i mapa sljedivosti"],["SOP-8.5","Sljedivost i identifikacija (ISO 9001, 8.5.2)"]],chg:"Dodaj automatsku provjeru podudarnosti broja taline s certifikatom 3.1 (EN 10204). Odstupanja pregledava kontrolor kvalitete."},
+ tech:{docs:[["RU-TH-005","Izrada tehnološkog lista"],["SOP-8.1","Planiranje i upravljanje proizvodnjom"]],chg:"AI predlaže redoslijed operacija iz crteža i prethodnih naloga. Tehnolog odobrava svaki list. Zabilježi izvor prijedloga."},
+ rn:{docs:[["RU-PR-044","Povratna informacija s radnih mjesta"]],chg:"Radnik potvrđuje unos koji je AI pripremio iz glasovne ili tekstualne bilješke. Voditelj smjene pregledava odstupanja."},
+ odrz:{docs:[["RU-OD-009","Evidencija kvarova i preventivno održavanje"]],chg:"Tjedno izvješće priprema AI iz evidencije kvarova. Voditelj održavanja potvrđuje."},
+ chat:{docs:[["POL-AI-01","Pravila korištenja AI alata"],["RU-HSE-001","Pravila zaštite na radu"]],chg:"Asistent odgovara samo iz odobrenih dokumenata i navodi izvor. Za sigurnosna pitanja uvijek upućuje na voditelja HSE. Obavijesti zaposlenike da komuniciraju s AI-jem."},
+ fin:{docs:[["POL-FIN-03","Obrada ulaznih računa"]],chg:"AI predlaže konto i centar troška, računovođa potvrđuje. Računi iznad praga uvijek idu na ručnu provjeru."}};
+$("#sop-sel").innerHTML=procs.map(p=>`<option value="${p.id}">${p.p}</option>`).join("");
+function renderSop(){const s=sops[$("#sop-sel").value];
+  $("#sop-out").innerHTML=`<div class="two"><div><div class="label" style="margin-bottom:.4rem">Dokumenti za izmjenu</div>
+  <div class="scroll"><table><thead><tr><th>Oznaka</th><th>Naziv</th><th>Akcija</th></tr></thead><tbody>${s.docs.map(d=>`<tr><td class="mono">${d[0]}</td><td>${d[1]}</td><td><span class="pill Pilot">Nova revizija</span></td></tr>`).join("")}</tbody></table></div></div>
+  <div><div class="label" style="margin-bottom:.4rem">Nacrt izmjene</div><div class="out"><p>${s.chg}</p><pre class="draft">Revizija: B\nDatum: 22.11.2026.\nRazlog izmjene: uvođenje AI rješenja\nOdobrava: voditelj odjela + predstavnik rukovodstva za kvalitetu\nObuka: potvrditi na listi prisutnosti</pre></div></div></div>`}
+$("#sop-sel").onchange=renderSop;renderSop();
+
+/* registar */
+const reg=[
+ {n:"Agent za upite kupaca",o:"Voditelj prodaje",u:"proc",pd:1,a:"Odobreno"},
+ {n:"Asistent za radne upute",o:"Voditelj HSE",u:"chat",pd:0,a:"U pregledu"},
+ {n:"Razvrstavanje ulaznih računa",o:"Voditelj financija",u:"proc",pd:0,a:"Odobreno"}];
+function risk(r){
+  if(r.u==="hr")return["vis","Visoki rizik (EU AI Act, Prilog III): procjena sukladnosti, ljudski nadzor, DPIA prema GDPR-u."];
+  if(r.u==="safety")return["vis","Mogući visoki rizik (sigurnosna komponenta): pravna procjena prije uvođenja."];
+  if(r.u==="chat")return["lim","Ograničeni rizik: obavijesti korisnika da komunicira s AI-jem."+(r.pd?" Provjeri GDPR osnovu.":"")];
+  return[r.pd?"lim":"min",r.pd?"Osobni podaci: provjeri pravnu osnovu, minimizaciju i DPIA po potrebi.":"Minimalni rizik: vođenje u registru i pregled jednom godišnje."];
+}
+const rl={vis:"Visok",lim:"Ograničen",min:"Minimalan"};
+function renderReg(){$("#reg tbody").innerHTML=reg.map(r=>{const k=risk(r);return`<tr><td>${r.n}</td><td>${r.o}</td><td><span class="pill r-${k[0]}">${rl[k[0]]}</span></td><td style="max-width:36ch">${k[1]}</td><td><span class="pill ${k[0]==="vis"?"Ideja":r.a==="Odobreno"?"Potvrđeno":"Pilot"}">${k[0]==="vis"?"Čeka pravni pregled":r.a}</span></td></tr>`}).join("")}
+$("#reg-form").addEventListener("submit",e=>{e.preventDefault();
+  reg.push({n:$("#r-name").value.trim(),o:$("#r-owner").value.trim(),u:$("#r-use").value,pd:+$("#r-pd").value,a:"U pregledu"});
+  e.target.reset();renderReg();toast("Dodano u registar")});
+renderReg();
+</script>
