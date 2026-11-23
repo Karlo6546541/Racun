@@ -20,6 +20,7 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       DATABASE_URL: TEST_DB,
+      DIRECT_URL: TEST_DB,
       E2E: "1",
       E2E_TEST_SECRET: E2E_SECRET,
       STRIPE_WEBHOOK_SECRET: WEBHOOK_SECRET,

@@ -9,7 +9,7 @@ export default async function globalSetup() {
   const url = process.env.E2E_DATABASE_URL || "postgresql://ailingo:ailingo@localhost:5432/ailingo_test";
   const dbName = new URL(url).pathname.slice(1);
   if (!dbName.endsWith("_test")) throw new Error(`E2E refuses to run against "${dbName}": the database name must end with _test`);
-  const env = { ...process.env, DATABASE_URL: url };
+  const env = { ...process.env, DATABASE_URL: url, DIRECT_URL: url };
   execSync("npx prisma migrate deploy", { env, stdio: "inherit" });
   execSync("npx tsx prisma/seed.ts", { env, stdio: "inherit" });
   const db = new PrismaClient({ datasources: { db: { url } } });

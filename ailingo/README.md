@@ -92,8 +92,8 @@ E2E koristi testne rute (`/api/test/*`) koje rade samo uz `E2E=1` i tajni `E2E_T
 ## Deploy (Vercel)
 
 1. Postgres (Neon, Supabase ili sl.) i `DATABASE_URL`.
-2. Sve varijable iz `.env.example` u Vercel projekt (Root Directory: `ailingo`).
-3. Build: `npm run build`, zatim jednom `npx prisma migrate deploy` i `npm run db:seed`.
+2. Sve varijable iz `.env.example` u Vercel projekt (Root Directory: `ailingo`). `DATABASE_URL` neka bude pooled veza, a `DIRECT_URL` izravna.
+3. Build naredba `npm run vercel-build` sama pokreće migracije, seed sadržaja i `next build`.
 4. `vercel.json` pokreće tjedni obračun liga i dnevne podsjetnike. Postavi `CRON_SECRET`.
 5. Stripe webhook endpoint: `https://tvoja-domena/api/stripe/webhook`.
 

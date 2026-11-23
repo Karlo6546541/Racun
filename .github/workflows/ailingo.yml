@@ -25,6 +25,7 @@ jobs:
           --health-cmd "pg_isready -U ailingo" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://ailingo:ailingo@localhost:5432/ailingo_test
+      DIRECT_URL: postgresql://ailingo:ailingo@localhost:5432/ailingo_test
       AUTH_SECRET: ci-auth-secret-ci-auth-secret-1234567
       SESSION_HMAC_SECRET: ci-hmac-secret
     steps:
