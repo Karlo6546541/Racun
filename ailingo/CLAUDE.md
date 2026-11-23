@@ -15,7 +15,7 @@ Zadani jezik je **hrvatski (hr)**, drugi je **engleski (en)**.
 
 ## Tehnološki stack
 
-Next.js 15 (App Router) · TypeScript (strict) · Tailwind CSS 4 · next-intl · Prisma 6 (PostgreSQL svugdje) · Stripe · Auth.js (email + Google) + Guest mode (`localStorage`) · Zod · Vitest · Playwright.
+Next.js 15 (App Router) · TypeScript (strict) · Tailwind CSS 4 · next-intl · Prisma 6 (PostgreSQL svugdje) · Stripe · Auth.js (Google + email magic link) + gost račun na serveru (httpOnly kolačić, spaja se pri prijavi) · Zod · Vitest · Playwright.
 
 ## Struktura mapa
 
