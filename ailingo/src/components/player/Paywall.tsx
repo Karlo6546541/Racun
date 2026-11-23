@@ -7,7 +7,7 @@ import { Countdown } from "./Countdown";
 export function Paywall({ minutes, tz }: { minutes: number; tz: string }) {
   const t = useTranslations("paywall");
   return (
-    <div className="sum" data-testid="paywall">
+    <div className="sum wrap" data-testid="paywall">
       <Mascot mood="happy" size={120} />
       <h1 style={{ fontSize: 26 }}>{t("title", { min: minutes })}</h1>
       <p className="muted">{t("text")}</p>

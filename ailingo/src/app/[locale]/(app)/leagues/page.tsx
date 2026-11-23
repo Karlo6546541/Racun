@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { requireViewer } from "@/server/viewer";
+import { pageViewer } from "@/server/viewer";
 import { myLeague } from "@/server/leagues";
 import { globalBoard, friendsBoard } from "@/server/boards";
 import { META } from "@/lib/content/meta";
@@ -14,7 +14,7 @@ export default async function Leagues({ params, searchParams }: { params: Promis
   setRequestLocale(locale);
   const sp = await searchParams;
   const tab: Tab = sp.tab === "global" ? "global" : sp.tab === "friends" ? "friends" : "league";
-  const user = await requireViewer();
+  const user = await pageViewer();
   const t = await getTranslations("leagues");
   const tc = await getTranslations("common");
   const L = (x: [string, string]) => x[locale === "en" ? 1 : 0];

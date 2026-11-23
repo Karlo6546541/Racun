@@ -8,43 +8,35 @@ Zadani jezik je **hrvatski (hr)**, drugi je **engleski (en)**.
 ## Zlatno pravilo: 100% bez AI-ja
 
 - Nikakvi AI/LLM API pozivi, nikakvi API ključevi, nikakvi vanjski AI servisi. Aplikacija je deterministička i besplatna za pokretanje.
-- Sva provjera odgovora ide kroz sučelje `Grader` (`src/lib/grading/`). Jedina implementacija je `DeterministicGrader`.
+- Sva provjera odgovora ide kroz sučelje `Grader` (`src/lib/grading/`) i to **na serveru**. Preglednik nikad ne dobiva točne odgovore (`present.ts`).
 - Opcionalni `AiGrader` smije postojati samo kao **stub** iza feature flaga `FEATURE_AI_GRADER`, koji je **`off` po defaultu**. Bez njega sve mora raditi.
 - Nikad ne dodavati `openai`, `@anthropic-ai/*`, `ai`, `langchain` i slično u `package.json`. CI test (`tests/no-ai-deps.test.ts`) to provjerava.
 - `.env.example` ne smije sadržavati AI ključeve.
 
 ## Tehnološki stack
 
-Next.js (App Router) · TypeScript (strict) · Tailwind CSS · shadcn/ui · Framer Motion · next-intl · Prisma (PostgreSQL; SQLite za lokalni razvoj) · Auth.js (email + Google) + Guest mode (`localStorage`) · Zod · Vitest · Playwright.
+Next.js 15 (App Router) · TypeScript (strict) · Tailwind CSS 4 · next-intl · Prisma 6 (PostgreSQL svugdje) · Stripe · Auth.js (email + Google) + Guest mode (`localStorage`) · Zod · Vitest · Playwright.
 
 ## Struktura mapa
 
 ```
 ailingo/
-├─ CLAUDE.md
-├─ README.md, .env.example
-├─ prisma/            schema.prisma, seed.ts, migrations/
-├─ content/           SVE vježbe, rubrike i liste ključnih riječi (JSON/YAML), nikad u kodu
-│  ├─ units/          unit-1-sto-je-ai/{unit.json, lesson-*.json}, unit-2-..., unit-3..6 (placeholderi)
-│  ├─ badges.json, quests.json, bots.json
-│  └─ placement.json
-├─ messages/          hr.json, en.json (UI stringovi; sadržaj lekcija je u content/)
-├─ scripts/           validate-content.ts, seed-content.ts
+├─ CLAUDE.md · README.md · .env.example · vercel.json
+├─ content/        SVE vježbe, rubrike i ključne riječi (JSON), meta.json (staze, bedževi, zadaci, botovi, placement)
+├─ messages/       hr.json, en.json (tekstovi sučelja)
+├─ prisma/         schema.prisma, migrations/, seed.ts (content → baza)
+├─ scripts/        validate-content.ts
 ├─ src/
-│  ├─ app/[locale]/   (landing)(app)(admin) rute: learn, lesson/[id], practice, leagues, profile, friends, settings, admin
-│  ├─ app/api/        auth, progress, export, delete-account, push (svi ulazi kroz Zod)
-│  ├─ components/     ui/ (shadcn), exercises/ (jedna komponenta po tipu), mascot/, gamification/
-│  ├─ lib/
-│  │  ├─ grading/     Grader.ts (sučelje), DeterministicGrader.ts, graders/<tip>.ts, normalize.ts
-│  │  ├─ content/     schema.ts (Zod), loader.ts
-│  │  ├─ srs/         sm2.ts
-│  │  ├─ gamification/ xp.ts, streak.ts, hearts.ts, quests.ts, leagues.ts, badges.ts
-│  │  ├─ progress/    ProgressStore.ts (sučelje) + DbStore + LocalStore (guest)
-│  │  ├─ audio/       sfx.ts (Web Audio sinteza)
-│  │  ├─ flags.ts, rate-limit.ts, db.ts
-│  └─ middleware.ts
-├─ public/            manifest.webmanifest, sw, ikone
-└─ tests/             unit/ (Vitest), e2e/ (Playwright)
+│  ├─ lib/         čista logika bez React/DB: content/ (Zod shema), grading/ (Grader, normalizacija, present.ts),
+│  │               srs/sm2.ts, game/ (xp, streak, hearts, leagues, usage, entitlement, quests, stats), time.ts
+│  ├─ server/      Prisma, prijava i gost (viewer, guest), play.ts (sesije i ocjenjivanje), game.ts (XP, zadaci, bedževi),
+│  │               leagues.ts, usage.ts (dnevni limit), billing.ts (Stripe), gdpr.ts, actions.ts (server actions)
+│  ├─ app/         [locale]/ stranice (landing, onboarding, (app)/learn|practice|leagues|friends|profile|settings,
+│  │               play, premium, signin, admin, legal) i api/ rute
+│  └─ components/  Mascot, exercises/ (10 tipova), player/, Tree, Settings, Admin …
+├─ public/         manifest, sw.js, offline.html, ikone
+├─ tests/          unit/ (Vitest), e2e/ (Playwright, baza mora završavati na _test)
+└─ prototype/      izvorni prototip (artefakt), čita ../content
 ```
 
 ## Konvencije koda

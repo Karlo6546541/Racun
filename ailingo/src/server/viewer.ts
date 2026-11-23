@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import type { User } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "./db";
@@ -35,5 +36,12 @@ export async function getOrCreateGuest(locale: string): Promise<User> {
 export async function requireAdmin(): Promise<User> {
   const v = await requireViewer();
   if (v.role !== "ADMIN") throw new AppError("FORBIDDEN");
+  return v;
+}
+
+/** For pages: sends visitors without an account (e.g. right after deleting it) to the start page instead of erroring. */
+export async function pageViewer(): Promise<User> {
+  const v = await getViewer();
+  if (!v) redirect("/");
   return v;
 }

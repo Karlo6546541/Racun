@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { requireViewer } from "@/server/viewer";
+import { pageViewer } from "@/server/viewer";
 import { prisma } from "@/server/db";
 import { weekKey, dayKey } from "@/lib/time";
 import { visibleStreak } from "@/lib/game/streak";
@@ -9,7 +9,7 @@ import { Link } from "@/i18n/navigation";
 export default async function Friends({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const user = await requireViewer();
+  const user = await pageViewer();
   const t = await getTranslations("friends");
   if (user.isGuest)
     return (

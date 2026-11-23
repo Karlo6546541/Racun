@@ -1,13 +1,13 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { requireViewer } from "@/server/viewer";
+import { pageViewer } from "@/server/viewer";
 import { prisma } from "@/server/db";
 import { getContent } from "@/server/content";
 
 export default async function Practice({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const user = await requireViewer();
+  const user = await pageViewer();
   const t = await getTranslations("practice");
   const L = (x: [string, string]) => x[locale === "en" ? 1 : 0];
   const { exercises } = await getContent();

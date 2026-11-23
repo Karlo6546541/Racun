@@ -35,9 +35,8 @@ export async function awardXp(tx: Tx, user: User, amount: number, source: XPSour
 
 export async function ensureQuests(tx: Tx | typeof prisma, user: User) {
   const day = dayKey(new Date(), user.timezone);
-  for (const q of META.quests) {
-    await tx.dailyQuest.upsert({ where: { userId_day_code: { userId: user.id, day, code: q.id } }, create: { userId: user.id, day, code: q.id, target: q.target, rewardXp: q.reward }, update: {} });
-  }
+  // createMany + skipDuplicates is race-safe when two requests create today's quests at once.
+  await tx.dailyQuest.createMany({ data: META.quests.map((q) => ({ userId: user.id, day, code: q.id, target: q.target, rewardXp: q.reward })), skipDuplicates: true });
   return tx.dailyQuest.findMany({ where: { userId: user.id, day }, orderBy: { code: "asc" } });
 }
 

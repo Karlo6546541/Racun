@@ -42,12 +42,12 @@
     "blitzDone": "Blitz gotov!", "record": "Novi rekord! 🎉", "best": "Rekord: {n}", "bestCombo": "Najbolji niz",
     "placementDone": "Test razine gotov!", "skipped": "Preskačeš {n} lekcija koje već znaš.", "fromStart": "Krećeš od početka. Odlično mjesto za start!", "score": "Rezultat", "skippedLabel": "Preskočeno",
     "levelUp": "Nova razina!", "levelUpText": "Tvoj AI marketing alat postaje sve bolji.", "awesome": "Super!",
-    "noHearts": "Ostao si bez srca", "noHeartsText": "Nema brige. Vježbom vraćaš srca, a nova se obnavljaju svakih 30 minuta.", "practiceForHeart": "Vježbaj za srce", "refill": "Napuni srca (10 💎)",
+    "noHearts": "Nema više srca", "noHeartsText": "Nema brige. Vježbom vraćaš srca, a nova se obnavljaju svakih 30 minuta.", "practiceForHeart": "Vježbaj za srce", "refill": "Napuni srca (10 💎)",
     "failed": "Lekcija nije završena", "toTree": "Na stablo vještina", "toPractice": "Natrag na vježbu", "badge": "Novi bedž: {title}", "quest": "Zadatak ispunjen: {title}",
     "tooFast": "Polako, čitaj pitanja 🙂", "locked": "Ova lekcija je još zaključana.", "nothing": "Još nema ničega za vježbu."
   },
   "paywall": {
-    "title": "Dnevni limit od {min} min je iskorišten", "text": "Danas si odlično radio. Besplatno učenje se obnavlja za:", "free": "I dalje slobodno: ljestvice, prijatelji, pregled grešaka i profil.",
+    "title": "Dnevni limit od {min} min je iskorišten", "text": "Odličan dan učenja! Besplatno vrijeme se obnavlja za:", "free": "I dalje slobodno: ljestvice, prijatelji, pregled grešaka i profil.",
     "premium": "Nastavi s Premiumom", "tomorrow": "Vrati se sutra", "meter": "{time} preostalo danas", "warn": "Još minuta besplatnog učenja danas.", "unlimited": "Premium: neograničeno"
   },
   "practice": {
@@ -58,7 +58,7 @@
   },
   "leagues": {
     "league": "Liga: {name}", "daysLeft": "Preostalo dana: {n}", "rank": "Tvoje mjesto: {n}/{total}", "rules": "Prvih 10 napreduje, zadnjih 5 pada.",
-    "bots": "Neki natjecatelji su simulirani dok nema dovoljno stvarnih korisnika.", "lastUp": "Prošli tjedan: {rank}. mjesto. Napredovao si! 🎉", "lastDown": "Prošli tjedan: {rank}. mjesto. Pao si ligu. Odigraj revanš!", "lastStay": "Prošli tjedan: {rank}. mjesto. Ostaješ u ligi.",
+    "bots": "Neki natjecatelji su simulirani dok nema dovoljno stvarnih korisnika.", "lastUp": "Prošli tjedan: {rank}. mjesto. Ideš ligu više! 🎉", "lastDown": "Prošli tjedan: {rank}. mjesto. Ovaj put liga niže. Vrijeme za revanš!", "lastStay": "Prošli tjedan: {rank}. mjesto. Ostaješ u ligi.",
     "tabLeague": "Moja liga", "tabGlobal": "Globalno", "tabFriends": "Prijatelji", "weekly": "Ovaj tjedan", "allTime": "Svih vremena", "simulated": "simuliran", "hidden": "Skriveni korisnik", "guestNote": "Prijavi se da se pojaviš na globalnoj ljestvici."
   },
   "friends": {

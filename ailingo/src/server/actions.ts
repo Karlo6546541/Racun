@@ -1,7 +1,8 @@
 "use server";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { GUEST_COOKIE } from "./guest";
 import { prisma } from "./db";
 import { getOrCreateGuest, requireAdmin, requireViewer } from "./viewer";
 import { rateLimit, clientIp } from "./ratelimit";
@@ -18,7 +19,7 @@ const Locale = z.enum(["hr", "en"]);
 
 export async function completeOnboarding(input: { name: string; goal: string; level: string; daily: number; locale: string }) {
   const d = z.object({ name: z.string().trim().max(24), goal: z.enum(["agency", "biz", "free", "daily"]), level: z.enum(["beg", "mid", "adv"]), daily: z.union([z.literal(5), z.literal(10), z.literal(15), z.literal(20)]), locale: Locale }).parse(input);
-  await rateLimit("onboard:" + clientIp(await headers()), 10, 3600);
+  await rateLimit("onboard:" + clientIp(await headers()), 30, 3600);
   const user = await getOrCreateGuest(d.locale);
   await prisma.user.update({ where: { id: user.id }, data: { onboarded: true, name: d.name || user.name, goal: d.goal, level: d.level, dailyGoalMin: d.daily, locale: d.locale } });
   return { ok: true };
@@ -26,7 +27,7 @@ export async function completeOnboarding(input: { name: string; goal: string; le
 
 export async function startAsGuest(locale: string) {
   const l = Locale.parse(locale);
-  await rateLimit("onboard:" + clientIp(await headers()), 10, 3600);
+  await rateLimit("onboard:" + clientIp(await headers()), 30, 3600);
   await getOrCreateGuest(l);
 }
 
@@ -90,7 +91,9 @@ export async function respondFriend(id: string, action: "accept" | "decline" | "
 export async function deleteMyAccount() {
   const user = await requireViewer();
   await deleteAccount(user.id);
-  if (!user.isGuest) await signOut({ redirect: false });
+  // The session row was deleted with the user (cascade), so only the cookies remain to clear.
+  const jar = await cookies();
+  for (const name of ["authjs.session-token", "__Secure-authjs.session-token", GUEST_COOKIE]) jar.delete(name);
   return { ok: true };
 }
 

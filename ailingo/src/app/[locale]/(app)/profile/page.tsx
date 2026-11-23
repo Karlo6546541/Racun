@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { headers } from "next/headers";
 import { Link } from "@/i18n/navigation";
-import { requireViewer } from "@/server/viewer";
+import { pageViewer } from "@/server/viewer";
 import { prisma } from "@/server/db";
 import { homeData } from "@/server/home";
 import { clientIp } from "@/server/ratelimit";
@@ -15,7 +15,7 @@ import { Mascot } from "@/components/Mascot";
 export default async function Profile({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const user = await requireViewer();
+  const user = await pageViewer();
   const d = await homeData(user, clientIp(await headers()));
   const t = await getTranslations("profile");
   const tc = await getTranslations("common");

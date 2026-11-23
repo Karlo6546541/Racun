@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { requireViewer } from "@/server/viewer";
+import { pageViewer } from "@/server/viewer";
 import { prisma } from "@/server/db";
 import { aiGraderEnabled } from "@/lib/grading";
 import { pushEnabled } from "@/server/push";
@@ -8,7 +8,7 @@ import { Settings } from "@/components/Settings";
 export default async function SettingsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const user = await requireViewer();
+  const user = await pageViewer();
   const t = await getTranslations("settings");
   const sub = await prisma.subscription.findUnique({ where: { userId: user.id } });
   return (

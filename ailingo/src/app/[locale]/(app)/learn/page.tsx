@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { requireViewer } from "@/server/viewer";
+import { pageViewer } from "@/server/viewer";
 import { prisma } from "@/server/db";
 import { getContent, lessonStates, trackLessons } from "@/server/content";
 import { ensureQuests } from "@/server/game";
@@ -13,7 +13,7 @@ export default async function Learn({ params, searchParams }: { params: Promise<
   const { locale } = await params;
   setRequestLocale(locale);
   const track = (await searchParams).track === "mk" ? "mk" : "ai";
-  const user = await requireViewer();
+  const user = await pageViewer();
   const t = await getTranslations("learn");
   const L = (x: [string, string]) => x[locale === "en" ? 1 : 0];
   const { units } = await getContent();

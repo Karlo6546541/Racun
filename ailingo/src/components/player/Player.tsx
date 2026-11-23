@@ -214,7 +214,7 @@ export function Player({ mode, lessonId, practice, sound, tz, freeMinutes, strea
 
   if (phase === "loading")
     return (
-      <div className="sum">
+      <div className="sum wrap">
         <Mascot mood="think" size={96} />
         <p className="muted">{tc("loading")}</p>
       </div>
@@ -222,7 +222,7 @@ export function Player({ mode, lessonId, practice, sound, tz, freeMinutes, strea
   if (phase === "paywall") return <Paywall minutes={freeMinutes} tz={tz} />;
   if (phase === "error")
     return (
-      <div className="sum">
+      <div className="sum wrap">
         <Mascot mood="sad" size={110} />
         <p>{errorMsg}</p>
         <Link href="/learn" className="btn btn-big">
@@ -232,7 +232,7 @@ export function Player({ mode, lessonId, practice, sound, tz, freeMinutes, strea
     );
   if (phase === "nohearts")
     return (
-      <div className="sum">
+      <div className="sum wrap">
         <Mascot mood="sad" size={120} />
         <h1>{t("noHearts")}</h1>
         <p className="muted">{t("noHeartsText")}</p>
@@ -246,7 +246,7 @@ export function Player({ mode, lessonId, practice, sound, tz, freeMinutes, strea
     );
   if (phase === "levelup" && summary)
     return (
-      <div className="sum">
+      <div className="sum wrap">
         <Mascot mood="cheer" size={120} />
         <h1>{t("levelUp")}</h1>
         <div className="lvl">{summary.levelAfter}</div>
@@ -279,7 +279,7 @@ export function Player({ mode, lessonId, practice, sound, tz, freeMinutes, strea
           {mode === "LESSON" ? `❤️ ${hearts}` : blitz ? `⏱ ${Math.max(0, Math.ceil((session.endAt! - now) / 1000))}s` : ""}
         </div>
       </div>
-      {remaining !== null && <p className="muted" style={{ fontSize: 12, fontWeight: 800, margin: "-6px 0 6px", textAlign: "right" }} data-testid="meter">{tp("meter", { time: fmt(remaining) })}</p>}
+      {remaining !== null && <p className="muted" style={{ fontSize: 12, fontWeight: 800, margin: "0 0 6px", textAlign: "right" }} data-testid="meter">{tp("meter", { time: fmt(remaining) })}</p>}
       <div className="lbody">
         <div className="qtype">{tt(current.ex.type)}</div>
         <h2 className="qtext">{current.ex.q}</h2>
