@@ -72,7 +72,7 @@ ailingo/
 4. Bez novih zavisnosti bez razloga. Preferirati lagana rješenja (Web Audio umjesto audio datoteka).
 5. Pristupačnost nije dodatak: svaka interaktivna komponenta ima tipkovnički put, ARIA oznake, `prefers-reduced-motion` i kontrast ≥ 4.5:1. Drag-and-drop uvijek ima tap/tipkovničku alternativu.
 6. Sigurnost/GDPR: rate limiting na auth rutama, izvoz podataka (JSON), trajno brisanje računa, nikakvi trackeri trećih strana.
-7. Hearts i sav sadržaj nikad nisu iza plaćanja.
+7. Monetizacija: besplatno je 10 min aktivnog učenja dnevno (`FREE_DAILY_MINUTES`, konfigurabilno), Premium je neograničen. Srca i sam sadržaj nisu iza plaćanja. Vrijeme se mjeri i provjerava na serveru, a Premium se aktivira isključivo iz potpisanog Stripe webhooka.
 
 ## Naredbe (cilj nakon Faze 1)
 
