@@ -1,6 +1,13 @@
 {
+  "buildCommand": "npm run vercel-build",
   "crons": [
-    { "path": "/api/cron/weekly", "schedule": "17 0 * * 1" },
-    { "path": "/api/cron/reminders", "schedule": "23 17 * * *" }
+    {
+      "path": "/api/cron/weekly",
+      "schedule": "17 0 * * 1"
+    },
+    {
+      "path": "/api/cron/reminders",
+      "schedule": "23 17 * * *"
+    }
   ]
 }
