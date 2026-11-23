@@ -6,7 +6,12 @@ const err = (m) => errs.push(m);
 const isT = (t) => Array.isArray(t) && t.length === 2 && t.every((s) => typeof s === "string" && s.trim());
 const need = (c, id, k) => { if (!isT(c[k])) err(`${id}: "${k}" must be [hr, en]`); };
 
-const units = [rd("unit-1.json"), rd("unit-2.json")];
+const meta = rd("meta.json");
+const byUnit = {};
+for (const f of meta.unitFiles) { const d = rd(f); for (const u of Array.isArray(d) ? d : [d]) { const df = meta.unitDefaults[u.id]; if (df) { u.track ||= df.track; u.level ||= df.level; } u.key ||= "u" + u.order; u.lessons.forEach((l, i) => { l.id ||= u.key + "l" + (i + 1); l.exercises.forEach((e, j) => { e.id ||= l.id + "e" + (j + 1); }); }); byUnit[u.id] = u; } }
+const units = [];
+for (const t of meta.tracks) for (const id of t.order) { if (!byUnit[id]) err(`track ${t.id}: unknown unit ${id}`); else { if (byUnit[id].track !== t.id) err(`${id}: track mismatch`); units.push(byUnit[id]); } }
+for (const id of Object.keys(byUnit)) if (!units.includes(byUnit[id])) err(`unit ${id} is not in any track order`);
 const ids = new Set();
 const types = new Set();
 for (const u of units) {
@@ -48,9 +53,10 @@ for (const u of units) {
     }
   }
 }
-const meta = rd("meta.json");
 for (const id of meta.placement.exercises) if (!ids.has(id)) err(`placement: unknown exercise ${id}`);
-for (const u of meta.futureUnits) { need(u, u.id, "title"); if (u.lessons.length < 4) err(`${u.id}: placeholder needs 4 lessons`); }
+for (const u of units) { need(u, u.id, "title"); need(u, u.id, "summary"); if (!(u.level >= 1 && u.level <= 3)) err(`${u.id}: level 1-3`); }
+const lids = new Set(); for (const u of units) for (const l of u.lessons) { if (lids.has(l.id)) err(`dup lesson ${l.id}`); lids.add(l.id); need(l, l.id, "title"); }
+for (const b of meta.badges) { const m = b.rule.stat.match(/^(unit|track):(.+)$/); if (m && m[1] === "unit" && !byUnit[m[2]]) err(`badge ${b.id}: unknown unit`); }
 const want = ["mc", "tf", "fill", "build", "match", "doctor", "rubric", "spot", "compare", "order"];
 for (const t of want) if (!types.has(t)) err(`no exercise of type ${t}`);
 

@@ -98,6 +98,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible,
 @keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 
 /* quests */
+.tracks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 6px}
+.tracks button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--line)}
+.tracks button span{font-size:22px}.tracks button b{font-size:14px;line-height:1.2}.tracks button small{color:var(--muted);font-weight:800}
+.tracks button[aria-selected="true"]{border-color:var(--blue);background:var(--sel);box-shadow:0 3px 0 var(--blue)}
+.ntitle{font-weight:800;font-size:13px;color:var(--muted);text-align:center;max-width:220px;margin-top:-6px}
 .quest{display:grid;gap:4px;margin:10px 0}
 .quest b{font-size:15px}
 .quest.done b{color:var(--green-d)}
@@ -241,7 +246,7 @@ function L(t){return Array.isArray(t)?t[S.lang==='en'?1:0]:t}
 
 /* ====================== state ====================== */
 function defState(){return {v:1,lang:'hr',name:'',onboarded:false,goal:'',level:'',dailyGoal:10,sound:true,
-  xp:0,weekXp:0,week:weekKey(new Date()),tier:0,gems:10,freezes:0,hearts:5,heartsAt:0,
+  track:'ai',xp:0,weekXp:0,week:weekKey(new Date()),tier:0,gems:10,freezes:0,hearts:5,heartsAt:0,
   streak:{cur:0,best:0,last:''},progress:{},review:{},mistakes:{},activity:{},quests:{date:'',items:[]},
   badges:[],friends:[],placementDone:false,blitzBest:0,lastLeague:null,
   stats:{answered:0,correct:0,perfect:0,comboBest:0,halluc:0,promptsDone:0,rubricPass:0,practiceSessions:0}}}
@@ -320,7 +325,8 @@ function ensureQuests(){if(S.quests.date!==today()){S.quests={date:today(),items
 function questProgress(id,n){ensureQuests();var it=S.quests.items.find(function(x){return x.id===id});if(!it||it.done)return;var def=CONTENT.meta.quests.find(function(x){return x.id===id});
   it.progress=def.mode==='max'?Math.max(it.progress,n):it.progress+n;if(it.progress>=def.target){it.progress=def.target;it.done=true;addXp(def.reward);S.gems+=3;toast('✅ '+L(def.title)+' · +'+def.reward+' XP')}}
 function isDone(id){return !!(S.progress[id]&&S.progress[id].done)}
-function statVal(st){if(st.indexOf('unit:')===0){var u=CONTENT.units.find(function(x){return x.id===st.slice(5)});return u&&u.lessons.length&&u.lessons.every(function(l){return isDone(l.id)})?1:0}
+function statVal(st){if(st.indexOf('unit:')===0){var u=CONTENT.byUnit[st.slice(5)];return u&&u.lessons.length&&u.lessons.every(function(l){return isDone(l.id)})?1:0}
+  if(st.indexOf('track:')===0){var tl=trackLessons(st.slice(6));return tl.length&&tl.every(function(x){return isDone(x.l.id)})?1:0}
   if(st==='streakBest')return S.streak.best;if(st==='xpTotal')return S.xp;if(st==='friends')return S.friends.length;
   if(st==='lessonsDone')return Object.keys(S.progress).filter(function(k){return S.progress[k].done}).length;return S.stats[st]||0}
 function checkBadges(){CONTENT.meta.badges.forEach(function(b){if(S.badges.indexOf(b.id)<0&&statVal(b.rule.stat)>=b.rule.gte){S.badges.push(b.id);S.gems+=5;toast('🏅 '+L(b.title));sfx('combo')}})}
@@ -338,13 +344,24 @@ function weekRoll(){var wk=weekKey(new Date());if(S.week===wk)return;var rows=le
   S.lastLeague={rank:rank,delta:delta,tier:S.tier,xp:S.weekXp};S.tier+=delta;S.week=wk;S.weekXp=0;save()}
 
 /* ====================== content ====================== */
-function loadContent(){return Promise.all(['content/meta.json','content/unit-1.json','content/unit-2.json'].map(function(f){return fetch(f).then(function(r){if(!r.ok)throw new Error(f+' '+r.status);return r.json()})})).then(function(a){
-  var meta=a[0],units=[a[1],a[2]].concat(meta.futureUnits),byId={};
-  units.forEach(function(u){u.lessons.forEach(function(l){l.exercises.forEach(function(e){byId[e.id]={ex:e,lesson:l,unit:u}})})});
-  CONTENT={meta:meta,units:units,byId:byId}})}
+function loadContent(){
+  function get(f){return fetch('content/'+f).then(function(r){if(!r.ok)throw new Error(f+' '+r.status);return r.json()})}
+  return get('meta.json').then(function(meta){return Promise.all(meta.unitFiles.map(get)).then(function(files){
+    var byUnit={};
+    files.forEach(function(f){(Array.isArray(f)?f:[f]).forEach(function(u){var d=meta.unitDefaults[u.id];if(d){u.track=u.track||d.track;u.level=u.level||d.level}u.key=u.key||('u'+u.order);if(u.published===undefined)u.published=true;
+      u.lessons.forEach(function(l,i){l.id=l.id||u.key+'l'+(i+1);l.exercises.forEach(function(e,j){e.id=e.id||l.id+'e'+(j+1)})});byUnit[u.id]=u})});
+    var units=[],byId={};
+    meta.tracks.forEach(function(t){t.order.forEach(function(id,i){var u=byUnit[id];u.idx=i+1;units.push(u)})});
+    units.forEach(function(u){u.lessons.forEach(function(l){l.exercises.forEach(function(e){byId[e.id]={ex:e,lesson:l,unit:u}})})});
+    CONTENT={meta:meta,units:units,byId:byId,byUnit:byUnit}})})}
+function trackLessons(track){var o=[];CONTENT.units.forEach(function(u){if(u.track===track&&u.published)u.lessons.forEach(function(l){o.push({u:u,l:l})})});return o}
 function flatLessons(){var o=[];CONTENT.units.forEach(function(u){if(u.published)u.lessons.forEach(function(l){o.push({u:u,l:l})})});return o}
-function lessonState(id){var fl=flatLessons(),i=fl.findIndex(function(x){return x.l.id===id});if(i<0)return 'locked';if(isDone(id))return 'done';return i===0||isDone(fl[i-1].l.id)?'open':'locked'}
+function lessonState(id){var info=lessonById(id);if(!info||!info.u.published)return 'locked';var fl=trackLessons(info.u.track),i=fl.findIndex(function(x){return x.l.id===id});if(i<0)return 'locked';if(isDone(id))return 'done';return i===0||isDone(fl[i-1].l.id)?'open':'locked'}
 function lessonById(id){for(var i=0;i<CONTENT.units.length;i++){var l=CONTENT.units[i].lessons.find(function(x){return x.id===id});if(l)return {l:l,u:CONTENT.units[i]}}}
+function prep(ex){var c;
+  if(ex.type==='mc'||ex.type==='doctor'){var perm=shuffle(ex.options.map(function(_,i){return i}));c=Object.assign({},ex);c.options=perm.map(function(i){return ex.options[i]});c.answer=perm.indexOf(ex.answer);return c}
+  if(ex.type==='compare'&&!/(Tekst|Text|Zahtjev|Request)\s+[AB]\b/.test(ex.explain.join(' '))&&Math.random()<.5){c=Object.assign({},ex);c.a=ex.b;c.b=ex.a;c.answer=1-ex.answer;return c}
+  return ex}
 var TYPE={mc:['Višestruki izbor','Multiple choice'],tf:['Mit ili činjenica','Myth or fact'],fill:['Popuni prazninu','Fill in the blank'],build:['Složi prompt','Build-a-Prompt'],match:['Spoji parove','Match pairs'],doctor:['Prompt Doktor','Prompt Doctor'],rubric:['Napiši prompt','Write a prompt'],spot:['Ulovi halucinaciju','Spot the hallucination'],compare:['A/B dvoboj','A/B showdown'],order:['Složi radni tok','Order the steps']};
 
 /* ====================== exercise renderers ====================== */
@@ -396,7 +413,7 @@ R.rubric=function(ex,host,api){host.innerHTML='<div class="note">ℹ️ '+esc(tr
 
 /* ====================== session runner ====================== */
 function startSession(cfg){tickHearts();if(cfg.mode==='lesson'&&S.hearts<=0){screenNoHearts();return}
-  SES={mode:cfg.mode,lessonId:cfg.lessonId,title:cfg.title,queue:cfg.exercises.slice(),total:cfg.mode==='blitz'?0:cfg.exercises.length,done:0,firstTry:0,answered:0,wrong:0,combo:0,comboBest:0,xp:0,retried:{},start:Date.now(),cur:null,endAt:cfg.mode==='blitz'?Date.now()+60000:0,fixed:0,lvl0:levelFor(S.xp),noHearts:false,timer:null,correct:0};
+  SES={mode:cfg.mode,lessonId:cfg.lessonId,title:cfg.title,queue:cfg.exercises.map(prep),total:cfg.mode==='blitz'?0:cfg.exercises.length,done:0,firstTry:0,answered:0,wrong:0,combo:0,comboBest:0,xp:0,retried:{},start:Date.now(),cur:null,endAt:cfg.mode==='blitz'?Date.now()+60000:0,fixed:0,lvl0:levelFor(S.xp),noHearts:false,timer:null,correct:0};
   drawSession()}
 function drawSession(){var s=SES;app.innerHTML='<div class="les"><div class="lhead"><button class="iconbtn" data-act="quit" aria-label="'+esc(tr('Izađi iz lekcije','Leave the lesson'))+'">✕</button><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="'+esc(tr('Napredak','Progress'))+'"><i id="barfill"></i></div><div class="hp" id="hp"></div></div><div class="lbody" id="qwrap"></div><div class="lfoot" id="foot" role="status"></div></div>';
   updateHead();showQuestion();
@@ -469,17 +486,19 @@ function onboard(){var st=OB.step,steps='<div class="steps">'+[0,1,2,3,4].map(fu
 function dailyCard(){ensureQuests();var g=GOALXP[S.dailyGoal],x=todayXp(),pct=Math.min(100,x/g*100);
   return '<div class="card"><div class="row sp"><h3>'+esc(tr('Dnevni cilj','Daily goal'))+'</h3><span class="pill">'+x+' / '+g+' XP</span></div><div class="prog gold" role="progressbar" aria-valuenow="'+Math.round(pct)+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div>'
    +'<h3 style="margin-top:14px;font-size:16px">'+esc(tr('Dnevni zadaci','Daily quests'))+'</h3>'+S.quests.items.map(function(it){var d=CONTENT.meta.quests.find(function(q){return q.id===it.id});return '<div class="quest'+(it.done?' done':'')+'"><b>'+(it.done?'✅ ':'')+esc(L(d.title))+'</b><div class="prog"><i style="width:'+(it.progress/d.target*100)+'%"></i></div><small class="muted">'+it.progress+'/'+d.target+' · +'+d.reward+' XP</small></div>'}).join('')+'</div>'}
-function learnView(){var h=dailyCard(),first=true,anyDone=Object.keys(S.progress).length>0;
+function learnView(){var h=dailyCard(),first=true,anyDone=Object.keys(S.progress).length>0,M=CONTENT.meta;
   if(!S.placementDone&&!anyDone)h+='<div class="card row sp"><div><h3>'+esc(tr('Već znaš nešto o AI-ju?','Already know some AI?'))+'</h3><p class="muted" style="margin:0">'+esc(tr('Test razine (8 pitanja)','Placement test (8 questions)'))+'</p></div><button class="btn sm blue" data-act="placement">'+esc(tr('Test','Test'))+'</button></div>';
+  h+='<div class="tracks" role="tablist" aria-label="'+esc(tr('Staze učenja','Learning tracks'))+'">'+M.tracks.map(function(t){var tl=trackLessons(t.id),d=tl.filter(function(x){return isDone(x.l.id)}).length;return '<button type="button" role="tab" aria-selected="'+(S.track===t.id)+'" data-act="track" data-v="'+t.id+'"><span aria-hidden="true">'+t.icon+'</span><b>'+esc(L(t.title))+'</b><small>'+d+'/'+tl.length+' '+esc(tr('lekcija','lessons'))+'</small></button>'}).join('')+'</div>';
   var offs=[0,34,52,34,0,-34,-52,-34];
-  CONTENT.units.forEach(function(u){h+='<div class="unit" style="background:'+u.color+(u.published?'':';filter:grayscale(.85);opacity:.8')+'"><small>'+esc(tr('Jedinica ','Unit '))+u.order+(u.published?'':' · '+tr('uskoro','coming soon'))+'</small><h3>'+u.icon+' '+esc(L(u.title))+'</h3><p>'+esc(L(u.summary))+'</p></div><div class="path">';
-    u.lessons.forEach(function(l,i){var st=u.published?lessonState(l.id):'locked',p=S.progress[l.id];var go=st==='open'&&first;if(st==='open')first=false;
-      h+='<button type="button" class="node '+st+'" style="--x:'+offs[i%8]+'px'+(st==='open'||st==='done'?';--c:'+u.color+';--cd:rgba(0,0,0,.28)':'')+'" data-act="node" data-id="'+l.id+'" aria-label="'+esc(L(l.title))+' – '+(st==='done'?tr('završeno','completed'):st==='open'?tr('dostupno','available'):tr('zaključano','locked'))+'">'+(go?'<span class="go">'+esc(tr('KRENI','START'))+'</span>':'')+(st==='locked'?'🔒':st==='done'?'✓':u.icon)+(st==='done'?'<span class="stars" aria-hidden="true">'+'⭐'.repeat(p.stars||1)+'</span>':'')+'</button>'});
+  CONTENT.units.filter(function(u){return u.track===S.track}).forEach(function(u){var lv=L(M.levels[(u.level||1)-1]),done=u.lessons.filter(function(l){return isDone(l.id)}).length;
+    h+='<div class="unit" style="background:'+u.color+(u.published?'':';filter:grayscale(.85);opacity:.8')+'"><small>'+esc(tr('Jedinica ','Unit '))+u.idx+' · '+esc(lv)+' · '+done+'/'+u.lessons.length+'</small><h3>'+u.icon+' '+esc(L(u.title))+'</h3><p>'+esc(L(u.summary))+'</p></div><div class="path">';
+    u.lessons.forEach(function(l,i){var st=lessonState(l.id),p=S.progress[l.id];var go=st==='open'&&first;if(st==='open')first=false;
+      h+='<button type="button" class="node '+st+'" style="--x:'+offs[i%8]+'px'+(st==='open'||st==='done'?';--c:'+u.color+';--cd:rgba(0,0,0,.28)':'')+'" data-act="node" data-id="'+l.id+'" aria-label="'+esc(L(l.title))+' – '+(st==='done'?tr('završeno','completed'):st==='open'?tr('dostupno','available'):tr('zaključano','locked'))+'">'+(go?'<span class="go">'+esc(tr('KRENI','START'))+'</span>':'')+(st==='locked'?'🔒':st==='done'?'✓':u.icon)+(st==='done'?'<span class="stars" aria-hidden="true">'+'⭐'.repeat(p.stars||1)+'</span>':'')+'</button><div class="ntitle">'+esc(L(l.title))+'</div>'});
     h+='</div>'});
-  if(sheet){var info=lessonById(sheet),st=info.u.published?lessonState(sheet):'locked',n=info.l.exercises.length;
-    h+='<div class="sheet-bg" data-act="closesheet"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(L(info.l.title))+'" data-stop="1"><small class="muted" style="font-weight:800">'+esc(tr('Jedinica ','Unit '))+info.u.order+'</small><h2>'+esc(L(info.l.title))+'</h2>'
-     +(st==='locked'?'<p class="muted" style="margin:10px 0 16px">'+esc(info.u.published?tr('Završi prethodnu lekciju da otključaš ovu.','Finish the previous lesson to unlock this one.'):tr('Ova jedinica stiže uskoro.','This unit is coming soon.'))+'</p><button class="btn big ghost" data-act="closesheet">'+esc(tr('Zatvori','Close'))+'</button>'
-      :'<p class="muted" style="margin:6px 0 16px">'+n+' '+esc(tr('vježbi','exercises'))+' · ~4 min'+(st==='done'?' · '+esc(tr('ponovi za bolji rezultat','replay for a better score')):'')+'</p><button class="btn big" data-act="lesson" data-id="'+sheet+'">'+esc(st==='done'?tr('Ponovi','Replay'):tr('Započni','Start'))+' +'+(20)+' XP</button>')+'</div></div>'}
+  if(sheet){var info=lessonById(sheet),st=lessonState(sheet),n=info.l.exercises.length;
+    h+='<div class="sheet-bg" data-act="closesheet"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(L(info.l.title))+'" data-stop="1"><small class="muted" style="font-weight:800">'+esc(tr('Jedinica ','Unit '))+info.u.idx+' · '+esc(L(info.u.title))+'</small><h2>'+esc(L(info.l.title))+'</h2>'
+     +(st==='locked'?'<p class="muted" style="margin:10px 0 16px">'+esc(tr('Završi prethodnu lekciju u ovoj stazi da otključaš ovu.','Finish the previous lesson in this track to unlock this one.'))+'</p><button class="btn big ghost" data-act="closesheet">'+esc(tr('Zatvori','Close'))+'</button>'
+      :'<p class="muted" style="margin:6px 0 16px">'+n+' '+esc(tr('vježbi','exercises'))+' · ~4 min'+(st==='done'?' · '+esc(tr('ponovi za bolji rezultat','replay for a better score')):'')+'</p><button class="btn big" data-act="lesson" data-id="'+sheet+'">'+esc(st==='done'?tr('Ponovi','Replay'):tr('Započni','Start'))+' +20 XP</button>')+'</div></div>'}
   return h}
 function practiceView(){var due=dueIds().length,mist=Object.keys(S.mistakes).filter(function(id){return CONTENT.byId[id]});
   var h='<div class="card"><div class="row sp"><h3>🔁 '+esc(tr('Ponavljanje (SM-2)','Spaced repetition (SM-2)'))+'</h3><span class="pill">'+due+' '+esc(tr('za danas','due'))+'</span></div><p class="muted">'+esc(tr('Vježbe u kojima si griješio vraćaju se u sve duljim razmacima. Završi 5+ vježbi i vrati jedno srce.','Exercises you missed return at growing intervals. Finish 5+ and win back a heart.'))+'</p><button class="btn big" data-act="review"'+(due?'':' disabled')+'>'+esc(due?tr('Pokreni vježbu','Start practice'):tr('Nema ničega za ponoviti','Nothing to review'))+'</button></div>'
@@ -524,6 +543,7 @@ function startLesson(id){var info=lessonById(id);sheet=null;startSession({mode:'
 function pool(types,max){var ids=[];CONTENT.units.forEach(function(u){u.lessons.forEach(function(l){if(isDone(l.id))l.exercises.forEach(function(e){ids.push(e)})})});if(!ids.length)flatLessons().forEach(function(x){x.l.exercises.forEach(function(e){ids.push(e)})});
   return shuffle(ids.filter(function(e){return !types||types.indexOf(e.type)>=0})).slice(0,max)}
 var ACT={
+ track:function(d){S.track=d.v;save();render()},
  start:function(){showLanding=false;render()},
  guest:function(){S.onboarded=true;S.name='';save();view='learn';render()},
  lang:function(d){S.lang=d.v;if(!S.onboarded)OB.name=($('#obname')||{}).value||OB.name;save();render()},
