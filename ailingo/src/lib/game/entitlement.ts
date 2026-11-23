@@ -6,6 +6,8 @@ export type SubLike = { status: string; pastDueSince: Date | null; currentPeriod
 export function isPremium(sub: SubLike, premiumUntil: Date | null, now: Date = new Date()): boolean {
   if (premiumUntil && premiumUntil > now) return true;
   if (!sub) return false;
+  // Safety net if a renewal notification was missed: a period that ended more than the grace period ago is not premium.
+  if (sub.currentPeriodEnd && now.getTime() - sub.currentPeriodEnd.getTime() > GRACE_DAYS * 864e5) return false;
   if (sub.status === "active" || sub.status === "trialing") return true;
   if (sub.status === "past_due" && sub.pastDueSince) return now.getTime() - sub.pastDueSince.getTime() < GRACE_DAYS * 864e5;
   return false;

@@ -1,5 +1,6 @@
 import { prisma } from "./db";
 import { cancelForDeletion } from "./billing";
+import { cancelPlayForDeletion } from "./playbilling";
 
 /** Everything stored about a user, as JSON (GDPR art. 15/20). */
 export async function exportUserData(userId: string) {
@@ -28,6 +29,7 @@ export async function exportUserData(userId: string) {
 /** Permanent deletion: cancels the subscription, then removes the user and every related row (cascade). */
 export async function deleteAccount(userId: string) {
   await cancelForDeletion(userId);
+  await cancelPlayForDeletion(userId);
   await prisma.dailyUsage.deleteMany({ where: { subject: "u:" + userId } });
   await prisma.user.delete({ where: { id: userId } });
 }

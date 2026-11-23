@@ -16,9 +16,10 @@ export function stripe(): Stripe {
 
 async function customerFor(user: User): Promise<string> {
   const sub = await prisma.subscription.findUnique({ where: { userId: user.id } });
-  if (sub) return sub.stripeCustomerId;
+  if (sub?.stripeCustomerId) return sub.stripeCustomerId;
+  if (sub?.provider === "play" && sub.status === "active") throw new AppError("CONFLICT", "Already subscribed through Google Play");
   const c = await stripe().customers.create({ email: user.email ?? undefined, metadata: { userId: user.id } });
-  await prisma.subscription.create({ data: { userId: user.id, stripeCustomerId: c.id, status: "incomplete" } });
+  await prisma.subscription.upsert({ where: { userId: user.id }, create: { userId: user.id, stripeCustomerId: c.id, status: "incomplete" }, update: { provider: "stripe", stripeCustomerId: c.id, status: "incomplete", playPurchaseToken: null, playProductId: null } });
   return c.id;
 }
 
@@ -47,7 +48,7 @@ export async function createCheckout(user: User, plan: "monthly" | "yearly", ori
 
 export async function createPortal(user: User, origin: string, locale: string): Promise<string> {
   const sub = await prisma.subscription.findUnique({ where: { userId: user.id } });
-  if (!sub) throw new AppError("NOT_FOUND", "No subscription");
+  if (!sub?.stripeCustomerId) throw new AppError("NOT_FOUND", "No subscription");
   const s = await stripe().billingPortal.sessions.create({ customer: sub.stripeCustomerId, return_url: `${origin}${locale === "en" ? "/en" : ""}/premium` });
   return s.url;
 }
@@ -68,7 +69,7 @@ export async function syncSubscription(s: SubData) {
   const interval = s.items?.data?.[0]?.price?.recurring?.interval;
   const plan = s.metadata?.plan ?? (interval === "year" ? "yearly" : interval === "month" ? "monthly" : null);
   const pastDueSince = s.status === "past_due" ? existing?.pastDueSince ?? new Date() : null;
-  const data = { stripeSubscriptionId: s.id, status: s.status, plan, currentPeriodEnd: periodEnd(s), cancelAtPeriodEnd: s.cancel_at_period_end, trialEnd: s.trial_end ? new Date(s.trial_end * 1000) : null, pastDueSince };
+  const data = { provider: "stripe", stripeSubscriptionId: s.id, status: s.status, plan, currentPeriodEnd: periodEnd(s), cancelAtPeriodEnd: s.cancel_at_period_end, trialEnd: s.trial_end ? new Date(s.trial_end * 1000) : null, pastDueSince };
   await prisma.subscription.upsert({ where: { stripeCustomerId: customerId }, create: { userId, stripeCustomerId: customerId, ...data }, update: data });
 }
 
@@ -124,7 +125,7 @@ export async function handleWebhook(payload: string, signature: string | null): 
 /** GDPR deletion: cancel the subscription immediately and remove the Stripe customer. */
 export async function cancelForDeletion(userId: string) {
   const sub = await prisma.subscription.findUnique({ where: { userId } });
-  if (!sub || !process.env.STRIPE_SECRET_KEY) return;
+  if (!sub?.stripeCustomerId || !process.env.STRIPE_SECRET_KEY) return;
   if (sub.stripeSubscriptionId && !["canceled", "incomplete_expired"].includes(sub.status)) await stripe().subscriptions.cancel(sub.stripeSubscriptionId).catch(() => {});
   await stripe().customers.del(sub.stripeCustomerId).catch(() => {});
 }

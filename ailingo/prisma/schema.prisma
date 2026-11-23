@@ -340,8 +340,12 @@ model PushSubscription {
 model Subscription {
   id                   String    @id @default(cuid())
   userId               String    @unique
-  stripeCustomerId     String    @unique
+  /// "stripe" (web) or "play" (Android app, Google Play Billing)
+  provider             String    @default("stripe")
+  stripeCustomerId     String?   @unique
   stripeSubscriptionId String?   @unique
+  playPurchaseToken    String?   @unique
+  playProductId        String?
   status               String    @default("incomplete")
   plan                 String?
   currentPeriodEnd     DateTime?

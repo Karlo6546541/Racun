@@ -6,7 +6,8 @@ import { getConfig } from "@/server/config";
 import { stripeEnabled } from "@/server/billing";
 import { isPremium } from "@/lib/game/entitlement";
 import { Mascot } from "@/components/Mascot";
-import { PremiumButtons } from "@/components/PremiumButtons";
+import { PremiumPurchase } from "@/components/PremiumPurchase";
+import { playConfig } from "@/server/playbilling";
 import { LegalFooter } from "@/components/LegalFooter";
 
 export default async function Premium({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ status?: string }> }) {
@@ -68,21 +69,19 @@ export default async function Premium({ params, searchParams }: { params: Promis
                       ? t("until", { date: date(user.premiumUntil) })
                       : ""}
             </p>
-            {sub?.stripeSubscriptionId && <PremiumButtons locale={locale} mode="portal" label={t("manage")} />}
           </>
-        ) : !stripeEnabled() ? (
-          <p className="muted">{t("notConfigured")}</p>
-        ) : !user || user.isGuest ? (
-          <Link href="/signin" className="btn btn-big">
-            {t("signinFirst")}
-          </Link>
-        ) : (
-          <div style={{ display: "grid", gap: 10 }}>
-            <PremiumButtons locale={locale} mode="monthly" label={`${t("monthly")} · ${t("perMonth", { price: cfg.PRICE_MONTHLY_LABEL })}`} />
-            <PremiumButtons locale={locale} mode="yearly" label={`${t("yearly")} · ${t("perYear", { price: cfg.PRICE_YEARLY_LABEL })}`} />
-            {trialDays > 0 && <p className="muted" style={{ fontSize: 14, margin: 0 }}>{t("trial", { days: trialDays })}</p>}
-          </div>
-        )}
+        ) : null}
+        <PremiumPurchase
+          locale={locale}
+          signedIn={!!user && !user.isGuest}
+          active={active}
+          provider={sub?.provider ?? null}
+          hasStripeCustomer={!!sub?.stripeSubscriptionId}
+          stripeReady={stripeEnabled()}
+          labels={{ monthly: cfg.PRICE_MONTHLY_LABEL, yearly: cfg.PRICE_YEARLY_LABEL }}
+          trialDays={trialDays}
+          play={{ ...playConfig(), productId: sub?.playProductId ?? null }}
+        />
       </section>
       <p className="muted" style={{ fontSize: 12 }}>
         {t("legal")}
