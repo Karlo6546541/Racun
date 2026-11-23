@@ -561,6 +561,13 @@ details.case summary{cursor:pointer;font-weight:600;color:var(--accent)}
       <div class="row" style="margin-top:1rem"><button class="primary" type="button" data-copy="example2">Kopiraj opis</button></div></div>
     <div class="card"><h3>Životopis</h3><div class="sub">Predložak koji popuniš istinitim podacima. Ime i kontakt dolaze iz naslovnog bloka gore, tekst se sprema u ovom pregledniku.</div><div class="g2" style="grid-template-columns:1fr"><div id="cv-form" style="display:grid;gap:.6rem"></div></div></div>
   </div>
+  <div class="card"><h3>Hipotetski primjer: provjera certifikata 3.1 za zavarene nosače</h3><div class="sub">Izmišljen za demonstraciju, napisan kao plan. Nije iskustvo iz prakse i tako ga treba predstaviti.</div><div class="letter" id="example3">
+    <p><b>Pretpostavljena situacija.</b> Kvaliteta prima certifikate 3.1 za čelik S355J2 u PDF-u. Kontrolor ručno prepisuje kemijski sastav i broj taline i uspoređuje ih s normom, a kod velikog broja isporuka provjera se svodi na uzorak.</p>
+    <p><b>Kako bih to riješio.</b> (1) Tjedan dana mjerim stanje: broj isporuka i minute po provjeri. (2) Claude Code piše skriptu koja računa ekvivalent ugljika (CEV) i označava elemente iznad granica razreda. (3) Gemini pretvara PDF u tablicu, a ručno provjeravam uzorak da vidim koliko griješi. (4) Četiri tjedna radim paralelno s ručnom provjerom. (5) Rezultat ide vijeću na odluku o produkciji.</p>
+    <p><b>Zaštite.</b> Odluku o prihvaćanju materijala uvijek donosi kontrolor, skripta samo upozorava. Granice razreda potvrđuje voditelj kvalitete. Podaci dobavljača ostaju interni.</p>
+    <p><b>Cilj, a ne rezultat.</b> Skratiti provjeru po isporuci s oko 12 na oko 5 minuta uz provjeru svih isporuka umjesto uzorka. Uspjeh je ako paralelni test ne propusti nijedno odstupanje.</p>
+    <p class="muted" style="font-size:.82rem">Prototip provjere radi u ovoj aplikaciji (AI agenti, Certifikat 3.1). Brojke su pretpostavke dok se ne izmjere na stvarnim isporukama.</p></div>
+    <div class="row" style="margin-top:1rem"><button class="primary" type="button" data-copy="example3">Kopiraj opis</button><a class="btn" href="#agenti">Isprobaj provjeru</a></div></div>
   <div class="card"><h3>Pregled životopisa</h3><div class="sub">Tako će izgledati tekst koji kopiraš u životopis ili e-poštu.</div><pre class="draft" id="cv-prev" style="white-space:pre-wrap"></pre><div class="row" style="margin-top:.7rem"><button class="primary" type="button" data-copy="cv-prev">Kopiraj životopis</button></div></div>
 </section>
 </main>
