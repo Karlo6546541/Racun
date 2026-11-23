@@ -1,6 +1,6 @@
 // Prototype content validator (plain Node, no deps). The real app uses Zod (npm run validate:content).
 import { readFileSync } from "node:fs";
-const rd = (f) => JSON.parse(readFileSync(new URL("./content/" + f, import.meta.url), "utf8"));
+const rd = (f) => JSON.parse(readFileSync(new URL("../content/" + f, import.meta.url), "utf8"));
 const errs = [];
 const err = (m) => errs.push(m);
 const isT = (t) => Array.isArray(t) && t.length === 2 && t.every((s) => typeof s === "string" && s.trim());

@@ -1,0 +1,93 @@
+{
+  "meta": { "title": "AIlingo", "description": "Learn to use AI in marketing and everyday work through short games." },
+  "common": {
+    "continue": "Continue", "back": "Back", "close": "Close", "save": "Save", "saved": "Saved", "cancel": "Cancel", "start": "Start", "replay": "Replay", "check": "Check", "finish": "Finish", "loading": "Loading…",
+    "streak": "Streak", "hearts": "Hearts", "gems": "Gems", "level": "Lv {level}", "xp": "{xp} XP", "guest": "Guest", "you": "you", "minutes": "{n} min", "days": "{n} days",
+    "error": "Something went wrong. Please try again.", "offline": "You're offline. Checking answers needs a connection."
+  },
+  "nav": { "learn": "Learn", "practice": "Practice", "leagues": "Leagues", "friends": "Friends", "profile": "Profile", "label": "Main navigation" },
+  "landing": {
+    "lead": "Learn to use AI in marketing and everyday work through short games. No AI behind the scenes, with clear grading rules.",
+    "cta": "Get started free", "signin": "I already have an account",
+    "f1t": "10 kinds of mini-games", "f1": "Build a prompt, spot a hallucination, fix a weak prompt and seven more game types.",
+    "f2t": "From beginner to pro", "f2": "An AI track (ChatGPT, Claude, Grok, MCP, Claude Code, Codex) and a Marketing track.",
+    "f3t": "Transparent grading", "f3": "Deterministic rules and checklists, no black box.",
+    "f4t": "Smart repetition", "f4": "Mistakes come back when it's time to review them (SM-2).",
+    "free": "10 minutes of learning free every day. Premium for unlimited.", "pricing": "Pricing"
+  },
+  "onboarding": {
+    "nameQ": "What should we call you?", "nameHint": "Optional. Your name shows in leagues and your profile.", "namePh": "Your name",
+    "goalQ": "What do you want to achieve?", "goal_agency": "A marketing or agency job", "goal_biz": "My own business", "goal_free": "Freelancing", "goal_daily": "Faster everyday work",
+    "levelQ": "How much do you already know about AI?", "level_beg": "Just starting", "level_mid": "I use ChatGPT or similar sometimes", "level_adv": "I prompt every day",
+    "dailyQ": "Daily goal", "daily_5": "Casual", "daily_10": "Regular", "daily_15": "Serious", "daily_20": "Intense",
+    "placeQ": "Want a placement test?", "placeHint": "8 short questions. If you already know the basics, you skip the first lessons.", "placeYes": "Take the placement test", "placeNo": "Start from the beginning", "next": "Next"
+  },
+  "learn": {
+    "dailyGoal": "Daily goal", "quests": "Daily quests", "placementT": "Already know some AI?", "placement": "Placement test (8 questions)", "test": "Test",
+    "tracks": "Learning tracks", "lessons": "{done}/{total} lessons", "unit": "Unit {n}", "go": "START",
+    "locked": "Finish the previous lesson in this track to unlock this one.", "info": "{n} exercises · ~4 min", "replayHint": "replay for a better score",
+    "stateDone": "completed", "stateOpen": "available", "stateLocked": "locked", "startXp": "{label} +20 XP"
+  },
+  "types": { "mc": "Multiple choice", "tf": "Myth or fact", "fill": "Fill in the blank", "build": "Build-a-Prompt", "match": "Match pairs", "doctor": "Prompt Doctor", "rubric": "Write a prompt", "spot": "Spot the hallucination", "compare": "A/B showdown", "order": "Order the steps" },
+  "player": {
+    "quit": "Leave the lesson", "progress": "Progress", "quitQ": "Sure? This lesson's progress will be lost.", "keep": "Keep learning", "leave": "Leave",
+    "praise1": "Correct!", "praise2": "Great!", "praise3": "Nice!", "praise4": "Awesome!", "combo": "🔥 {n} in a row", "wrong": "Not quite. No worries!", "rubricWrong": "Almost! Check the checklist.",
+    "badPrompt": "Weak prompt", "fillPh": "Type your answer…", "fillHint": "Letter case and diacritics (č, ć, š, ž, đ) don't matter.", "accepted": "Accepted answers: {list}",
+    "parts": "Prompt parts", "empty": "empty", "orderHint": "Tap the steps in order",
+    "rubricNote": "This is an automatic checklist of elements, not an AI quality score.", "rubricPh": "Write your prompt… (Ctrl+Enter to check)", "words": "{n} words · recommended at least {min}",
+    "met": "met", "notMet": "not met", "model": "Model example for comparison", "yourAnswer": "Your answer", "yourPrompt": "Your prompt",
+    "blitzPick": "Pick an answer, quick!", "timeLeft": "Time left",
+    "lessonDone": "Lesson complete!", "accuracy": "Accuracy", "time": "Time", "streakLine": "🔥 {n} day streak · 💎 +{gems}",
+    "practiceDone": "Practice done!", "heartBack": "+1 heart restored ❤️", "fixed": "Fixed", "correct": "Correct",
+    "blitzDone": "Blitz over!", "record": "New record! 🎉", "best": "Best: {n}", "bestCombo": "Best combo",
+    "placementDone": "Placement test done!", "skipped": "You skip {n} lessons you already know.", "fromStart": "You start from the beginning. A great place to start!", "score": "Score", "skippedLabel": "Skipped",
+    "levelUp": "Level up!", "levelUpText": "Your AI marketing toolkit keeps getting stronger.", "awesome": "Awesome!",
+    "noHearts": "Out of hearts", "noHeartsText": "No worries. Practice restores hearts, and new ones refill every 30 minutes.", "practiceForHeart": "Practice for a heart", "refill": "Refill hearts (10 💎)",
+    "failed": "Lesson not finished", "toTree": "To the skill tree", "toPractice": "Back to practice", "badge": "New badge: {title}", "quest": "Quest complete: {title}",
+    "tooFast": "Slow down, read the questions 🙂", "locked": "This lesson is still locked.", "nothing": "Nothing to practice yet."
+  },
+  "paywall": {
+    "title": "Your {min} free minutes for today are used up", "text": "Great work today. Free learning resets in:", "free": "Still free: leaderboards, friends, mistakes review and your profile.",
+    "premium": "Continue with Premium", "tomorrow": "Come back tomorrow", "meter": "{time} left today", "warn": "One minute of free learning left today.", "unlimited": "Premium: unlimited"
+  },
+  "practice": {
+    "srs": "Spaced repetition (SM-2)", "due": "{n} due", "srsText": "Exercises you missed return at growing intervals. Finish 5+ and win back a heart.", "startReview": "Start practice", "nothingDue": "Nothing to review",
+    "blitz": "Blitz", "blitzText": "60 seconds, as many correct answers as you can. Combos give bonus XP.", "startBlitz": "Start Blitz", "best": "Best {n}",
+    "free": "Free practice", "freeText": "8 random exercises from lessons you completed.", "startFree": "Random practice",
+    "mistakes": "Mistakes review ({n})", "mistakesEmpty": "No mistakes yet. Every mistake in a lesson will show up here.", "mistakesHint": "A correct answer in Practice removes the mistake from this list."
+  },
+  "leagues": {
+    "league": "League: {name}", "daysLeft": "Days left: {n}", "rank": "Your rank: {n}/{total}", "rules": "Top 10 move up, bottom 5 move down.",
+    "bots": "Some competitors are simulated until there are enough real users.", "lastUp": "Last week: rank {rank}. You moved up! 🎉", "lastDown": "Last week: rank {rank}. You dropped a league. Rematch time!", "lastStay": "Last week: rank {rank}. You stay in the league.",
+    "tabLeague": "My league", "tabGlobal": "Global", "tabFriends": "Friends", "weekly": "This week", "allTime": "All time", "simulated": "simulated", "hidden": "Hidden user", "guestNote": "Sign in to appear on the global leaderboard."
+  },
+  "friends": {
+    "code": "Your friend code", "add": "Add a friend", "addPh": "Code (AIL-…) or email", "send": "Send request", "sent": "Request sent.", "notFound": "We couldn't find that user.", "self": "That's you 🙂", "exists": "You're already connected or a request is pending.",
+    "list": "Friends ({n})", "none": "No friends yet.", "requests": "Requests", "accept": "Accept", "decline": "Decline", "remove": "Remove", "pending": "Pending", "weekXp": "{xp} XP this week", "guest": "Sign in to add friends."
+  },
+  "profile": {
+    "toLevel": "{xp} XP to level {level}", "bestStreak": "Best streak", "lessons": "Lessons", "accuracy": "Accuracy", "calendar": "Calendar", "badges": "Badges ({have}/{all})", "settings": "Settings", "signin": "Sign in to keep your progress", "signout": "Sign out", "premium": "Premium active"
+  },
+  "settings": {
+    "title": "Settings", "language": "Language", "name": "Name", "sound": "Sound effects", "on": "On", "off": "Off", "dailyGoal": "Daily goal", "privacy": "Privacy", "hide": "Hide me from leaderboards",
+    "shop": "Shop (gems are earned by learning)", "freeze": "🧊 Streak Freeze · 20 💎", "hearts": "❤️ Hearts · 10 💎", "placement": "Placement test", "retake": "Retake placement test",
+    "data": "My data (GDPR)", "dataText": "You can export all your data or permanently delete your account. Deleting also cancels your subscription.", "export": "Export JSON", "delete": "Delete account", "confirmDelete": "Confirm permanent deletion", "deleted": "Account deleted.",
+    "grading": "About grading", "gradingText": "All checks are deterministic rules from data files. AI grader: {flag}. No external AI service is ever called.",
+    "subscription": "Subscription", "manage": "Manage subscription", "reminders": "Reminders", "enablePush": "Turn on daily reminder", "pushOn": "Reminder is on.", "pushUnavailable": "Reminders aren't available in this browser."
+  },
+  "premium": {
+    "title": "AIlingo Premium", "lead": "Learn as much as you like, no daily limit.", "free": "Free", "freeList": "10 min of learning a day|All content and games|Leagues, friends and badges",
+    "plus": "Premium", "plusList": "Unlimited learning time|2 Streak Freezes every month|Unlimited Blitz|Support new lessons",
+    "monthly": "Monthly", "yearly": "Yearly", "perMonth": "{price} / month", "perYear": "{price} / year", "trial": "{days} days free, then billed. Cancel any time.",
+    "subscribe": "Subscribe", "signinFirst": "Sign in to subscribe", "active": "Premium is active", "until": "Valid until {date}", "trialUntil": "Trial until {date}", "cancelAtEnd": "Canceled, valid until {date}", "manage": "Manage or cancel",
+    "success": "Thanks! Premium turns on as soon as payment is confirmed (usually within seconds).", "cancel": "Checkout was canceled. Nothing was charged.", "notConfigured": "Payments aren't set up on this server yet.",
+    "legal": "Prices include VAT where applicable. As an EU consumer you have a 14-day right of withdrawal; by starting Premium during that period you agree to the service beginning. See the Terms."
+  },
+  "signin": { "title": "Sign in", "lead": "Sign in to keep your progress on every device. Guest progress is carried over.", "google": "Continue with Google", "email": "Email", "emailPh": "you@example.com", "sendLink": "Email me a sign-in link", "sent": "Check your email. We sent you a sign-in link.", "error": "Sign-in failed. Please try again.", "googleOff": "Google sign-in isn't set up on this server." },
+  "admin": {
+    "title": "Admin", "content": "Content", "config": "App settings", "users": "Users", "stats": "Conversion (aggregated, no personal data)", "freeMinutes": "Free minutes per day", "grant": "Grant Premium (email, days)", "flagged": "Flagged accounts",
+    "edit": "Edit", "valid": "Valid", "invalid": "Invalid", "exportJson": "Export content (JSON)", "preview": "Preview as the player sees it"
+  },
+  "legal": { "terms": "Terms of use", "privacy": "Privacy policy", "cookies": "Cookies", "draft": "Template: have a lawyer review before publishing." },
+  "errors": { "PAYWALL": "Today's limit is used up.", "NO_HEARTS": "You're out of hearts.", "LOCKED": "This lesson is locked.", "TOO_FAST": "Slow down, read the questions.", "RATE_LIMITED": "Too many requests. Try again in a minute.", "UNAUTHENTICATED": "Sign in to continue." }
+}

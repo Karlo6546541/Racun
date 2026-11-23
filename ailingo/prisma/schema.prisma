@@ -1,0 +1,387 @@
+// AIlingo data model. PostgreSQL in every environment (local: see README).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PlayMode {
+  LESSON
+  PRACTICE
+  PLACEMENT
+  BLITZ
+}
+
+enum XPSource {
+  EXERCISE
+  LESSON
+  QUEST
+  PRACTICE
+  BLITZ
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+model User {
+  id                   String    @id @default(cuid())
+  email                String?   @unique
+  emailVerified        DateTime?
+  name                 String?
+  image                String?
+  role                 Role      @default(USER)
+  isGuest              Boolean   @default(false)
+  locale               String    @default("hr")
+  timezone             String    @default("Europe/Zagreb")
+  onboarded            Boolean   @default(false)
+  goal                 String?
+  level                String?
+  dailyGoalMin         Int       @default(10)
+  soundOn              Boolean   @default(true)
+  placementDone        Boolean   @default(false)
+  hearts               Int       @default(5)
+  heartsRefillAt       DateTime?
+  gems                 Int       @default(10)
+  streakFreezes        Int       @default(0)
+  xpTotal              Int       @default(0)
+  leagueTier           Int       @default(0)
+  friendCode           String    @unique
+  hideFromLeaderboards Boolean   @default(false)
+  premiumUntil         DateTime?
+  freezeGrantMonth     String?
+  blitzBest            Int       @default(0)
+  stats                Json      @default("{}")
+  flagged              Boolean   @default(false)
+  flagReason           String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  accounts        Account[]
+  sessions        Session[]
+  attempts        Attempt[]
+  playSessions    PlaySession[]
+  progress        Progress[]
+  xpEvents        XPEvent[]
+  streak          Streak?
+  quests          DailyQuest[]
+  badges          UserBadge[]
+  leagues         LeagueMembership[]
+  reviewItems     ReviewItem[]
+  pushSubs        PushSubscription[]
+  subscription    Subscription?
+  friendsSent     Friendship[]       @relation("requester")
+  friendsReceived Friendship[]       @relation("addressee")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------- Content (mirrors content/*.json; JSON stays the source of truth) ----------
+model Unit {
+  id        String   @id
+  key       String   @unique
+  track     String
+  level     Int
+  position  Int
+  title     Json
+  summary   Json
+  icon      String
+  color     String
+  published Boolean  @default(true)
+  lessons   Lesson[]
+
+  @@index([track, position])
+}
+
+model Lesson {
+  id        String     @id
+  unitId    String
+  position  Int
+  title     Json
+  unit      Unit       @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  exercises Exercise[]
+  progress  Progress[]
+
+  @@unique([unitId, position])
+}
+
+model Exercise {
+  id          String       @id
+  lessonId    String
+  position    Int
+  type        String
+  payload     Json
+  contentHash String
+  lesson      Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  attempts    Attempt[]
+  reviews     ReviewItem[]
+
+  @@unique([lessonId, position])
+}
+
+// ---------- Learning ----------
+model PlaySession {
+  id          String    @id @default(cuid())
+  userId      String
+  mode        PlayMode
+  lessonId    String?
+  exerciseIds String[]
+  state       Json
+  startedAt   DateTime  @default(now())
+  finishedAt  DateTime?
+  summary     Json?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attempts    Attempt[]
+
+  @@index([userId, startedAt])
+}
+
+model Attempt {
+  id         String      @id @default(cuid())
+  userId     String
+  exerciseId String
+  sessionId  String
+  mode       PlayMode
+  correct    Boolean
+  score      Int         @default(0)
+  answer     Json
+  timeMs     Int
+  createdAt  DateTime    @default(now())
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise   Exercise    @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  session    PlaySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Progress {
+  id           String    @id @default(cuid())
+  userId       String
+  lessonId     String
+  done         Boolean   @default(false)
+  stars        Int       @default(0)
+  runs         Int       @default(0)
+  bestAccuracy Int       @default(0)
+  completedAt  DateTime?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson       Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model ReviewItem {
+  id           String   @id @default(cuid())
+  userId       String
+  exerciseId   String
+  ease         Float    @default(2.5)
+  intervalDays Int      @default(0)
+  repetitions  Int      @default(0)
+  lapses       Int      @default(0)
+  dueAt        DateTime @default(now())
+  inMistakes   Boolean  @default(true)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise     Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, exerciseId])
+  @@index([userId, dueAt])
+}
+
+// ---------- Gamification ----------
+model XPEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  amount    Int
+  source    XPSource
+  refId     String?
+  weekKey   String
+  dayKey    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([weekKey, userId])
+  @@index([userId, dayKey])
+}
+
+model Streak {
+  userId        String  @id
+  current       Int     @default(0)
+  longest       Int     @default(0)
+  lastActiveDay String?
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DailyQuest {
+  id          String    @id @default(cuid())
+  userId      String
+  day         String
+  code        String
+  target      Int
+  progress    Int       @default(0)
+  rewardXp    Int
+  completedAt DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day, code])
+}
+
+model Badge {
+  id          String      @id
+  icon        String
+  title       Json
+  description Json
+  rule        Json
+  users       UserBadge[]
+}
+
+model UserBadge {
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, badgeId])
+}
+
+model League {
+  id        String             @id @default(cuid())
+  tier      Int
+  weekKey   String
+  createdAt DateTime           @default(now())
+  members   LeagueMembership[]
+
+  @@index([tier, weekKey])
+}
+
+model LeagueMembership {
+  id        String  @id @default(cuid())
+  leagueId  String
+  userId    String?
+  botName   String?
+  botAvatar String?
+  weeklyXp  Int     @default(0)
+  settled   Boolean @default(false)
+  finalRank Int?
+  league    League  @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([leagueId, userId])
+  @@index([userId, settled])
+  @@index([leagueId, weeklyXp])
+}
+
+model Friendship {
+  id          String       @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  requester   User         @relation("requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee   User         @relation("addressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Monetization ----------
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  stripeCustomerId     String    @unique
+  stripeSubscriptionId String?   @unique
+  status               String    @default("incomplete")
+  plan                 String?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+  trialEnd             DateTime?
+  pastDueSince         DateTime?
+  updatedAt            DateTime  @updatedAt
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Seconds of active learning per subject ("u:<userId>" or "ip:<hash>") per local day.
+model DailyUsage {
+  id         String    @id @default(cuid())
+  subject    String
+  day        String
+  seconds    Int       @default(0)
+  lastBeatAt DateTime?
+
+  @@unique([subject, day])
+}
+
+model StripeEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+}
+
+model AppConfig {
+  key   String @id
+  value String
+}
+
+model AnalyticsEvent {
+  name  String
+  day   String
+  count Int    @default(0)
+
+  @@id([name, day])
+}
+
+model RateLimit {
+  key     String   @id
+  count   Int      @default(0)
+  resetAt DateTime
+}

@@ -345,7 +345,7 @@ function weekRoll(){var wk=weekKey(new Date());if(S.week===wk)return;var rows=le
 
 /* ====================== content ====================== */
 function loadContent(){
-  function get(f){return fetch('content/'+f).then(function(r){if(!r.ok)throw new Error(f+' '+r.status);return r.json()})}
+  function get(f){return fetch('content/'+f).then(function(r){if(!r.ok)throw 0;return r.json()}).catch(function(){return fetch('../content/'+f).then(function(r){if(!r.ok)throw new Error(f+' '+r.status);return r.json()})})}
   return get('meta.json').then(function(meta){return Promise.all(meta.unitFiles.map(get)).then(function(files){
     var byUnit={};
     files.forEach(function(f){(Array.isArray(f)?f:[f]).forEach(function(u){var d=meta.unitDefaults[u.id];if(d){u.track=u.track||d.track;u.level=u.level||d.level}u.key=u.key||('u'+u.order);if(u.published===undefined)u.published=true;
