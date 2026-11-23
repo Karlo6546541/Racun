@@ -403,7 +403,7 @@ details.case summary{cursor:pointer;font-weight:600;color:var(--accent)}
 <!-- ============ VIJEĆE ============ -->
 <section class="view" id="v-vijece">
   <div class="head"><div><div class="label">Odlučivanje</div><h1>AI vijeće</h1>
-  <p>Svaki prijedlog prije pilota pregleda vijeće uloga: Skeptik, Kontroler, Kvaliteta, Operativa, Marketer i SEO. Sve uloge igra Grok bot, svaka sa svojom uputom, a rad je u postocima umjesto eura i sati. Koordinator potvrđuje odluku s uvjetima.</p></div></div>
+  <p>Svaki prijedlog prije pilota pregleda vijeće uloga: Skeptik, Kontroler, Kvaliteta, Operativa, Marketer, SEO i uprava (CEO). Sve uloge, uključujući upravu (CEO), igra Grok bot, svaka sa svojom uputom, a rad je u postocima umjesto eura i sati. Koordinator potvrđuje odluku s uvjetima.</p></div></div>
   <div class="g-wide">
     <div class="card"><h3>Prijedlog</h3><div class="sub">Odaberi projekt iz portfelja ili upiši vlastiti prijedlog.</div>
       <label class="f">Projekt<select id="cv-sel"></select></label>
@@ -415,7 +415,7 @@ details.case summary{cursor:pointer;font-weight:600;color:var(--accent)}
     <div id="cv-dec"></div>
   </div>
   <div class="g3" id="council"></div>
-  <div class="card" id="grokbot"><h3>Cijelo vijeće je Grok bot</h3><div class="sub">Svih šest uloga igra Grok bot, svaka sa svojom uputom, a isti bot vodi sjednicu: dijeli prijedlog, skuplja glasove, zbraja ocjene i priprema odluku. Bot radi samo s postocima, bez eura i sati. Čovjek ostaje na potvrdi. Procjena: sastanak od oko 60 minuta i zapisnik od 30 svodi se na oko 10 minuta pregleda.</div>
+  <div class="card" id="grokbot"><h3>Cijelo vijeće je Grok bot</h3><div class="sub">Svih sedam uloga, uključujući upravu (CEO), igra Grok bot, svaka sa svojom uputom, a isti bot vodi sjednicu: dijeli prijedlog, skuplja glasove, zbraja ocjene i priprema odluku. Bot radi samo s postocima, bez eura i sati. Čovjek ostaje na potvrdi. Procjena: sastanak od oko 60 minuta i zapisnik od 30 svodi se na oko 10 minuta pregleda.</div>
     <div class="flow" id="bot-flow"></div>
     <div class="label" style="margin:1rem 0 .3rem">Uloge i upute koje bot šalje</div>
     <div class="scroll"><table id="bot-roles"><thead><tr><th>Uloga</th><th>Model</th><th>Što procjenjuje</th><th>Upute</th></tr></thead><tbody></tbody></table></div>
@@ -424,7 +424,7 @@ details.case summary{cursor:pointer;font-weight:600;color:var(--accent)}
     <div id="bot-log" style="margin-top:.7rem" aria-live="polite"><div>Odaberi prijedlog gore i pokreni bota.</div></div>
     <div class="label" style="margin:1.2rem 0 .3rem">Sjednica vijeća koju vodi Grok bot</div>
     <p class="muted" style="font-size:.82rem;margin-bottom:.6rem">Bot otvara sjednicu, svaka uloga daje stav, zatim odgovaraju jedni drugima, a bot zbraja i donosi odluku koju potvrđuje koordinator.</p>
-    <div class="row" style="margin-bottom:.7rem"><button class="primary" type="button" id="bot-debate">Pokreni sjednicu vijeća</button><button type="button" id="bot-save" hidden>Potvrdi odluku i spremi u dnevnik</button></div>
+    <div class="row" style="margin-bottom:.7rem"><button class="primary" type="button" id="bot-debate">Pokreni sjednicu vijeća</button><button type="button" id="bot-save" hidden>Uprava potvrđuje i sprema u dnevnik</button></div>
     <div id="bot-chat" aria-live="polite"><div class="msg"><span class="av">G</span><div><div class="label">Grok bot, voditelj</div><p>Odaberi prijedlog gore i pokreni sjednicu. Skeptik, Kontroler, Kvaliteta, Operativa, Marketer i SEO daju stav, odgovaraju jedni drugima, a ja zbrajam i predlažem odluku.</p></div></div></div>
     <pre id="bot-pack" class="draft" hidden style="margin-top:.7rem;max-height:320px;overflow:auto"></pre>
     <div class="note" style="margin-top:.8rem">Simulacija: odgovore uloga ovdje računa pravilima u pregledniku. U produkciji bi svaku ulogu odgovarao pravi model, a spajanje s odabranim modelom ovisi o njegovom API-ju, koji treba provjeriti u dokumentaciji dobavljača. Bot nikad sam ne uvodi rješenje bez potvrde koordinatora.</div></div>
@@ -610,7 +610,7 @@ const DEFAULT=()=>({rate:22,real:70,bonus:10,extra:600,
   {id:"chat",n:"Asistent za radne upute",o:"HR i HSE",tools:["claude","gemini"],s:"Prijedlog",from:5,to:7,cf:0,cd:0,web:0,pd:0,problem:"Pitanja o uputama i pravilima stalno završavaju kod istih ljudi.",sol:"Asistent odgovara samo iz odobrenih dokumenata i navodi izvor. Za zaštitu na radu upućuje na voditelja HSE.",kpi:"Broj pitanja koja stignu do voditelja i zadovoljstvo korisnika."},
   {id:"mkt",n:"Tehnički sadržaj za web i SEO",o:"Marketing i web",tools:["grok","gemini"],s:"Prijedlog",from:3,to:8,cf:1,cd:0,web:1,pd:0,problem:"Web ne objašnjava što tvrtka stvarno radi: norme, materijale, zavarivanje, kontrolu.",sol:"Grok istražuje što kupci traže i što rade konkurenti, Gemini priprema nacrte stranica. Tehnolog provjerava svaku činjenicu prije objave.",kpi:"Broj upita s weba i položaj za ključne pojmove."},
   {id:"izv",n:"Radna ploča AI programa",o:"Uprava",tools:["claude"],s:"Prototip",from:0,to:1,cf:0,cd:0,web:0,pd:0,problem:"Uštede se ne prate na jednom mjestu, pa uprava ne vidi što je potvrđeno.",sol:"Ova aplikacija: mapa procesa, uštede po statusu, mjesečni izvještaj. Izrađena u Claude Codeu.",kpi:"Postotak procesa s potvrđenom uštedom i točnost procjena."}],
- dec:[],rm:{skeptik:"grok",kontroler:"grok",kvaliteta:"grok",operativa:"grok",marketer:"grok",seo:"grok"},
+ dec:[],rm:{skeptik:"grok",kontroler:"grok",kvaliteta:"grok",operativa:"grok",marketer:"grok",seo:"grok",ceo:"grok"},
  reg:[
   {n:"Agent za upite kupaca",o:"Voditelj prodaje",u:"proc",pd:0,cd:1,a:"U pregledu"},
   {n:"Provjera certifikata 3.1",o:"Voditelj kvalitete",u:"proc",pd:0,cd:1,a:"U pregledu"},
@@ -620,7 +620,7 @@ const DEFAULT=()=>({rate:22,real:70,bonus:10,extra:600,
  amb:{"Prodaja i nabava":{n:"",emp:28,tr:8},"Tehnologija":{n:"",emp:34,tr:14},"Kvaliteta":{n:"",emp:32,tr:12},"Proizvodnja":{n:"",emp:222,tr:24},"Održavanje":{n:"",emp:26,tr:5},"HR i HSE":{n:"",emp:18,tr:4},"Financije":{n:"",emp:22,tr:10},"Marketing i web":{n:"",emp:6,tr:3},"Uprava":{n:"",emp:12,tr:8}}});
 let S=DEFAULT();
 try{const sv=JSON.parse(localStorage.getItem("eko-app-v3")||"null");if(sv&&sv.procs)S=Object.assign(DEFAULT(),sv)}catch(e){}
-if(S.rmv!==2){S.rmv=2;S.rm=DEFAULT().rm}
+if(S.rmv!==3){S.rmv=3;S.rm=DEFAULT().rm}
 let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem("eko-app-v3",JSON.stringify(S))}catch(e){}},200)}
 const sav=p=>p.h*12*p.a/100*S.rate*S.real/100;
 const toolsCost=()=>Object.values(S.tl).reduce((a,t)=>a+t.u*t.p,0)*12+S.extra;
@@ -711,7 +711,7 @@ const COVER=[
  ["2","AI agenti i automatizacije","Upiti kupaca, 8D, certifikati 3.1, tehnološki list","agenti"],
  ["2","Simulirano poslovanje","12 tjedana upita i certifikata kroz prave agente","simulacija"],
  ["2","Projekti i skup alata","Claude Code, Gemini, Codex, Grok i portfelj projekata","projekti"],
- ["2","AI vijeće za odluke","Skeptik, Kontroler, Kvaliteta, Marketer i SEO glasaju","vijece"],
+ ["2","AI vijeće za odluke","Skeptik, Kontroler, Kvaliteta, Marketer, SEO i uprava (CEO) glasaju","vijece"],
  ["3","Radne upute i SOP-ovi","Izmjena dokumentacije nakon svakog uvođenja","sop"],
  ["4","Obuka i AI ambasadori","Mreža ambasadora po odjelima, moduli, provjera znanja","obuka"],
  ["5","Pravila, GDPR i EU AI Act","Registar rješenja i razvrstavanje rizika","registar"],
@@ -979,7 +979,8 @@ const ROLES=[
  {k:"kvaliteta",n:"Kvaliteta i compliance",ini:"Q",w:1.3,focus:"Gleda ISO 9001, GDPR, EU AI Act i zaštitu podataka kupaca."},
  {k:"operativa",n:"Operativa",ini:"O",w:1,focus:"Gleda hoće li ljudi to stvarno koristiti i koliko je posla za provedbu."},
  {k:"marketer",n:"Marketer",ini:"M",w:.6,focus:"Gleda vrijednost za kupca: brži odgovor, jasnija ponuda, povjerenje."},
- {k:"seo",n:"SEO i web",ini:"W",w:.4,focus:"Gleda koliko projekt donosi upita preko weba i tražilica."}];
+ {k:"seo",n:"SEO i web",ini:"W",w:.4,focus:"Gleda koliko projekt donosi upita preko weba i tražilica."},
+ {k:"ceo",n:"Uprava (CEO)",ini:"C",w:1.4,focus:"Gleda strateški učinak: je li u skladu s ciljevima tvrtke, što kupci vide i hoće li uprava podržati nastavak. Daje konačnu potvrdu."}];
 function fillSel(){const s=$("#cv-sel"),cur=s.value;s.innerHTML=S.pj.map(j=>`<option value="${j.id}">${esc(j.n)}</option>`).join("")+'<option value="custom">Vlastiti prijedlog</option>';
   if([...s.options].some(o=>o.value===cur))s.value=cur}
 function cvInput(){const v=$("#cv-sel").value;
@@ -1003,6 +1004,8 @@ function evalCouncil(x){
   out.push({k:"operativa",sc:Math.max(20,92-x.d*10+(x.h>=60?6:0)),why:["Težina uvođenja "+x.d*20+"%. Rješenje preuzima oko "+Math.round(x.a*S.real/100)+"% ručnog rada.",x.h>=60?"Dovoljno posla da se uvođenje ljudima isplati.":"Mali obujam: korisnici možda neće steći naviku."],cond:["Imenuj ambasadora u odjelu i održi radionicu od sat vremena"]});
   out.push({k:"marketer",sc:Math.min(95,35+(x.cf?35:0)+(x.web?20:0)+(x.a>=40?5:0)),why:[x.cf?"Kupac to vidi: brži i precizniji odgovor je prednost kod kupaca iz rudarstva, građevine i cestogradnje.":"Interni učinak koji kupac ne vidi, slab prodajni argument."],cond:[]});
   out.push(x.web?{k:"seo",sc:85,why:["Stranice o normama (EN 1090, ISO 3834), materijalima i kontroli privlače upite iz tražilica."],cond:["Svaku činjenicu na stranici potvrđuje tehnolog"]}:{k:"seo",sc:null,why:["Nije moje područje. Suzdržan."],cond:[]});
+  {const cov=sv/cost*100;let sc=50+(cov>=100?15:cov>=60?5:-10)+(x.cf?15:0)+(x.a>=40?5:0)-(x.cd?5:0)-(x.hr?40:0)-(x.d>=4?10:0);
+   out.push({k:"ceo",sc,why:["Ušteda pokriva "+Math.round(cov)+"% troška uvođenja."+(x.cf?" Kupci vide korist, što podupire strategiju rasta.":" Učinak je interni, pa ga vežem uz pokazatelje troška."),x.hr?"Odluke o zaposlenicima ne mogu bez pravnog pregleda.":"Podržavam pilot ako se nakon osam tjedana izvijesti u postocima."],cond:["Izvještaj upravi nakon pilota: ušteda prema trošku i udio obučenih korisnika (u postocima)"]})}
   return{sv,cost,pb,cov:sv/cost*100,rs:out.map(r=>{const R=ROLES.find(q=>q.k===r.k),sc=r.sc===null?null:Math.max(0,Math.min(100,Math.round(r.sc)));return Object.assign(r,{R,sc,vote:sc===null?"su":sc>=70?"za":sc>=50?"uv":"pr"})})}}
 const VL={za:"ZA",uv:"UVJETNO",pr:"PROTIV",su:"SUZDRŽAN"};
 let lastDec=null;
@@ -1130,7 +1133,7 @@ function caseHtml(j){
   return h+`</details>`}
 function renderPjMini(){
   $("#pj-mini").innerHTML=S.pj.map(j=>{const p=procOf(j.id);return`<a href="#projekti" class="mini"><span><b>${esc(j.n)}</b><small>${esc(j.o)} · ${j.tools.map(t=>TN[t]).join(", ")}</small></span><span class="pill ${j.s==="Prijedlog"?"Ideja":j.s==="Prototip"?"Pilot":"Potvrđeno"}">${j.s}</span><span class="mono">${p?eur(sav(p)):"-"}</span></a>`}).join("")}
-const TOUR=[["oglas","Odgovor na oglas","Svaka točka iz oglasa: kako je radim, konkretan primjer i koji AI koristim."],["pregled","Nadzorna ploča","Cijeli program na jednom ekranu: uštede, projekti i izvještaj za upravu."],["procesi","Mapa procesa","Ovdje se upisuju procesi, sati i postotak automatizacije. Sve brojke u aplikaciji računaju se odavde."],["simulacija","Simulacija","Dvanaest tjedana izmišljenog poslovanja prolazi kroz prave agente, uz izmjereno skraćenje vremena."],["projekti","Projekti","Sedam projekata s vremenskim planom. Otvori Studiju slučaja na kartici da vidiš tijek i rezultate."],["vijece","Vijeće","Šest uloga ocjenjuje prijedlog i donosi odluku s uvjetima."],["agenti","AI agenti","Radni alati: upiti kupaca, 8D, certifikati 3.1 i tehnološki list."],["sop","Dokumentacija i obuka","SOP-ovi, registar rješenja i ambasadori: ono što osigurava da uvođenje ostane uredno."],["prijava","Moja prijava","Zamolba i opis primjera, spremni za kopiranje."]];
+const TOUR=[["oglas","Odgovor na oglas","Svaka točka iz oglasa: kako je radim, konkretan primjer i koji AI koristim."],["pregled","Nadzorna ploča","Cijeli program na jednom ekranu: uštede, projekti i izvještaj za upravu."],["procesi","Mapa procesa","Ovdje se upisuju procesi, sati i postotak automatizacije. Sve brojke u aplikaciji računaju se odavde."],["simulacija","Simulacija","Dvanaest tjedana izmišljenog poslovanja prolazi kroz prave agente, uz izmjereno skraćenje vremena."],["projekti","Projekti","Sedam projekata s vremenskim planom. Otvori Studiju slučaja na kartici da vidiš tijek i rezultate."],["vijece","Vijeće","Sedam uloga, uključujući upravu (CEO), ocjenjuje prijedlog i donosi odluku s uvjetima."],["agenti","AI agenti","Radni alati: upiti kupaca, 8D, certifikati 3.1 i tehnološki list."],["sop","Dokumentacija i obuka","SOP-ovi, registar rješenja i ambasadori: ono što osigurava da uvođenje ostane uredno."],["prijava","Moja prijava","Zamolba i opis primjera, spremni za kopiranje."]];
 let tourI=-1;
 function tourShow(i){tourI=i;const b=$("#tour"),o=$("#tour-open");if(i<0||i>=TOUR.length){b.hidden=true;o.hidden=false;return}
   const t=TOUR[i];location.hash="#"+t[0];o.hidden=true;b.hidden=false;
@@ -1185,7 +1188,7 @@ const AIG=[["Claude Code","Razvoj internih alata i skripti","Radi izravno u repo
  ["ChatGPT / Codex","Excel i ERP izvozi, drugo mišljenje na kod","Brze analize tablica i pregled tuđeg koda.","Podatke šaljem bez osobnih podataka i podataka kupaca."],
  ["Gemini","PDF crteži, skenovi, Google Workspace","Čita slike i PDF-ove, radi u Docs, Sheets i Meetu.","Crtež i pitanje: izvuci materijal, debljine, zavare i norme."],
  ["Grok","Tržište, konkurencija, novosti, Skeptik u vijeću","Brzo do aktualnih informacija i oštre kritike.","Samo javni podaci. Svaku činjenicu provjerim u izvoru."]];
-const EXP=[["Agent za upite kupaca","Upit iz e-pošte u karticu s pitanjima za kupca","agenti"],["Provjera certifikata 3.1","Kemijski sastav, granice razreda i CEV","agenti"],["8D asistent","Nesukladnost u nacrt D1 do D8","agenti"],["Tehnološki list","Operacije i vremena za seriju","agenti"],["Simulacija 12 tjedana","24 upita i 16 certifikata kroz prave agente","simulacija"],["AI vijeće","Šest uloga odlučuje o svakom prijedlogu","vijece"],["Nadzorna ploča","Uštede, projekti i izvještaj upravi","pregled"]];
+const EXP=[["Agent za upite kupaca","Upit iz e-pošte u karticu s pitanjima za kupca","agenti"],["Provjera certifikata 3.1","Kemijski sastav, granice razreda i CEV","agenti"],["8D asistent","Nesukladnost u nacrt D1 do D8","agenti"],["Tehnološki list","Operacije i vremena za seriju","agenti"],["Simulacija 12 tjedana","24 upita i 16 certifikata kroz prave agente","simulacija"],["AI vijeće","Sedam uloga, uključujući upravu (CEO), odlučuje o svakom prijedlogu","vijece"],["Nadzorna ploča","Uštede, projekti i izvještaj upravi","pregled"]];
 const APL=[["Životopis","Šalje se u privitku uz link na ovu aplikaciju","prijava"],["Kratak opis primjera","Gotov za kopiranje: upit kupca u pet minuta","prijava"],["Aplikacija","Ovaj link: sve navedeno može se isprobati","pregled"]];
 const covA=(a,n)=>`<a href="#${a[2]}"><span class="ic">${n}</span><span><b>${a[0]}</b><small>${a[1]}</small></span><span class="go">otvori →</span></a>`;
 function renderOglas(){
@@ -1208,13 +1211,14 @@ const BOTSYS={
  kvaliteta:"Ti si Kvaliteta i compliance. Provjeri utječe li prijedlog na ISO 9001 dokumentaciju, koristi li osobne podatke ili podatke kupaca (GDPR) i spada li pod EU AI Act. Za sve pravno sporno napiši 'provjeriti s pravnikom'.",
  operativa:"Ti si Operativa (proizvodnja i tehnologija). Procijeni hoće li ljudi koristiti rješenje i koliko je posla za provedbu: obuka, promjena radnih uputa, vrijeme ljudi koji sudjeluju.",
  marketer:"Ti si Marketer za B2B kupce iz rudarstva, građevine i cestogradnje. Procijeni vidi li kupac korist: brži odgovor, jasnija ponuda, sljedivost. Interni učinak bez vidljivosti kupcu ocijeni nisko.",
+ ceo:"Ti si uprava (CEO). Procijeni prijedlog strateški: doprinosi li ciljevima tvrtke, vide li kupci korist, koliki je rizik za ugled i je li omjer uštede i troška (u postocima) dovoljan da se nastavi. Ti daješ konačnu potvrdu pa traži jasne kriterije za nastavak nakon pilota.",
  seo:"Ti si SEO i web. Ocjenjuj samo ako prijedlog uključuje web sadržaj. Inače glasaj SUZDRŽAN. Predlaži teme koje kupci traže (norme, materijali, zavarivanje, kontrola) i napomeni da činjenice potvrđuje tehnolog."};
 const BOTFMT='Odgovori isključivo JSON-om: {"glas":"ZA|UVJETNO|PROTIV|SUZDRZAN","ocjena":0-100,"razlog":"najviše 3 rečenice","uvjeti":["..."]}';
 const FLOW=[["Prijedlog","Zaposlenik upiše prijedlog u obrazac ili pošalje e-poštom. Bot izvuče naziv, sate, postotak, teškoću, odjel.","auto"],
 ["Podjela uloga","Bot svakoj ulozi šalje isti prijedlog u postocima (automatizacija, težina, ušteda prema trošku) s njezinom uputom i JSON izlazom.","auto"],
 ["Glasovi","Uloge vrate glas, ocjenu, razlog i uvjete. Bot provjeri da je JSON ispravan, inače ponovi.","auto"],
 ["Odluka","Bot zbroji ocjene po težinama i primijeni pravila: veto kvalitete, prag za pilot.","auto"],
-["Potvrda","Koordinator pregleda obrazloženje i potvrdi ili promijeni odluku.","ljudi"],
+["Potvrda","Koordinator pripremi obrazloženje, a uprava (CEO) potvrđuje ili mijenja odluku.","ljudi"],
 ["Zapis i obavijest","Odluka ide u dnevnik, rješenje u registar, voditelj odjela dobiva nacrt poruke.","auto"]];
 function botPack(){
   const x=cvInput();
@@ -1244,7 +1248,7 @@ function botRun(){
    ...E.rs.map(r=>`${r.R.n}: ${VL[r.vote]}${r.sc===null?"":" ("+r.sc+"%)"}. ${r.why[0]}`),
    `Zbroj po težinama: ${score}%`+(E.rs.some(r=>r.veto)?" (veto kvalitete)":""),
    `Predložena odluka: ${lastDec?lastDec.t:""}`,
-   "Čeka potvrdu koordinatora. Nakon potvrde: zapis u dnevnik i nacrt poruke voditelju odjela."];
+   "Čeka potvrdu uprave (CEO). Nakon potvrde: zapis u dnevnik i nacrt poruke voditelju odjela."];
   L.forEach((t,i)=>setTimeout(()=>{const d=document.createElement("div");d.textContent=String(i+1).padStart(2,"0")+"  "+t;log.appendChild(d)},i*350));
 }
 $("#bot-run").onclick=botRun;
@@ -1266,9 +1270,10 @@ function botDebate(){
   M.push(["operativa",`Za odjel ${x.o} imenujemo ambasadora i držimo radionicu od sat vremena prije pilota, inače ljudi neće koristiti alat.`]);
   M.push(["marketer",x.cf?"Kupac vidi brži i precizniji odgovor. To je argument u pregovorima s rudarskim i građevinskim kupcima i vrijedi ga komunicirati.":"Kupac ovo ne vidi, pa ga ne računam kao prodajni argument. Vrijednost je samo interna."]);
   M.push(["seo",x.web?"Predlažem tri stranice: zavarivanje prema ISO 3834, izrada prema EN 1090 i kontrola kvalitete s certifikatima 3.1. Svaku činjenicu potvrđuje tehnolog.":"Suzdržan sam, projekt nema web sadržaja."]);
+  M.push(["ceo","Podržat ću pilot ako nakon osam tjedana dobijem izvještaj u postocima: ušteda prema trošku i udio obučenih korisnika. Odluku o prelasku u produkciju zadržavam za upravu."]);
   const veto=E.rs.some(r=>r.veto),kon=by("kontroler");
   const t=veto?"Ne uvoditi bez pravnog pregleda":score>=72&&kon.vote!=="pr"?"Odobriti pilot od 8 tjedana":score>=55?"Pilot uz uvjete":"Odgoditi i prepraviti prijedlog";
-  M.push(["bot",`Zbrajam po težinama: ${score}%. Odluka vijeća: ${t}. Uvjeti: ${conds.join("; ")}. Čeka potvrdu koordinatora, zatim zapis u dnevnik.`]);
+  M.push(["bot",`Zbrajam po težinama: ${score}%. Odluka vijeća: ${t}. Uvjeti: ${conds.join("; ")}. Čeka potvrdu uprave (CEO), zatim zapis u dnevnik.`]);
   lastDec={n:x.n,t,score};
   M.forEach((m,i)=>setTimeout(()=>{
     const R=ROLES.find(q=>q.k===m[0]);
