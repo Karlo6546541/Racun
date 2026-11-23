@@ -260,6 +260,14 @@ details.case summary{cursor:pointer;font-weight:600;color:var(--accent)}
 .wh{border-left:3px solid var(--accent);padding-left:.85rem;font-size:.88rem}
 .wh .q{font-style:italic;color:var(--muted);font-size:.82rem;margin-bottom:.35rem}
 .secth{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-top:.4rem}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}
+.fl{display:grid;gap:.3rem;align-content:start;border:1px solid var(--line);border-radius:12px;padding:.75rem .85rem;background:var(--soft);position:relative}
+.fl .no{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--f-display);font-weight:600}
+.fl b{font-family:var(--f-display);font-size:1.15rem;font-weight:600}
+.fl small{font-size:.78rem;color:var(--muted)}
+.fl .pill{justify-self:start;margin-top:.2rem}
+#bot-log{font-family:var(--f-mono);font-size:.76rem;background:var(--ink);color:var(--card);border-radius:10px;padding:.8rem;min-height:5rem;display:grid;gap:.25rem}
+#bot-log div{overflow-wrap:anywhere}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -402,6 +410,15 @@ details.case summary{cursor:pointer;font-weight:600;color:var(--accent)}
     <div id="cv-dec"></div>
   </div>
   <div class="g3" id="council"></div>
+  <div class="card" id="grokbot"><h3>Grok bot kao voditelj vijeća</h3><div class="sub">Bot preuzima ponavljajući dio: dijeli prijedlog ulogama, skuplja glasove, zbraja ocjene i priprema odluku. Čovjek ostaje na potvrdi. Procjena: sastanak od oko 60 minuta i zapisnik od 30 svodi se na oko 10 minuta pregleda.</div>
+    <div class="flow" id="bot-flow"></div>
+    <div class="label" style="margin:1rem 0 .3rem">Uloge i upute koje bot šalje</div>
+    <div class="scroll"><table id="bot-roles"><thead><tr><th>Uloga</th><th>Model</th><th>Što procjenjuje</th><th>Upute</th></tr></thead><tbody></tbody></table></div>
+    <p class="muted" style="font-size:.8rem;margin-top:.5rem">Svaka uputa završava zahtjevom za izlaz u JSON-u (glas, ocjena, razlog, uvjeti), pa bot može automatski zbrojiti rezultate.</p>
+    <div class="row" style="margin-top:.9rem"><button class="primary" type="button" id="bot-run">Pokreni bota na odabranom prijedlogu</button><button type="button" id="bot-pack-btn">Kopiraj paket za bota</button></div>
+    <div id="bot-log" style="margin-top:.7rem" aria-live="polite"><div>Odaberi prijedlog gore i pokreni bota.</div></div>
+    <pre id="bot-pack" class="draft" hidden style="margin-top:.7rem;max-height:320px;overflow:auto"></pre>
+    <div class="note" style="margin-top:.8rem">Simulacija: odgovore uloga ovdje računa pravilima u pregledniku. U produkciji bi svaku ulogu odgovarao pravi model, a spajanje s odabranim modelom ovisi o njegovom API-ju, koji treba provjeriti u dokumentaciji dobavljača. Bot nikad sam ne uvodi rješenje bez potvrde koordinatora.</div></div>
   <div class="card"><h3>Vijeće s vanjskim modelima</h3><div class="sub">Isto vijeće možeš odraditi s pravim modelima. Svakoj ulozi dodijeli model, kopiraj prompt i zalijepi ga. Ne šalji povjerljive podatke kupaca, vidi matricu u alatima.</div><div class="scroll"><table id="prompts"><thead><tr><th>Uloga</th><th>Model</th><th>Fokus</th><th></th></tr></thead><tbody></tbody></table></div><pre id="prompt-box" hidden></pre></div>
   <div class="card"><h3>Dnevnik odluka</h3><div class="sub">Svaka odluka vijeća ostaje zapisana.</div><div class="scroll"><table id="dlog"><thead><tr><th>Datum</th><th>Prijedlog</th><th class="n">Ocjena</th><th>Odluka</th><th></th></tr></thead><tbody></tbody></table></div></div>
 </section>
@@ -886,7 +903,7 @@ const TOOLS=[
  {id:"claude",n:"Claude / Claude Code",use:"Razvoj internih alata i skripti, analiza dugih dokumenata, pisanje radnih uputa i SOP-ova.",best:"Strukturiran tekst, kod, dugi dokumenti",watch:"Vlasnik procesa pregledava svaki rezultat",council:"Kontroler i Kvaliteta"},
  {id:"codex",n:"ChatGPT / Codex",use:"Skripte i automatizacije (izvozi iz ERP-a, Excel) i drugo mišljenje na kod koji je napisao drugi alat.",best:"Brze skripte, pregled koda",watch:"Bez podataka kupaca i osobnih podataka",council:"Operativa"},
  {id:"gemini",n:"Gemini",use:"Čitanje PDF crteža i skeniranih dokumenata, rad s Google Workspaceom ako ga tvrtka koristi, nacrti tekstova.",best:"Slike, PDF-ovi, tablice",watch:"Crteži kupaca samo uz ugovor i odobrenje",council:"Marketer i SEO"},
- {id:"grok",n:"Grok",use:"Brzo istraživanje tržišta i novosti te kritički pogled kao Skeptik u vijeću.",best:"Aktualne informacije, oštar kritički ton",watch:"Samo javni podaci, činjenice se provjeravaju",council:"Skeptik"}];
+ {id:"grok",n:"Grok",use:"Brzo istraživanje tržišta i novosti te kritički pogled kao Skeptik u vijeću.",best:"Aktualne informacije, oštar kritički ton",watch:"Samo javni podaci, činjenice se provjeravaju",council:"Skeptik i voditelj vijeća (bot)"}];
 const TN=Object.fromEntries(TOOLS.map(t=>[t.id,t.n.split(" /")[0]]));
 const DC=["Javno","Interno","Povjerljivo (crteži kupca)","Osobni podaci"],ML=["Ne","Uvjetno","Da"];
 function renderToolsK(){
@@ -1157,6 +1174,56 @@ function renderOglas(){
 }
 $("#mine").addEventListener("input",e=>{S.mine=e.target.value;save()});
 
+/* ---------- Grok bot: automatizacija vijeća ---------- */
+const BOTSYS={
+ skeptik:"Ti si Skeptik u vijeću za uvođenje AI-ja u metaloprerađivačkoj tvrtki. Traži slabe točke prijedloga: preoptimistične postotke automatizacije, nedostatak mjerenja prije, rizik kašnjenja. Ne izmišljaj brojke koje nisu u prijedlogu. Ako nema dovoljno podataka, glasaj UVJETNO i napiši što treba izmjeriti.",
+ kontroler:"Ti si Kontroler (financije). Procijeni trošak uvođenja, godišnju uštedu i povrat u mjesecima koristeći samo brojke iz prijedloga. Ako brojka nedostaje, navedi što treba dostaviti.",
+ kvaliteta:"Ti si Kvaliteta i compliance. Provjeri utječe li prijedlog na ISO 9001 dokumentaciju, koristi li osobne podatke ili podatke kupaca (GDPR) i spada li pod EU AI Act. Za sve pravno sporno napiši 'provjeriti s pravnikom'.",
+ operativa:"Ti si Operativa (proizvodnja i tehnologija). Procijeni hoće li ljudi koristiti rješenje i koliko je posla za provedbu: obuka, promjena radnih uputa, vrijeme ljudi koji sudjeluju.",
+ marketer:"Ti si Marketer za B2B kupce iz rudarstva, građevine i cestogradnje. Procijeni vidi li kupac korist: brži odgovor, jasnija ponuda, sljedivost. Interni učinak bez vidljivosti kupcu ocijeni nisko.",
+ seo:"Ti si SEO i web. Ocjenjuj samo ako prijedlog uključuje web sadržaj. Inače glasaj SUZDRŽAN. Predlaži teme koje kupci traže (norme, materijali, zavarivanje, kontrola) i napomeni da činjenice potvrđuje tehnolog."};
+const BOTFMT='Odgovori isključivo JSON-om: {"glas":"ZA|UVJETNO|PROTIV|SUZDRZAN","ocjena":0-100,"razlog":"najviše 3 rečenice","uvjeti":["..."]}';
+const FLOW=[["Prijedlog","Zaposlenik upiše prijedlog u obrazac ili pošalje e-poštom. Bot izvuče naziv, sate, postotak, teškoću, odjel.","auto"],
+["Podjela uloga","Bot svakoj ulozi šalje isti prijedlog s njezinom uputom i traženim JSON izlazom.","auto"],
+["Glasovi","Uloge vrate glas, ocjenu, razlog i uvjete. Bot provjeri da je JSON ispravan, inače ponovi.","auto"],
+["Odluka","Bot zbroji ocjene po težinama i primijeni pravila: veto kvalitete, prag za pilot.","auto"],
+["Potvrda","Koordinator pregleda obrazloženje i potvrdi ili promijeni odluku.","ljudi"],
+["Zapis i obavijest","Odluka ide u dnevnik, rješenje u registar, voditelj odjela dobiva nacrt poruke.","auto"]];
+function botPack(){
+  const x=cvInput();
+  const cfg={zadatak:"AI vijeće",prijedlog:{naziv:x.n,odjel:x.o,sati_mjesecno:x.h,automatizacija_posto:x.a,tezina_1_5:x.d,vidljivo_kupcu:x.cf,podaci_kupca:x.cd,osobni_podaci:x.pd,web_sadrzaj:x.web},
+   uloge:ROLES.map(r=>({kljuc:r.k,naziv:r.n,model:TN[S.rm[r.k]],tezina:r.w,sustavska_uputa:BOTSYS[r.k]+" "+BOTFMT})),
+   pravila_odluke:{veto:"kvaliteta označi odluke o zaposlenicima ili sigurnosnu funkciju",pilot:"ponderirana ocjena >= 72 i kontroler nije PROTIV",uvjetno:"ocjena >= 55",inace:"odgoditi i prepraviti"},
+   izlaz:["odluka","ocjena","uvjeti (spojeni)","nacrt poruke voditelju odjela"]};
+  return JSON.stringify(cfg,null,2)+`
+
+// Orkestrator (pseudokod, prilagodi API-ju odabranog modela)
+for (const uloga of cfg.uloge) {
+  const odgovor = await pozoviModel(uloga.model, uloga.sustavska_uputa, cfg.prijedlog);
+  glasovi.push(provjeriJSON(odgovor));   // ako nije valjan JSON, jedan ponovni pokušaj
+}
+const odluka = izracunajOdluku(glasovi, cfg.pravila_odluke);
+spremiUDnevnik(odluka);                  // tek nakon potvrde koordinatora
+obavijesti(voditeljOdjela, nacrtPoruke(odluka));`}
+function renderBot(){
+  $("#bot-flow").innerHTML=FLOW.map((f,i)=>`<div class="fl"><span class="no">${i+1}</span><b>${f[0]}</b><small>${f[1]}</small><span class="pill ${f[2]==="auto"?"Potvrđeno":"Pilot"}">${f[2]==="auto"?"Automatski":"Čovjek"}</span></div>`).join("");
+  $("#bot-roles tbody").innerHTML=ROLES.map(r=>`<tr><td><b>${r.n}</b></td><td>${TN[S.rm[r.k]]||""}</td><td style="min-width:240px;font-size:.82rem">${r.focus}</td><td><details><summary>Uputa botu</summary><pre class="draft" style="margin-top:.4rem">${esc(BOTSYS[r.k])}</pre></details></td></tr>`).join("")}
+function botRun(){
+  const x=cvInput(),E=evalCouncil(x),log=$("#bot-log");log.innerHTML="";
+  let ws=0,wt=0;E.rs.forEach(r=>{if(r.sc!==null){ws+=r.sc*r.R.w;wt+=r.R.w}});
+  const score=wt?Math.round(ws/wt):0;
+  const L=[`Zaprimljen prijedlog: ${x.n} (${x.h} h/mj, ${x.a}% automatizacije, teškoća ${x.d}/5)`,
+   `Poslano ${E.rs.length} uputa: ${E.rs.map(r=>r.R.n+" → "+(TN[S.rm[r.k]]||"")).join(", ")}`,
+   ...E.rs.map(r=>`${r.R.n}: ${VL[r.vote]}${r.sc===null?"":" ("+r.sc+"/100)"}. ${r.why[0]}`),
+   `Zbroj po težinama: ${score}/100`+(E.rs.some(r=>r.veto)?" (veto kvalitete)":""),
+   `Predložena odluka: ${lastDec?lastDec.t:""}`,
+   "Čeka potvrdu koordinatora. Nakon potvrde: zapis u dnevnik i nacrt poruke voditelju odjela."];
+  L.forEach((t,i)=>setTimeout(()=>{const d=document.createElement("div");d.textContent=String(i+1).padStart(2,"0")+"  "+t;log.appendChild(d)},i*350));
+}
+$("#bot-run").onclick=botRun;
+$("#bot-pack-btn").onclick=()=>{const t=botPack(),b=$("#bot-pack");b.textContent=t;b.hidden=false;
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Paket za bota kopiran"),()=>{const r=document.createRange();r.selectNodeContents(b);const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Označeno, pritisni Ctrl+C")})};
+
 /* ---------- prijava, kopiranje, tema, rute ---------- */
 [["in-name","j-name"],["in-tel","j-tel"],["in-mail","j-mail"]].forEach(([i,c])=>{const el=$("#"+i);el.addEventListener("input",()=>$$("."+c).forEach(n=>n.textContent=el.value))});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-copy]");if(!b)return;const n=$("#"+b.dataset.copy);const txt=(n.tagName==="TEXTAREA"?n.value:(n.innerText||n.textContent)).trim();
@@ -1168,6 +1235,6 @@ function route(){const h=(location.hash||"#oglas").slice(1);const v=VIEWS.includ
 addEventListener("hashchange",route);
 
 function renderAll(){$("#rate").value=S.rate;$("#real").value=S.real;$("#bonus").value=S.bonus;
-  renderProcTable();renderProcCharts();renderSopAll();renderReg();renderAmb();renderDash();renderPj();renderCouncil();renderTools();renderSim();renderOglas()}
+  renderProcTable();renderProcCharts();renderSopAll();renderReg();renderAmb();renderDash();renderPj();renderCouncil();renderTools();renderSim();renderOglas();renderBot()}
 renderAll();renderQuiz();runRfq();runNcr();runCert();runTech();route();
 </script>
