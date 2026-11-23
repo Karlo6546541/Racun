@@ -1,0 +1,336 @@
+{
+  "id": "unit-2",
+  "order": 2,
+  "title": ["Osnove promptanja u marketingu", "Prompting basics for marketing"],
+  "summary": ["Uloga, publika, ton brenda, format i jasan CTA.", "Role, audience, brand tone, format and a clear CTA."],
+  "icon": "✍️",
+  "color": "#1cb0f6",
+  "published": true,
+  "lessons": [
+    {
+      "id": "u2l1",
+      "title": ["Anatomija prompta", "Anatomy of a prompt"],
+      "exercises": [
+        { "id": "u2l1e1", "type": "mc",
+          "q": ["Koji elementi čine jak marketinški prompt?", "Which elements make a strong marketing prompt?"],
+          "options": [
+            ["Uloga, publika, zadatak, ton, format i ograničenja", "Role, audience, task, tone, format and constraints"],
+            ["Samo tema u jednoj riječi", "Only a one-word topic"],
+            ["Što više pridjeva", "As many adjectives as possible"]
+          ], "answer": 0,
+          "explain": ["Ovih šest dijelova modelu daje sve što treba da pogodi vaš cilj.", "These six parts give the model everything it needs to hit your goal."] },
+        { "id": "u2l1e2", "type": "build",
+          "q": ["Složite prompt u pravilan redoslijed: dodirnite dio pa mjesto, ili ga povucite.", "Build the prompt in order: tap a part, then a slot, or drag it."],
+          "slots": [["Uloga", "Role"], ["Ciljna publika", "Target audience"], ["Zadatak", "Task"], ["Ton brenda", "Brand tone"], ["Format", "Format"], ["Ograničenja", "Constraints"]],
+          "parts": [
+            ["Ti si iskusni copywriter za društvene mreže.", "You are an experienced social media copywriter."],
+            ["Pišeš za studente od 18 do 25 godina koji vole specialty kavu.", "You write for students aged 18–25 who love specialty coffee."],
+            ["Napiši objavu za Instagram o našoj novoj hladnoj kavi.", "Write an Instagram post about our new cold brew."],
+            ["Ton: opušten, duhovit, bez žargona.", "Tone: relaxed, witty, no jargon."],
+            ["Format: naslov od 6 riječi, 2 rečenice teksta i 3 hashtaga.", "Format: a 6-word headline, 2 sentences of text and 3 hashtags."],
+            ["Ograničenja: do 60 riječi, bez emojija i bez izmišljenih popusta.", "Constraints: up to 60 words, no emojis and no invented discounts."]
+          ],
+          "explain": ["Redoslijed uloga → publika → zadatak → ton → format → ograničenja čini prompt lakim za čitanje i za doradu.", "The order role → audience → task → tone → format → constraints keeps a prompt easy to read and to refine."] },
+        { "id": "u2l1e3", "type": "fill",
+          "q": ["Prompt počinje ulogom, npr. „Ti si iskusni ___ za društvene mreže.”", "A prompt starts with a role, e.g. “You are an experienced ___ for social media.”"],
+          "answers": { "hr": ["copywriter", "copywriterica", "tekstopisac", "marketer", "stručnjak"], "en": ["copywriter", "writer", "marketer", "strategist", "specialist"] },
+          "explain": ["Uloga postavlja razinu stručnosti i stil pisanja.", "A role sets the level of expertise and the writing style."] },
+        { "id": "u2l1e4", "type": "match",
+          "q": ["Spojite element prompta s primjerom.", "Match each prompt element with an example."],
+          "pairs": [
+            [["Uloga", "Role"], ["„Ti si PR stručnjak.”", "“You are a PR specialist.”"]],
+            [["Publika", "Audience"], ["„Za vlasnike malih obrta.”", "“For small-business owners.”"]],
+            [["Ton", "Tone"], ["„Topao i stručan.”", "“Warm and expert.”"]],
+            [["Format", "Format"], ["„Tablica s 3 stupca.”", "“A table with 3 columns.”"]],
+            [["Ograničenje", "Constraint"], ["„Najviše 80 riječi.”", "“At most 80 words.”"]]
+          ],
+          "explain": ["Kad prepoznajete elemente, lako vidite što vašem promptu nedostaje.", "Once you recognise the elements, it's easy to see what your prompt is missing."] },
+        { "id": "u2l1e5", "type": "doctor",
+          "q": ["Loš prompt je ispod. Koja preinaka je najbolja?", "The weak prompt is below. Which rewrite is best?"],
+          "bad": ["Napiši objavu za Instagram o kavi.", "Write an Instagram post about coffee."],
+          "options": [
+            { "t": ["Napiši objavu o kavi. Neka bude dobra i kreativna.", "Write a post about coffee. Make it good and creative."],
+              "why": ["„Dobra i kreativna” modelu ne daje ništa konkretno. Nema publike, tona ni formata.", "“Good and creative” gives the model nothing concrete. No audience, tone or format."] },
+            { "t": ["Ti si copywriter. Piši za studente (18–25) o našoj novoj hladnoj kavi: opušten ton, 2 rečenice + 3 hashtaga, do 50 riječi, bez emojija.", "You are a copywriter. Write for students (18–25) about our new cold brew: relaxed tone, 2 sentences + 3 hashtags, up to 50 words, no emojis."],
+              "why": ["Ima ulogu, publiku, temu, ton, format i ograničenja. Model ima što pratiti.", "It has role, audience, topic, tone, format and constraints. The model has something to follow."] },
+            { "t": ["Napiši vrlo dugu objavu o kavi sa što više podataka o povijesti kave.", "Write a very long post about coffee with as much information as possible about coffee history."],
+              "why": ["Duljina nije kvaliteta. Povijest kave ne služi cilju objave ni publici.", "Length isn't quality. Coffee history doesn't serve the post's goal or its audience."] }
+          ], "answer": 1,
+          "explain": ["Najbolja preinaka dodaje ono što model ne može pogoditi: tko čita, kako zvučimo i kako izgleda gotov rezultat.", "The best rewrite adds what the model can't guess: who reads it, how we sound and what the finished result looks like."] },
+        { "id": "u2l1e6", "type": "tf",
+          "q": ["Što je prompt duži, to je uvijek bolji.", "The longer a prompt, the better it always is."],
+          "answer": false,
+          "explain": ["Bitna je preciznost, ne duljina. Dodajte samo ono što mijenja rezultat.", "Precision matters, not length. Add only what changes the result."] },
+        { "id": "u2l1e7", "type": "mc",
+          "q": ["Što u promptu dodaje „ciljna publika”?", "What does “target audience” add to a prompt?"],
+          "options": [
+            ["Model zna kome piše pa bira riječi, primjere i razinu detalja", "The model knows who it's writing for and picks words, examples and level of detail"],
+            ["Ništa, to je samo ukras", "Nothing, it's only decoration"],
+            ["Skraćuje odgovor na jednu rečenicu", "It shortens the answer to one sentence"]
+          ], "answer": 0,
+          "explain": ["Isti proizvod objašnjava se drukčije studentu nego direktoru nabave.", "The same product is explained differently to a student than to a procurement director."] },
+        { "id": "u2l1e8", "type": "order",
+          "q": ["Složite korake pisanja prompta.", "Put the steps of writing a prompt in order."],
+          "steps": [
+            ["Odredite cilj objave", "Define the post's goal"],
+            ["Opišite publiku i ton brenda", "Describe the audience and brand tone"],
+            ["Zadajte zadatak, format i ograničenja", "Specify the task, format and constraints"],
+            ["Pročitajte rezultat i doradite prompt", "Read the result and refine the prompt"]
+          ],
+          "explain": ["Prompt je radni dokument. Prva verzija rijetko je zadnja.", "A prompt is a working document. The first version is rarely the last."] }
+      ]
+    },
+    {
+      "id": "u2l2",
+      "title": ["Publika i ton brenda", "Audience and brand tone"],
+      "exercises": [
+        { "id": "u2l2e1", "type": "mc",
+          "q": ["Brend prodaje bicikle tinejdžerima. Koji ton ima smisla?", "A brand sells bikes to teenagers. Which tone makes sense?"],
+          "options": [
+            ["Energičan, kratke rečenice, bez birokratskog jezika", "Energetic, short sentences, no bureaucratic language"],
+            ["Formalan pravni stil", "Formal legal style"],
+            ["Dugi akademski odlomci", "Long academic paragraphs"]
+          ], "answer": 0,
+          "explain": ["Ton prati publiku. Tinejdžeri brzo odustaju od teških i dugih rečenica.", "Tone follows the audience. Teenagers quickly drop heavy, long sentences."] },
+        { "id": "u2l2e2", "type": "compare",
+          "q": ["Prompt je tražio ton za mlade. Koji tekst bolje pogađa?", "The prompt asked for a tone for young people. Which text fits better?"],
+          "a": ["Poštovani korisnici, obavještavamo vas o novoj kolekciji.", "Dear users, we hereby inform you about the new collection."],
+          "b": ["Nova kolekcija je tu. Isprobaj prije nego nestane.", "The new collection is here. Try it before it's gone."],
+          "answer": 1,
+          "explain": ["Tekst B koristi kratke rečenice i obraćanje u drugom licu. Tekst A zvuči kao dopis.", "Text B uses short sentences and direct address. Text A sounds like a memo."] },
+        { "id": "u2l2e3", "type": "fill",
+          "q": ["Ton brenda opišite pridjevima, npr. „topao, ___ i bez žargona”.", "Describe brand tone with adjectives, e.g. “warm, ___ and jargon-free”."],
+          "answers": { "hr": ["stručan", "jasan", "iskren", "prijateljski", "duhovit", "opušten", "profesionalan"], "en": ["expert", "clear", "honest", "friendly", "witty", "relaxed", "professional"] },
+          "explain": ["Dva do tri pridjeva tona obično su dovoljna da model pogodi smjer.", "Two or three tone adjectives are usually enough for the model to find the direction."] },
+        { "id": "u2l2e4", "type": "match",
+          "q": ["Spojite brend s odgovarajućim tonom.", "Match each brand with a fitting tone."],
+          "pairs": [
+            [["Banka za umirovljenike", "A bank for retirees"], ["Smiren, jasan, bez slenga", "Calm, clear, no slang"]],
+            [["Streetwear brend", "A streetwear brand"], ["Drzak, kratak, uličan", "Bold, short, street-style"]],
+            [["Stomatološka ordinacija", "A dental clinic"], ["Umirujuć i stručan", "Reassuring and expert"]],
+            [["B2B softver", "B2B software"], ["Precizan, s konkretnim koristima", "Precise, with concrete benefits"]]
+          ],
+          "explain": ["Isti AI može zvučati kao svaki od njih, ali samo ako mu kažete kako.", "The same AI can sound like any of them, but only if you tell it how."] },
+        { "id": "u2l2e5", "type": "doctor",
+          "q": ["Koja preinaka najbolje popravlja prompt?", "Which rewrite fixes the prompt best?"],
+          "bad": ["Napiši newsletter za naše kupce.", "Write a newsletter for our customers."],
+          "options": [
+            { "t": ["Napiši newsletter za kupce. Neka zvuči profesionalno.", "Write a newsletter for customers. Make it sound professional."],
+              "why": ["Tko su kupci i što ih muči? „Profesionalno” je preopćenito.", "Who are the customers and what worries them? “Professional” is too generic."] },
+            { "t": ["Napiši newsletter za vlasnike malih trgovina (35–55 god.) koji se boje digitalizacije. Ton: strpljiv i prijateljski, bez stranih riječi. Jedna jasna korist u naslovu.", "Write a newsletter for small shop owners (35–55) who fear going digital. Tone: patient and friendly, no foreign words. One clear benefit in the headline."],
+              "why": ["Konkretna publika, njihova briga, ton i pravilo za naslov. Model zna što pogoditi.", "A concrete audience, their worry, a tone and a rule for the headline. The model knows what to hit."] },
+            { "t": ["Napiši newsletter. Koristi što više stručnih izraza da zvučimo pametno.", "Write a newsletter. Use as many technical terms as possible so we sound smart."],
+              "why": ["Stručni izrazi odbijaju publiku koja se boji. Jasnoća pobjeđuje dojam pametnosti.", "Technical terms put off an anxious audience. Clarity beats sounding smart."] }
+          ], "answer": 1,
+          "explain": ["Najjača preinaka opisuje publiku i njezinu brigu, a ne samo „kupce”.", "The strongest rewrite describes the audience and its worry, not just “customers”."] },
+        { "id": "u2l2e6", "type": "tf",
+          "q": ["Ton brenda dovoljno je opisati jednom riječju: „dobar”.", "It's enough to describe brand tone with a single word: “good”."],
+          "answer": false,
+          "explain": ["Riječ „dobar” ništa ne ograničava. Pomažu konkretni pridjevi i uzorak rečenice u vašem glasu.", "The word “good” limits nothing. Concrete adjectives and a sample sentence in your voice help."] },
+        { "id": "u2l2e7", "type": "rubric",
+          "q": ["Napišite prompt za objavu na LinkedInu o novoj usluzi vaše agencije. Navedite publiku i ton.", "Write a prompt for a LinkedIn post about your agency's new service. State the audience and tone."],
+          "rubric": {
+            "minWords": 12, "lenPts": 10, "vaguePts": 10, "pass": 60,
+            "criteria": [
+              { "id": "role", "pts": 15, "label": ["Zadaje ulogu", "Sets a role"],
+                "kw": { "hr": ["ti si", "uloga", "copywriter", "stručnjak", "kao "], "en": ["you are", "act as", "role", "copywriter", "expert"] },
+                "hint": ["Započnite ulogom: „Ti si copywriter za B2B…”", "Start with a role: “You are a B2B copywriter…”"] },
+              { "id": "audience", "pts": 25, "label": ["Navodi ciljnu publiku", "States the target audience"],
+                "kw": { "hr": ["publik", "za voditelj", "za vlasnik", "ciljn", "namijenjen", "za direktor", "za marketing"], "en": ["audience", "for managers", "for owners", "target", "aimed at", "for directors", "for marketing"] },
+                "hint": ["Recite komu pišete: „Publika: voditelji marketinga u malim tvrtkama.”", "Say who you write for: “Audience: marketing managers at small companies.”"] },
+              { "id": "tone", "pts": 25, "label": ["Opisuje ton ili stil", "Describes the tone or style"],
+                "kw": { "hr": ["ton", "stil", "zvuč", "opušten", "stručan", "prijateljsk", "formaln"], "en": ["tone", "style", "voice", "sound", "friendly", "expert", "formal", "relaxed"] },
+                "hint": ["Dodajte ton: „Ton: stručan, ali pristupačan.”", "Add the tone: “Tone: expert but approachable.”"] },
+              { "id": "task", "pts": 15, "label": ["Navodi zadatak (LinkedIn objava)", "Names the task (LinkedIn post)"],
+                "kw": { "hr": ["linkedin", "objav"], "en": ["linkedin", "post"] },
+                "hint": ["Imenujte kanal i vrstu teksta.", "Name the channel and the type of text."] }
+            ],
+            "vague": { "hr": ["nešto", "bilo što", "nekako", "općenito", "sve o "], "en": ["something", "anything", "somehow", "generic", "everything about"] },
+            "model": ["Ti si B2B copywriter. Napiši LinkedIn objavu o našoj novoj usluzi AI audita za voditelje marketinga u malim tvrtkama. Ton: stručan, ali pristupačan. Do 120 riječi.", "You are a B2B copywriter. Write a LinkedIn post about our new AI audit service for marketing managers at small companies. Tone: expert but approachable. Up to 120 words."]
+          },
+          "explain": ["Uloga, publika, ton i kanal čine kostur svakog marketinškog prompta.", "Role, audience, tone and channel are the skeleton of any marketing prompt."] },
+        { "id": "u2l2e8", "type": "mc",
+          "q": ["Što najviše pomaže modelu da pogodi vaš glas?", "What helps the model match your voice the most?"],
+          "options": [
+            ["Kratak uzorak vašeg teksta i pridjevi tona", "A short sample of your writing and tone adjectives"],
+            ["Veliko slovo na početku prompta", "A capital letter at the start of the prompt"],
+            ["Zabrana svih pridjeva", "Banning all adjectives"]
+          ], "answer": 0,
+          "explain": ["Model uči iz primjera u samom promptu. Dva-tri vaša odlomka često su dovoljna.", "The model learns from examples inside the prompt. Two or three of your paragraphs are often enough."] }
+      ]
+    },
+    {
+      "id": "u2l3",
+      "title": ["Format i jasan CTA", "Format and a clear CTA"],
+      "exercises": [
+        { "id": "u2l3e1", "type": "mc",
+          "q": ["Zašto u promptu navesti format?", "Why state the format in a prompt?"],
+          "options": [
+            ["Dobijete rezultat koji možete odmah upotrijebiti (npr. naslov + 2 rečenice + CTA)", "You get a result you can use right away (e.g. headline + 2 sentences + CTA)"],
+            ["Format usporava model", "Format slows the model down"],
+            ["Format nije bitan", "Format doesn't matter"]
+          ], "answer": 0,
+          "explain": ["Bez formata dobijete zid teksta koji morate sami razrezati.", "Without a format you get a wall of text you have to cut up yourself."] },
+        { "id": "u2l3e2", "type": "match",
+          "q": ["Spojite kanal s odgovarajućim formatom.", "Match each channel with a suitable format."],
+          "pairs": [
+            [["Instagram Reels", "Instagram Reels"], ["Hook u prve 3 sekunde + 3 kadra", "A hook in the first 3 seconds + 3 shots"]],
+            [["Google oglas u tražilici", "Google Search ad"], ["Naslovi do 30 znakova, opisi do 90", "Headlines up to 30 characters, descriptions up to 90"]],
+            [["Newsletter", "Newsletter"], ["Predmet, uvod, jedan blok, gumb", "Subject, intro, one block, button"]],
+            [["LinkedIn objava", "LinkedIn post"], ["Hook u prvoj rečenici + kratki odlomci", "A hook in the first line + short paragraphs"]]
+          ],
+          "explain": ["Svaki kanal ima svoja pravila. Navedite ih u promptu da ne morate sve prepisivati.", "Every channel has its own rules. State them in the prompt so you don't rewrite everything."] },
+        { "id": "u2l3e3", "type": "fill",
+          "q": ["CTA je skraćenica za „poziv na ___”.", "CTA stands for “call to ___”."],
+          "answers": { "hr": ["akciju", "akcija"], "en": ["action"] },
+          "explain": ["CTA kaže čitatelju što točno napraviti sljedeće.", "A CTA tells the reader exactly what to do next."] },
+        { "id": "u2l3e4", "type": "compare",
+          "q": ["Koji CTA je jasniji?", "Which CTA is clearer?"],
+          "a": ["Saznajte više o svemu što radimo.", "Learn more about everything we do."],
+          "b": ["Rezerviraj besplatni termin do petka.", "Book your free slot by Friday."],
+          "answer": 1,
+          "explain": ["Jedna radnja, jasna korist i rok. Tekst A ne govori što točno kliknuti i zašto.", "One action, a clear benefit and a deadline. Text A doesn't say what to click or why."] },
+        { "id": "u2l3e5", "type": "build",
+          "q": ["Složite prompt za email.", "Build a prompt for an email."],
+          "slots": [["Uloga", "Role"], ["Publika", "Audience"], ["Zadatak", "Task"], ["Format", "Format"], ["Poziv na akciju (CTA)", "Call to action (CTA)"]],
+          "parts": [
+            ["Ti si email marketer za web trgovinu s biciklima.", "You are an email marketer for a bike web shop."],
+            ["Pišeš postojećim kupcima koji nisu kupili 60 dana.", "You write to existing customers who haven't bought in 60 days."],
+            ["Napiši email koji najavljuje proljetnu akciju servisa.", "Write an email announcing the spring service promotion."],
+            ["Format: predmet do 45 znakova, 3 kratka odlomka.", "Format: a subject up to 45 characters, 3 short paragraphs."],
+            ["CTA: jedan gumb „Rezerviraj servis”.", "CTA: one button “Book a service”."]
+          ],
+          "explain": ["Kad je CTA u promptu, model piše tekst prema jednom cilju.", "When the CTA is in the prompt, the model writes toward a single goal."] },
+        { "id": "u2l3e6", "type": "doctor",
+          "q": ["Koja preinaka najbolje popravlja prompt?", "Which rewrite fixes the prompt best?"],
+          "bad": ["Napiši oglas za naš webinar.", "Write an ad for our webinar."],
+          "options": [
+            { "t": ["Napiši oglas za webinar. Neka privuče ljude.", "Write a webinar ad. Make it attract people."],
+              "why": ["Nema kanala, publike, duljine ni CTA-a. „Privući ljude” nije mjerljivo.", "No channel, audience, length or CTA. “Attract people” isn't measurable."] },
+            { "t": ["Napiši Meta oglas za besplatni webinar o AI-ju za marketing timove. Primarni tekst do 125 znakova, naslov do 40, CTA: „Prijavi se”.", "Write a Meta ad for a free AI webinar for marketing teams. Primary text up to 125 characters, headline up to 40, CTA: “Sign up”."],
+              "why": ["Kanal, publika, ograničenja duljine i jedan CTA. Rezultat možete odmah testirati.", "Channel, audience, length limits and one CTA. You can test the result right away."] },
+            { "t": ["Napiši oglas i dodaj puno CTA gumba da svatko nađe svoj.", "Write an ad and add lots of CTA buttons so everyone finds their own."],
+              "why": ["Više poziva razvodnjava odluku. Jedan oglas, jedan cilj.", "Several calls dilute the decision. One ad, one goal."] }
+          ], "answer": 1,
+          "explain": ["Dobar prompt za oglas navodi kanal, publiku, ograničenja i točno jedan CTA.", "A good ad prompt names the channel, audience, limits and exactly one CTA."] },
+        { "id": "u2l3e7", "type": "tf",
+          "q": ["Dobar oglas ima jedan glavni poziv na akciju.", "A good ad has one main call to action."],
+          "answer": true,
+          "explain": ["Jedan jasan korak povećava šansu da ga čitatelj napravi.", "One clear step raises the chance the reader takes it."] },
+        { "id": "u2l3e8", "type": "rubric",
+          "q": ["Napišite prompt za email koji poziva kupce na webinar. Navedite format i jasan CTA.", "Write a prompt for an email inviting customers to a webinar. State the format and a clear CTA."],
+          "rubric": {
+            "minWords": 12, "lenPts": 10, "vaguePts": 10, "pass": 60,
+            "criteria": [
+              { "id": "task", "pts": 15, "label": ["Navodi zadatak (email o webinaru)", "Names the task (email about a webinar)"],
+                "kw": { "hr": ["email", "webinar", "mail"], "en": ["email", "webinar"] },
+                "hint": ["Recite što pišete: „Napiši email koji poziva na webinar.”", "Say what you're writing: “Write an email that invites to a webinar.”"] },
+              { "id": "audience", "pts": 15, "label": ["Navodi publiku", "States the audience"],
+                "kw": { "hr": ["kupc", "publik", "za ", "klijent", "pretplatnik"], "en": ["customer", "audience", "for ", "client", "subscriber"] },
+                "hint": ["Dodajte tko prima email: „…za postojeće kupce.”", "Add who receives the email: “…for existing customers.”"] },
+              { "id": "format", "pts": 25, "label": ["Određuje format (predmet, odlomci, duljina)", "Sets a format (subject, paragraphs, length)"],
+                "kw": { "hr": ["format", "predmet", "odlomak", "odlomc", "rečenic", "riječi", "znakova"], "en": ["format", "subject", "paragraph", "sentences", "words", "characters"] },
+                "hint": ["Dodajte: „Format: predmet do 45 znakova i 3 kratka odlomka.”", "Add: “Format: a subject up to 45 characters and 3 short paragraphs.”"] },
+              { "id": "cta", "pts": 25, "label": ["Ima jasan CTA", "Has a clear CTA"],
+                "kw": { "hr": ["cta", "poziv na akciju", "gumb", "prijavi", "rezerviraj", "registr"], "en": ["cta", "call to action", "button", "sign up", "register", "book"] },
+                "hint": ["Dodajte jedan CTA: „CTA: gumb Prijavi se.”", "Add one CTA: “CTA: a Sign up button.”"] }
+            ],
+            "vague": { "hr": ["nešto", "bilo što", "nekako", "općenito"], "en": ["something", "anything", "somehow", "generic"] },
+            "model": ["Ti si email marketer. Napiši email za postojeće kupce koji ih poziva na besplatni webinar o AI-ju. Format: predmet do 45 znakova i 3 kratka odlomka. CTA: jedan gumb „Prijavi se”.", "You are an email marketer. Write an email for existing customers inviting them to a free AI webinar. Format: a subject up to 45 characters and 3 short paragraphs. CTA: one “Sign up” button."]
+          },
+          "explain": ["Format i CTA pretvaraju općeniti zahtjev u tekst koji je spreman za slanje.", "Format and a CTA turn a general request into text that's ready to send."] }
+      ]
+    },
+    {
+      "id": "u2l4",
+      "title": ["Složi pravi prompt", "Put it all together"],
+      "exercises": [
+        { "id": "u2l4e1", "type": "build",
+          "q": ["Složite prompt za Google oglas.", "Build a prompt for a Google ad."],
+          "slots": [["Uloga", "Role"], ["Ciljna publika", "Target audience"], ["Zadatak", "Task"], ["Ton brenda", "Brand tone"], ["Format", "Format"], ["Ograničenja", "Constraints"]],
+          "parts": [
+            ["Ti si PPC stručnjak za Google oglase.", "You are a PPC specialist for Google Ads."],
+            ["Publika: odrasli s bolovima u leđima koji traže termin u Splitu.", "Audience: adults with back pain looking for an appointment in Split."],
+            ["Napiši 3 naslova i 2 opisa za oglas za fizioterapiju leđa.", "Write 3 headlines and 2 descriptions for a back physiotherapy ad."],
+            ["Ton: smiren i stručan, bez obećanja izlječenja.", "Tone: calm and expert, with no promises of a cure."],
+            ["Format: naslovi do 30 znakova, opisi do 90 znakova.", "Format: headlines up to 30 characters, descriptions up to 90 characters."],
+            ["Ograničenja: bez medicinskih garancija i bez izmišljenih statistika.", "Constraints: no medical guarantees and no invented statistics."]
+          ],
+          "explain": ["Posljednji dio, ograničenja, štiti vas od pravno rizičnih obećanja.", "The last part, constraints, protects you from legally risky promises."] },
+        { "id": "u2l4e2", "type": "doctor",
+          "q": ["Koja preinaka najbolje popravlja prompt?", "Which rewrite fixes the prompt best?"],
+          "bad": ["Daj mi ideje za objave za našu pekaru.", "Give me post ideas for our bakery."],
+          "options": [
+            { "t": ["Daj mi 10 ideja za objave. Neka budu kreativne.", "Give me 10 post ideas. Make them creative."],
+              "why": ["Broj je dobar, ali nema publike, kanala ni formata. „Kreativno” ne vodi nikamo.", "The number is good, but there's no audience, channel or format. “Creative” leads nowhere."] },
+            { "t": ["Ti si social media manager male obiteljske pekare u Zadru. Predloži 10 ideja za Instagram za lokalne obitelji, topao ton. Tablica: ideja | format (Reel/Karusel/Story) | CTA. Bez izmišljenih akcija.", "You are the social media manager of a small family bakery in Zadar. Suggest 10 Instagram ideas for local families, warm tone. Table: idea | format (Reel/Carousel/Story) | CTA. No invented promotions."],
+              "why": ["Uloga, publika, kanal, ton, tablični format i ograničenje. Odmah iskoristivo.", "Role, audience, channel, tone, table format and a constraint. Immediately usable."] },
+            { "t": ["Daj mi ideje, ali ne želim ništa što već postoji na internetu.", "Give me ideas, but I don't want anything that already exists online."],
+              "why": ["Model ne može provjeriti što postoji na internetu. Zahtjev je neizvediv i nejasan.", "The model can't check what exists online. The request is unworkable and vague."] }
+          ], "answer": 1,
+          "explain": ["Tablica s fiksnim stupcima znači da rezultat možete izravno staviti u plan sadržaja.", "A table with fixed columns means you can drop the result straight into a content plan."] },
+        { "id": "u2l4e3", "type": "rubric",
+          "q": ["Napišite potpun prompt za objavu na Instagramu o novom proizvodu: uloga, publika, ton, format i jedno ograničenje.", "Write a complete prompt for an Instagram post about a new product: role, audience, tone, format and one constraint."],
+          "rubric": {
+            "minWords": 20, "lenPts": 15, "vaguePts": 15, "pass": 60,
+            "criteria": [
+              { "id": "role", "pts": 10, "label": ["Uloga", "Role"],
+                "kw": { "hr": ["ti si", "uloga", "copywriter", "stručnjak", "social media"], "en": ["you are", "act as", "role", "copywriter", "expert", "social media"] },
+                "hint": ["Započnite: „Ti si social media copywriter.”", "Start with: “You are a social media copywriter.”"] },
+              { "id": "audience", "pts": 15, "label": ["Ciljna publika", "Target audience"],
+                "kw": { "hr": ["publik", "za ", "ciljn", "namijenjen", "kupci"], "en": ["audience", "for ", "target", "aimed at", "customers"] },
+                "hint": ["Dodajte tko čita: „Publika: …”", "Add who reads it: “Audience: …”"] },
+              { "id": "tone", "pts": 15, "label": ["Ton brenda", "Brand tone"],
+                "kw": { "hr": ["ton", "stil", "zvuč", "opušten", "duhovit", "toplo"], "en": ["tone", "style", "voice", "relaxed", "witty", "warm"] },
+                "hint": ["Opišite ton s dva pridjeva.", "Describe the tone with two adjectives."] },
+              { "id": "format", "pts": 15, "label": ["Format (npr. naslov, broj rečenica, hashtagovi)", "Format (e.g. headline, number of sentences, hashtags)"],
+                "kw": { "hr": ["format", "naslov", "rečenic", "hashtag", "riječi", "odlomak"], "en": ["format", "headline", "sentences", "hashtag", "words", "paragraph"] },
+                "hint": ["Recite kako izgleda gotov rezultat.", "Say what the finished result looks like."] },
+              { "id": "constraint", "pts": 15, "label": ["Ograničenje (što izbjeći ili najviše koliko)", "Constraint (what to avoid or a maximum)"],
+                "kw": { "hr": ["bez ", "ne ", "najviše", "do ", "ograničen", "izbjegavaj", "nemoj"], "en": ["without", "no ", "do not", "don't", "at most", "up to", "limit", "avoid"] },
+                "hint": ["Dodajte pravilo: „Bez emojija, do 60 riječi.”", "Add a rule: “No emojis, up to 60 words.”"] }
+            ],
+            "vague": { "hr": ["nešto", "bilo što", "nekako", "općenito", "kreativn", "dobar tekst"], "en": ["something", "anything", "somehow", "generic", "creative", "good text"] },
+            "model": ["Ti si social media copywriter. Napiši objavu za Instagram o našem novom bidonu od nehrđajućeg čelika za biciklističke rekreativce. Ton: energičan i prijateljski. Format: naslov od 5 riječi, 2 rečenice i 3 hashtaga. Ograničenja: do 50 riječi, bez emojija.", "You are a social media copywriter. Write an Instagram post about our new stainless steel bottle for recreational cyclists. Tone: energetic and friendly. Format: a 5-word headline, 2 sentences and 3 hashtags. Constraints: up to 50 words, no emojis."]
+          },
+          "explain": ["Ovo je cijeli okvir. Kad ga svladate, svaki marketinški zadatak počinje od istog kostura.", "This is the whole frame. Once you master it, every marketing task starts from the same skeleton."] },
+        { "id": "u2l4e4", "type": "compare",
+          "q": ["Prompt traži: ton topao, bez klišeja, 2 rečenice. Koji tekst bolje prati prompt?", "The prompt asks for: warm tone, no clichés, 2 sentences. Which text follows it better?"],
+          "a": ["U današnjem brzom svijetu, naša revolucionarna kava mijenja sve! Probajte i vidjet ćete razliku. Ne propustite!", "In today's fast-paced world, our revolutionary coffee changes everything! Try it and you'll see the difference. Don't miss out!"],
+          "b": ["Jutro ima bolji okus uz kavu iz domaće pržionice. Svaki gutljaj miriše na kuću.", "Morning tastes better with coffee from a local roastery. Every sip smells like home."],
+          "answer": 1,
+          "explain": ["Tekst A ima tri rečenice i tri klišeja. Tekst B ima dvije rečenice i konkretnu sliku.", "Text A has three sentences and three clichés. Text B has two sentences and a concrete image."] },
+        { "id": "u2l4e5", "type": "order",
+          "q": ["Složite korake iteriranja prompta.", "Put the steps of iterating a prompt in order."],
+          "steps": [
+            ["Napišite prvu verziju prompta", "Write the first version of the prompt"],
+            ["Pročitajte što je model vratio", "Read what the model returned"],
+            ["Pronađite što nedostaje (publika? format? ograničenja?)", "Find what's missing (audience? format? constraints?)"],
+            ["Dopunite prompt i pokrenite ponovno", "Add it to the prompt and run again"]
+          ],
+          "explain": ["Ispravak prompta gotovo uvijek je brži od ručnog prepravljanja lošeg teksta.", "Fixing the prompt is almost always faster than manually rewriting a poor text."] },
+        { "id": "u2l4e6", "type": "mc",
+          "q": ["Što su „ograničenja” u promptu?", "What are “constraints” in a prompt?"],
+          "options": [
+            ["Pravila: duljina, što izbjeći, što model ne smije izmišljati", "Rules: length, what to avoid, what the model must not invent"],
+            ["Popis zabranjenih tema za cijelu firmu", "A company-wide list of banned topics"],
+            ["Broj pokušaja koje imate", "The number of tries you have"]
+          ], "answer": 0,
+          "explain": ["Ograničenja suzuju prostor u kojem model može pogriješiti.", "Constraints narrow the space where the model can go wrong."] },
+        { "id": "u2l4e7", "type": "match",
+          "q": ["Spojite problem s popravkom.", "Match each problem with its fix."],
+          "pairs": [
+            [["Tekst je preopćenit", "The text is too generic"], ["Dodajte publiku i konkretan primjer", "Add the audience and a concrete example"]],
+            [["Tekst je predug", "The text is too long"], ["Zadajte ograničenje duljine", "Set a length limit"]],
+            [["Ton ne paše brendu", "The tone doesn't fit the brand"], ["Navedite pridjeve tona i uzorak", "Give tone adjectives and a sample"]],
+            [["Nema jasnog poziva", "There's no clear call"], ["Dodajte jedan CTA", "Add one CTA"]]
+          ],
+          "explain": ["Većina loših rezultata ima jedan jasan popravak u promptu.", "Most weak results have one clear fix in the prompt."] },
+        { "id": "u2l4e8", "type": "tf",
+          "q": ["Ako rezultat nije dobar, prvo promijenite prompt, a ne odmah alat.", "If the result is weak, change the prompt first, not the tool right away."],
+          "answer": true,
+          "explain": ["Prompt je najjeftinija stvar koju možete promijeniti.", "The prompt is the cheapest thing you can change."] }
+      ]
+    }
+  ]
+}

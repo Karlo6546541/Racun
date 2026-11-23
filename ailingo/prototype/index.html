@@ -1,0 +1,570 @@
+<title>AIlingo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: one centered mobile column (max 560px), sticky stat bar, fixed bottom tab bar, lesson player takes the full screen */
+:root{
+  --bg:#f6faf6; --surface:#ffffff; --fg:#1f2a24; --muted:#66786d; --line:#e1eae4;
+  --green:#58cc02; --green-d:#46a302; --blue:#1cb0f6; --blue-d:#1899d6; --gold:#ffc800; --gold-d:#d9a600;
+  --red:#ff4b4b; --red-d:#d93a3a; --purple:#ce82ff; --ok-bg:#dcf8c3; --ok-fg:#2f6b00; --bad-bg:#ffe0e0; --bad-fg:#a82020;
+  --lock:#d9e2dc; --lock-d:#c1ccc5; --sel:#ddf4ff; --font:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111b16; --surface:#1a2820; --fg:#ebf4ee; --muted:#9db2a5; --line:#2b3c32; --ok-bg:#1d3a12; --ok-fg:#a6ec6e; --bad-bg:#3d1c1e; --bad-fg:#ff9a9a;
+  --lock:#2b3c32; --lock-d:#223028; --sel:#12354a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111b16; --surface:#1a2820; --fg:#ebf4ee; --muted:#9db2a5; --line:#2b3c32; --ok-bg:#1d3a12; --ok-fg:#a6ec6e; --bad-bg:#3d1c1e; --bad-fg:#ff9a9a;
+  --lock:#2b3c32; --lock-d:#223028; --sel:#12354a; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+#app{max-width:560px;margin:0 auto;min-height:100%;padding-bottom:96px}
+h1,h2,h3{margin:0;font-weight:900;text-wrap:balance;line-height:1.15}
+p{margin:0 0 10px}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.muted{color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* buttons: tactile 3D */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:16px;padding:13px 22px;font-weight:900;font-size:15px;letter-spacing:.05em;text-transform:uppercase;
+  background:var(--green);color:#fff;box-shadow:0 4px 0 var(--green-d);transition:transform .06s,box-shadow .06s}
+.btn:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 var(--green-d)}
+.btn.big{width:100%;padding:16px 22px}
+.btn.blue{background:var(--blue);box-shadow:0 4px 0 var(--blue-d)}
+.btn.red{background:var(--red);box-shadow:0 4px 0 var(--red-d)}
+.btn.ghost{background:var(--surface);color:var(--blue);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.btn.ghost:active:not(:disabled){box-shadow:0 0 0 var(--line)}
+.btn:disabled{background:var(--lock);color:var(--muted);box-shadow:0 4px 0 var(--lock-d);cursor:not-allowed}
+.btn.sm{padding:9px 14px;font-size:13px;border-radius:12px}
+.iconbtn{background:none;border:0;font-size:22px;padding:6px 10px;border-radius:10px;color:var(--muted)}
+
+/* cards */
+.card{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px}
+.card h3{font-size:18px;margin-bottom:6px}
+.row{display:flex;gap:12px;align-items:center}
+.row.sp{justify-content:space-between}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-weight:900;padding:4px 10px;border-radius:999px;background:var(--surface);border:2px solid var(--line);font-size:14px}
+.prog{height:14px;background:var(--line);border-radius:999px;overflow:hidden}
+.prog>i{display:block;height:100%;background:var(--green);border-radius:999px;transition:width .35s}
+.prog.gold>i{background:var(--gold)}
+
+/* top bar + nav */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:flex;gap:8px;justify-content:space-between;align-items:center;padding:12px 0 10px}
+.top .stats{display:flex;gap:6px}
+.top .pill{font-size:13px;padding:3px 9px;white-space:nowrap}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:2px solid var(--line);display:flex;justify-content:center;
+  padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.nav>div{display:flex;max-width:560px;width:100%;gap:4px}
+.nav button{flex:1;background:none;border:2px solid transparent;border-radius:14px;padding:6px 2px;font-weight:800;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.nav button span{font-size:22px;line-height:1}
+.nav button[aria-current="page"]{background:var(--sel);border-color:var(--blue);color:var(--blue)}
+
+/* landing / onboarding */
+.hero{text-align:center;padding:28px 0 8px}
+.hero h1{font-size:clamp(30px,8vw,42px);margin:10px 0 10px}
+.hero h1 b{color:var(--green)}
+.hero p{color:var(--muted);font-size:17px;max-width:40ch;margin:0 auto 18px}
+.feat{display:grid;gap:10px;margin:18px 0}
+.feat div{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:12px 14px}
+.feat span{font-size:26px}
+.opt-list{display:grid;gap:10px;margin:14px 0}
+.choice{display:flex;gap:12px;align-items:center;text-align:left;width:100%;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:14px;font-weight:800;font-size:16px;box-shadow:0 3px 0 var(--line)}
+.choice[aria-pressed="true"]{border-color:var(--blue);background:var(--sel);box-shadow:0 3px 0 var(--blue)}
+.field{width:100%;font:inherit;font-weight:700;font-size:17px;padding:13px 14px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--fg)}
+.steps{display:flex;gap:6px;margin:6px 0 14px}.steps i{flex:1;height:8px;border-radius:99px;background:var(--line)}.steps i.on{background:var(--green)}
+
+/* skill tree */
+.unit{margin:18px 0 8px;border-radius:20px;padding:14px 16px;color:#fff}
+.unit small{opacity:.9;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+.unit h3{font-size:20px;margin:2px 0}
+.unit p{margin:0;opacity:.95;font-size:14px}
+.path{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0 8px}
+.node{position:relative;width:78px;height:72px;border-radius:50%;border:0;font-size:30px;display:flex;align-items:center;justify-content:center;transform:translateX(var(--x,0));
+  background:var(--c,var(--green));box-shadow:0 6px 0 var(--cd,var(--green-d));color:#fff;transition:filter .1s}
+.node:active{transform:translateX(var(--x,0)) translateY(5px);box-shadow:0 1px 0 var(--cd,var(--green-d))}
+.node.done{--c:var(--gold);--cd:var(--gold-d)}
+.node.locked{--c:var(--lock);--cd:var(--lock-d);color:var(--muted)}
+.node.open{animation:pulse 1.8s ease-in-out infinite}
+.node .stars{position:absolute;bottom:-14px;font-size:12px;letter-spacing:1px;white-space:nowrap}
+.node .go{position:absolute;top:-34px;background:var(--surface);color:var(--green-d);border:2px solid var(--line);border-radius:12px;padding:2px 10px;font-size:13px;font-weight:900;white-space:nowrap}
+.node .go::after{content:"";position:absolute;left:50%;bottom:-7px;width:10px;height:10px;background:var(--surface);border-right:2px solid var(--line);border-bottom:2px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+@keyframes pulse{0%,100%{box-shadow:0 6px 0 var(--cd,var(--green-d)),0 0 0 0 rgba(88,204,2,.45)}50%{box-shadow:0 6px 0 var(--cd,var(--green-d)),0 0 0 12px rgba(88,204,2,0)}}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));animation:up .2s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+
+/* quests */
+.quest{display:grid;gap:4px;margin:10px 0}
+.quest b{font-size:15px}
+.quest.done b{color:var(--green-d)}
+
+/* lesson player */
+.les{display:flex;flex-direction:column;min-height:100dvh;max-width:560px;margin:0 auto}
+.lhead{display:flex;align-items:center;gap:8px;padding:14px 0;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+.bar{flex:1;height:16px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:var(--green);border-radius:99px;transition:width .3s}
+.hp{font-weight:900;min-width:52px;text-align:right}
+.lbody{flex:1;padding:6px 0 280px}
+.qtype{font-weight:900;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--purple);margin-bottom:6px}
+.qtext{font-size:clamp(20px,5.4vw,25px);margin-bottom:16px}
+.lfoot{position:fixed;left:0;right:0;bottom:0;z-index:15;padding:14px max(16px,env(safe-area-inset-left,0px)) calc(14px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:2px solid var(--line)}
+.lfoot>*{max-width:560px;margin-left:auto;margin-right:auto}
+.lfoot.fb.ok{background:var(--ok-bg);border-color:transparent;color:var(--ok-fg)}
+.lfoot.fb.bad{background:var(--bad-bg);border-color:transparent;color:var(--bad-fg)}
+.fbrow{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;animation:up .18s ease-out}
+.fbrow b{font-size:19px;font-weight:900;display:block}
+.fbrow p{margin:2px 0 0;font-size:15px;font-weight:700;color:var(--fg)}
+.opts{display:grid;gap:10px}
+.opt{display:flex;align-items:flex-start;gap:12px;text-align:left;width:100%;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:13px 14px;font-size:16px;font-weight:700;box-shadow:0 3px 0 var(--line);flex-wrap:wrap}
+.opt .k{flex:none;width:28px;height:28px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:900;color:var(--muted)}
+.opt .t{flex:1;min-width:0}
+.opt .why{flex-basis:100%;font-size:14px;font-weight:700;color:var(--muted);padding-left:40px}
+.opt.sel{border-color:var(--blue);background:var(--sel);box-shadow:0 3px 0 var(--blue)}
+.opt.sel .k{border-color:var(--blue);color:var(--blue)}
+.opt.right{border-color:var(--green);background:var(--ok-bg);box-shadow:0 3px 0 var(--green)}
+.opt.wrong{border-color:var(--red);background:var(--bad-bg);box-shadow:0 3px 0 var(--red)}
+.badprompt{background:var(--bad-bg);color:var(--bad-fg);border:2px dashed var(--red);border-radius:16px;padding:12px 14px;margin-bottom:14px;font-weight:700}
+.badprompt small{display:block;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:11px;margin-bottom:2px}
+.fill{width:100%;font:inherit;font-weight:800;font-size:20px;padding:14px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--fg)}
+.fill.right{border-color:var(--green);background:var(--ok-bg)}.fill.wrong{border-color:var(--red);background:var(--bad-bg)}
+.hint{font-size:13px;color:var(--muted);margin-top:8px}
+.fix{font-size:14px;font-weight:800;margin-top:8px;color:var(--ok-fg);background:var(--ok-bg);border-radius:12px;padding:8px 12px}
+.slots{display:grid;gap:8px;margin-bottom:14px}
+.slot{display:flex;flex-direction:column;align-items:flex-start;text-align:left;width:100%;background:var(--surface);border:2px dashed var(--lock-d);border-radius:14px;padding:8px 12px;min-height:56px;font-weight:700}
+.slot .sl{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--purple)}
+.slot .sv{font-size:15px;color:var(--muted)}
+.slot.full{border-style:solid;border-color:var(--line);box-shadow:0 3px 0 var(--line)}.slot.full .sv{color:var(--fg)}
+.slot.act{border-color:var(--blue);background:var(--sel)}
+.slot.ok{border-color:var(--green);background:var(--ok-bg)}.slot.bad{border-color:var(--red);background:var(--bad-bg)}
+.pool{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:10px 12px;font-weight:700;font-size:15px;text-align:left;box-shadow:0 3px 0 var(--line);cursor:grab}
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mcol{display:grid;gap:10px;align-content:start}
+.mi{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px 10px;font-weight:700;font-size:14.5px;text-align:left;box-shadow:0 3px 0 var(--line)}
+.mi.sel{border-color:var(--blue);background:var(--sel)}
+.mi.p.c0{border-color:#1cb0f6;background:#ddf4ff;color:#0b4f73}.mi.p.c1{border-color:#ce82ff;background:#f3e1ff;color:#58208a}.mi.p.c2{border-color:#ff9600;background:#ffeacc;color:#7a4300}.mi.p.c3{border-color:#58cc02;background:#e0f8c8;color:#2f6b00}.mi.p.c4{border-color:#ff4b4b;background:#ffe0e0;color:#8a1f1f}
+.mi.ok{outline:3px solid var(--green)}.mi.bad{outline:3px solid var(--red)}
+.seq{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:8px}
+.seq .ph{color:var(--muted);font-weight:700;border:2px dashed var(--lock-d);border-radius:14px;padding:14px;text-align:center}
+.step{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:var(--sel);border:2px solid var(--blue);border-radius:14px;padding:10px 12px;font-weight:700;font-size:15px}
+.step b{flex:none;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:13px}
+.step.ok{background:var(--ok-bg);border-color:var(--green)}.step.bad{background:var(--bad-bg);border-color:var(--red)}
+.spot{line-height:2.1;font-size:17px;font-weight:700;margin:0}
+.seg{background:none;border:0;border-bottom:3px dotted var(--lock-d);padding:2px 1px;font:inherit;text-align:left;margin-right:.3em;border-radius:4px}
+.seg:hover{background:var(--sel)}
+.seg.sel{background:var(--sel);border-bottom-color:var(--blue)}
+.seg.fake{background:var(--bad-bg);border-bottom:3px solid var(--red);color:var(--bad-fg)}
+.seg.miss{background:var(--lock)}
+.note{background:var(--sel);border:2px solid var(--blue);color:var(--fg);border-radius:14px;padding:10px 12px;font-size:14px;font-weight:700;margin-bottom:10px}
+.rb{width:100%;font:inherit;font-size:16px;font-weight:600;padding:12px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--fg);resize:vertical}
+.wc{font-size:13px;color:var(--muted);margin:4px 0 10px;font-weight:700}
+.check{list-style:none;margin:10px 0;padding:0;display:grid;gap:6px}
+.check li{display:grid;grid-template-columns:24px 1fr auto;gap:6px;align-items:start;font-weight:700;font-size:15px}
+.check li.ok span{color:var(--green-d)}.check li.bad span{color:var(--red)}
+.check small{grid-column:2/4;color:var(--muted);font-weight:700}
+.check em{font-style:normal;color:var(--muted);font-size:13px}
+.score{font-size:30px;font-weight:900;margin:8px 0 2px}.score small{font-size:16px;color:var(--muted)}
+.model{background:var(--surface);border:2px solid var(--gold);border-radius:14px;padding:10px 12px;margin-top:10px;font-weight:700;font-size:15px}
+.model small{display:block;font-weight:900;text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--gold-d);margin-bottom:2px}
+
+/* summary screens */
+.sum{text-align:center;padding:36px 0 24px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.sum h1{font-size:30px}
+.sstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;margin:16px 0 22px}
+.sstats div{border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:10px 4px}
+.sstats b{display:block;font-size:22px}.sstats small{color:var(--muted);font-weight:800;font-size:12px}
+.lvl{font-size:76px;font-weight:900;color:var(--gold);line-height:1;text-shadow:0 4px 0 var(--gold-d)}
+
+/* lists */
+.lb{display:grid;gap:6px;margin:8px 0}
+.lb .r{display:grid;grid-template-columns:34px 38px 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:14px;font-weight:800}
+.lb .r.me{background:var(--sel);border:2px solid var(--blue)}
+.lb .r.up{box-shadow:inset 4px 0 0 var(--green)}.lb .r.down{box-shadow:inset 4px 0 0 var(--red)}
+.av{width:38px;height:38px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:20px}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.bd{border:2px solid var(--line);border-radius:16px;padding:10px;text-align:center;font-size:13px;font-weight:800;background:var(--surface)}
+.bd span{font-size:32px;display:block}.bd.off{opacity:.45;filter:grayscale(1)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;font-weight:800}
+.cal i{font-style:normal;aspect-ratio:1;display:grid;place-items:center;border-radius:10px;background:var(--line);color:var(--muted)}
+.cal i.a{background:#bfeb8f;color:#1f4a00}.cal i.g{background:var(--green);color:#fff}.cal i.t{outline:3px solid var(--blue)}.cal i.e{background:none}
+.seg2{display:flex;gap:6px}.seg2 button{flex:1;padding:10px;border:2px solid var(--line);background:var(--surface);border-radius:12px;font-weight:900}
+.seg2 button[aria-pressed="true"]{border-color:var(--blue);background:var(--sel);color:var(--blue)}
+textarea.out{width:100%;height:180px;font:12px ui-monospace,monospace;background:var(--surface);color:var(--fg);border:2px solid var(--line);border-radius:12px;padding:10px}
+#toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:#1f2a24;color:#fff;padding:10px 16px;border-radius:14px;font-weight:800;opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:70;display:none}
+
+/* mascot */
+.mascot{display:block;overflow:visible}
+.mascot .ant{transform-origin:50px 24px;animation:wob 2.4s ease-in-out infinite}
+.mascot .eye{transform-origin:center;transform-box:fill-box;animation:blink 4s infinite}
+.mascot.mood-cheer{animation:hop .5s ease-out 2}
+.mascot.mood-sad{animation:shake .45s ease-in-out 1}
+@keyframes wob{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.bubble{position:relative;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:10px 14px;font-weight:800;margin:6px auto 0;max-width:34ch}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<script>
+(function(){
+'use strict';
+/* ====================== helpers ====================== */
+var $=function(s,el){return (el||document).querySelector(s)};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+var KEY='ailingo.v1';
+var FEATURES={aiGrader:false};            /* feature flag: OFF by default. Nothing in this file calls any AI service. */
+var GOALXP={5:50,10:100,15:150,20:200};
+var HEART_MS=30*60*1000;
+var S=null,CONTENT=null,view='learn',sheet=null,SES=null,OB={step:0,name:'',goal:'',level:'',daily:10},showLanding=true,confirmDel=false,exportOpen=false;
+var app=$('#app');
+
+function dkey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function today(){return dkey(new Date())}
+function daysBetween(a,b){return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/864e5)}
+function weekKey(d){var x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return dkey(x)}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function shuffleNotIdentity(n){var base=[];for(var i=0;i<n;i++)base.push(i);var a=shuffle(base),tries=0;while(a.every(function(v,i){return v===i})&&tries++<10)a=shuffle(base);return a}
+function seeded(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return function(){h+=0x6D2B79F5;var t=Math.imul(h^h>>>15,1|h);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296}}
+function tr(hr,en){return S&&S.lang==='en'?en:hr}
+function L(t){return Array.isArray(t)?t[S.lang==='en'?1:0]:t}
+
+/* ====================== state ====================== */
+function defState(){return {v:1,lang:'hr',name:'',onboarded:false,goal:'',level:'',dailyGoal:10,sound:true,
+  xp:0,weekXp:0,week:weekKey(new Date()),tier:0,gems:10,freezes:0,hearts:5,heartsAt:0,
+  streak:{cur:0,best:0,last:''},progress:{},review:{},mistakes:{},activity:{},quests:{date:'',items:[]},
+  badges:[],friends:[],placementDone:false,blitzBest:0,lastLeague:null,
+  stats:{answered:0,correct:0,perfect:0,comboBest:0,halluc:0,promptsDone:0,rubricPass:0,practiceSessions:0}}}
+function load(){var d=defState();try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);if(o&&o.v===1){d=Object.assign(d,o);d.stats=Object.assign(defState().stats,o.stats||{});d.streak=Object.assign(d.streak,o.streak||{})}}}catch(e){}return d}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* ====================== audio, confetti, toast ====================== */
+var AC=null;
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function tone(f,d,type,t0,g){var a=ac();if(!a)return;var o=a.createOscillator(),v=a.createGain(),t=a.currentTime+(t0||0);o.type=type||'sine';o.frequency.value=f;v.gain.setValueAtTime(0,t);v.gain.linearRampToValueAtTime(g||.15,t+.01);v.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(v);v.connect(a.destination);o.start(t);o.stop(t+d+.03)}
+var SFX={tap:function(){tone(520,.05,'triangle',0,.05)},
+  correct:function(){tone(660,.12,'sine',0);tone(880,.2,'sine',.1)},
+  wrong:function(){tone(220,.18,'sawtooth',0,.07);tone(160,.28,'sawtooth',.12,.07)},
+  combo:function(){[523,659,784,1047].forEach(function(f,i){tone(f,.14,'triangle',i*.07)})},
+  finish:function(){[523,659,784,659,784,1047].forEach(function(f,i){tone(f,.22,'triangle',i*.12)})}};
+function sfx(n){if(S&&S.sound&&SFX[n])try{SFX[n]()}catch(e){}}
+function confetti(){if(reduce)return;var cv=$('#confetti'),ctx=cv.getContext('2d');cv.width=innerWidth;cv.height=innerHeight;cv.style.display='block';
+  var cols=['#58cc02','#1cb0f6','#ffc800','#ff4b4b','#ce82ff'],P=[];for(var i=0;i<140;i++)P.push({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.5,vx:(Math.random()-.5)*4,vy:2+Math.random()*4,s:5+Math.random()*7,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:cols[i%5]});
+  var f=0;(function step(){ctx.clearRect(0,0,cv.width,cv.height);P.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;p.vy+=.03;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore()});
+    if(++f<170)requestAnimationFrame(step);else{ctx.clearRect(0,0,cv.width,cv.height);cv.style.display='none'}})()}
+var toastT=null;
+function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show')},2600)}
+
+/* ====================== mascot ====================== */
+function mascot(mood,size){mood=mood||'happy';size=size||96;
+  var eyes=mood==='cheer'?'<path d="M34 46 Q39 38 44 46 M56 46 Q61 38 66 46" stroke="#1f2a24" stroke-width="4" fill="none" stroke-linecap="round"/>'
+    :mood==='sad'?'<ellipse class="eye" cx="39" cy="48" rx="4.5" ry="5.5" fill="#1f2a24"/><ellipse class="eye" cx="61" cy="48" rx="4.5" ry="5.5" fill="#1f2a24"/><path d="M32 40 L45 43 M68 40 L55 43" stroke="#1f2a24" stroke-width="3" stroke-linecap="round"/>'
+    :'<ellipse class="eye" cx="39" cy="47" rx="4.5" ry="5.5" fill="#1f2a24"/><ellipse class="eye" cx="61" cy="47" rx="4.5" ry="5.5" fill="#1f2a24"/>'+(mood==='think'?'<path d="M32 38 L46 40" stroke="#1f2a24" stroke-width="3" stroke-linecap="round"/>':'');
+  var mouth=mood==='cheer'?'<path d="M38 58 Q50 76 62 58 Z" fill="#ff4b4b" stroke="#1f2a24" stroke-width="3" stroke-linejoin="round"/>'
+    :mood==='sad'?'<path d="M40 66 Q50 58 60 66" stroke="#1f2a24" stroke-width="4" fill="none" stroke-linecap="round"/>'
+    :mood==='think'?'<path d="M42 63 H58" stroke="#1f2a24" stroke-width="4" stroke-linecap="round"/>'
+    :'<path d="M40 60 Q50 70 60 60" stroke="#1f2a24" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  return '<svg class="mascot mood-'+mood+'" viewBox="0 0 100 100" width="'+size+'" height="'+size+'" role="img" aria-label="'+esc(tr('Maskota Robi','Mascot Robi'))+'">'
+   +'<g class="ant"><line x1="50" y1="24" x2="50" y2="12" stroke="#46a302" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="9" r="6" fill="#ffc800" stroke="#d9a600" stroke-width="2"/></g>'
+   +'<circle cx="14" cy="54" r="7" fill="#46a302"/><circle cx="86" cy="54" r="7" fill="#46a302"/>'
+   +'<rect x="18" y="24" width="64" height="62" rx="24" fill="#58cc02" stroke="#46a302" stroke-width="4"/>'
+   +'<rect x="26" y="33" width="48" height="42" rx="16" fill="#fff"/>'+eyes+mouth+'</svg>'}
+
+/* ====================== grading (deterministic) ====================== */
+var DIA=new RegExp('['+String.fromCharCode(0x300)+'-'+String.fromCharCode(0x36f)+']','g'),DJ=new RegExp(String.fromCharCode(0x111),'g');
+function norm(s){return String(s).toLowerCase().normalize('NFD').replace(DIA,'').replace(DJ,'d').replace(/dj/g,'d').replace(/[^a-z0-9% ]+/g,' ').replace(/\s+/g,' ').trim()}
+function hasKw(textNorm,kw){var k=norm(kw);if(!k)return false;var t=' '+textNorm+' ';return /\s$/.test(kw)?t.indexOf(' '+k+' ')>=0:t.indexOf(' '+k)>=0}
+var gradeFns={
+  mc:function(e,a){return {correct:a===e.answer}},
+  doctor:function(e,a){return {correct:a===e.answer}},
+  compare:function(e,a){return {correct:a===e.answer}},
+  tf:function(e,a){return {correct:(a===0)===e.answer}},
+  fill:function(e,a){var list=(e.answers.hr||[]).concat(e.answers.en||[]).map(norm);return {correct:list.indexOf(norm(a))>=0}},
+  spot:function(e,a){return {correct:a===e.bad}},
+  build:function(e,a){var ok=0;e.parts.forEach(function(_,i){if(a[i]===i)ok++});return {correct:ok===e.parts.length,score:Math.round(ok/e.parts.length*100)}},
+  match:function(e,a){var ok=0;e.pairs.forEach(function(_,i){if(a[i]===i)ok++});return {correct:ok===e.pairs.length,score:Math.round(ok/e.pairs.length*100)}},
+  order:function(e,a){var ok=0;e.steps.forEach(function(_,i){if(a[i]===i)ok++});return {correct:ok===e.steps.length,score:Math.round(ok/e.steps.length*100)}},
+  rubric:function(e,a){var r=e.rubric,tx=norm(a),words=a.trim().split(/\s+/).filter(Boolean).length,list=[],score=0;
+    var lenOk=words>=r.minWords;list.push({id:'len',label:[ 'Najmanje '+r.minWords+' riječi','At least '+r.minWords+' words'],pts:r.lenPts,passed:lenOk,hint:['Opišite zahtjev malo detaljnije.','Describe the request in a bit more detail.']});
+    r.criteria.forEach(function(c){var kws=(c.kw.hr||[]).concat(c.kw.en||[]);list.push({id:c.id,label:c.label,pts:c.pts,passed:kws.some(function(k){return hasKw(tx,k)}),hint:c.hint})});
+    var vg=(r.vague.hr||[]).concat(r.vague.en||[]);list.push({id:'vague',label:['Bez preopćenitih riječi','No overly generic words'],pts:r.vaguePts,passed:!vg.some(function(k){return hasKw(tx,k)}),hint:['Zamijenite općenite riječi („nešto”, „kreativno”) konkretnim zahtjevom.','Replace generic words (“something”, “creative”) with a concrete request.']});
+    list.forEach(function(x){if(x.passed)score+=x.pts});return {correct:score>=r.pass,score:score,checklist:list,model:r.model}}
+};
+var DeterministicGrader={id:'deterministic',grade:function(ex,answer){return Promise.resolve(gradeFns[ex.type](ex,answer)).then(function(r){r.explanation=L(ex.explain);if(r.score==null)r.score=r.correct?100:0;return r})}};
+var AiGraderStub={id:'ai',grade:function(){return Promise.reject(new Error('AI grader is disabled. No external service is ever called.'))}};
+function getGrader(){return FEATURES.aiGrader?AiGraderStub:DeterministicGrader}
+
+/* ====================== SM-2 + gamification logic ====================== */
+function sm2(item,q){if(q<3){item.rep=0;item.int=1;item.lapses=(item.lapses||0)+1}else{item.rep++;item.int=item.rep===1?1:item.rep===2?6:Math.round(item.int*item.ease)}
+  item.ease=Math.max(1.3,item.ease+0.1-(5-q)*(0.08+(5-q)*0.02));item.due=Date.now()+item.int*864e5;return item}
+function levelNeed(n){return 75*n*(n-1)}
+function levelFor(xp){var l=1;while(xp>=levelNeed(l+1))l++;return l}
+function tickHearts(){if(S.hearts>=5){S.hearts=5;S.heartsAt=0;return}var now=Date.now();if(!S.heartsAt)S.heartsAt=now;var n=Math.floor((now-S.heartsAt)/HEART_MS);if(n>0){S.hearts=Math.min(5,S.hearts+n);S.heartsAt=S.hearts>=5?0:S.heartsAt+n*HEART_MS}}
+function loseHeart(){if(S.hearts>=5)S.heartsAt=Date.now();S.hearts=Math.max(0,S.hearts-1)}
+function touchStreak(){var t=today(),st=S.streak;if(st.last===t)return;if(!st.last)st.cur=1;else{var d=daysBetween(st.last,t);if(d===1)st.cur++;else if(d===2&&S.freezes>0){S.freezes--;st.cur++;toast(tr('Streak Freeze je spasio tvoj niz! 🧊','Streak Freeze saved your streak! 🧊'))}else st.cur=1}st.last=t;st.best=Math.max(st.best,st.cur)}
+function streakShown(){var st=S.streak;if(!st.last)return 0;var d=daysBetween(st.last,today());return d<=1||(d===2&&S.freezes>0)?st.cur:0}
+function todayXp(){return S.activity[today()]||0}
+function addXp(n){if(n<=0)return;var before=todayXp();S.xp+=n;S.weekXp+=n;S.activity[today()]=before+n;touchStreak();
+  if(before<GOALXP[S.dailyGoal]&&before+n>=GOALXP[S.dailyGoal]){toast(tr('Dnevni cilj ostvaren! 🎯','Daily goal reached! 🎯'))}}
+function ensureQuests(){if(S.quests.date!==today()){S.quests={date:today(),items:CONTENT.meta.quests.map(function(q){return {id:q.id,progress:0,done:false}})}}}
+function questProgress(id,n){ensureQuests();var it=S.quests.items.find(function(x){return x.id===id});if(!it||it.done)return;var def=CONTENT.meta.quests.find(function(x){return x.id===id});
+  it.progress=def.mode==='max'?Math.max(it.progress,n):it.progress+n;if(it.progress>=def.target){it.progress=def.target;it.done=true;addXp(def.reward);S.gems+=3;toast('✅ '+L(def.title)+' · +'+def.reward+' XP')}}
+function isDone(id){return !!(S.progress[id]&&S.progress[id].done)}
+function statVal(st){if(st.indexOf('unit:')===0){var u=CONTENT.units.find(function(x){return x.id===st.slice(5)});return u&&u.lessons.length&&u.lessons.every(function(l){return isDone(l.id)})?1:0}
+  if(st==='streakBest')return S.streak.best;if(st==='xpTotal')return S.xp;if(st==='friends')return S.friends.length;
+  if(st==='lessonsDone')return Object.keys(S.progress).filter(function(k){return S.progress[k].done}).length;return S.stats[st]||0}
+function checkBadges(){CONTENT.meta.badges.forEach(function(b){if(S.badges.indexOf(b.id)<0&&statVal(b.rule.stat)>=b.rule.gte){S.badges.push(b.id);S.gems+=5;toast('🏅 '+L(b.title));sfx('combo')}})}
+function recordMistake(id){var m=S.mistakes[id]||{n:0};m.n++;S.mistakes[id]=m;var r=S.review[id]||{ease:2.5,int:0,rep:0,lapses:0,due:0};r.due=Date.now();r.lapses=(r.lapses||0)+1;S.review[id]=r}
+function dueIds(){var now=Date.now();return Object.keys(S.review).filter(function(id){return S.review[id].due<=now&&CONTENT.byId[id]})}
+
+/* league (deterministic bots) */
+function botXp(name,wk,tier,final){var r=seeded(name+wk+tier),target=60+Math.floor(r()*(650+tier*150)),j=r();if(final)return target;
+  var n=new Date(),frac=Math.min(1,(((n.getDay()+6)%7)+n.getHours()/24+.15)/7*(0.75+j*.5));return Math.round(target*frac)}
+function leagueRows(wk,tier,myXp,final){var names=(function(){var r=seeded('lg'+wk+tier),a=CONTENT.meta.bots.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a.slice(0,29)})();
+  var av=CONTENT.meta.avatars,rows=names.map(function(nm,i){return {name:nm,xp:botXp(nm,wk,tier,final),av:av[i%av.length],me:false}});
+  rows.push({name:S.name||tr('Ti','You'),xp:myXp,av:'🤖',me:true});rows.sort(function(a,b){return b.xp-a.xp||(a.me?-1:1)});return rows}
+function weekRoll(){var wk=weekKey(new Date());if(S.week===wk)return;var rows=leagueRows(S.week,S.tier,S.weekXp,true),rank=rows.findIndex(function(r){return r.me})+1,delta=0;
+  if(S.weekXp>0){if(rank<=10&&S.tier<CONTENT.meta.tiers.length-1)delta=1;else if(rank>25&&S.tier>0)delta=-1}
+  S.lastLeague={rank:rank,delta:delta,tier:S.tier,xp:S.weekXp};S.tier+=delta;S.week=wk;S.weekXp=0;save()}
+
+/* ====================== content ====================== */
+function loadContent(){return Promise.all(['content/meta.json','content/unit-1.json','content/unit-2.json'].map(function(f){return fetch(f).then(function(r){if(!r.ok)throw new Error(f+' '+r.status);return r.json()})})).then(function(a){
+  var meta=a[0],units=[a[1],a[2]].concat(meta.futureUnits),byId={};
+  units.forEach(function(u){u.lessons.forEach(function(l){l.exercises.forEach(function(e){byId[e.id]={ex:e,lesson:l,unit:u}})})});
+  CONTENT={meta:meta,units:units,byId:byId}})}
+function flatLessons(){var o=[];CONTENT.units.forEach(function(u){if(u.published)u.lessons.forEach(function(l){o.push({u:u,l:l})})});return o}
+function lessonState(id){var fl=flatLessons(),i=fl.findIndex(function(x){return x.l.id===id});if(i<0)return 'locked';if(isDone(id))return 'done';return i===0||isDone(fl[i-1].l.id)?'open':'locked'}
+function lessonById(id){for(var i=0;i<CONTENT.units.length;i++){var l=CONTENT.units[i].lessons.find(function(x){return x.id===id});if(l)return {l:l,u:CONTENT.units[i]}}}
+var TYPE={mc:['Višestruki izbor','Multiple choice'],tf:['Mit ili činjenica','Myth or fact'],fill:['Popuni prazninu','Fill in the blank'],build:['Složi prompt','Build-a-Prompt'],match:['Spoji parove','Match pairs'],doctor:['Prompt Doktor','Prompt Doctor'],rubric:['Napiši prompt','Write a prompt'],spot:['Ulovi halucinaciju','Spot the hallucination'],compare:['A/B dvoboj','A/B showdown'],order:['Složi radni tok','Order the steps']};
+
+/* ====================== exercise renderers ====================== */
+var R={};
+function choiceUI(host,items,api,letters){
+  host.innerHTML='<div class="opts" role="radiogroup">'+items.map(function(it,i){return '<button type="button" class="opt" role="radio" aria-checked="false" data-i="'+i+'"><span class="k" aria-hidden="true">'+(letters?String.fromCharCode(65+i):i+1)+'</span><span class="t">'+it+'</span><span class="why" hidden></span></button>'}).join('')+'</div>';
+  var btns=[].slice.call(host.querySelectorAll('.opt')),sel=-1,locked=false;
+  btns.forEach(function(b){b.addEventListener('click',function(){if(locked)return;sel=+b.dataset.i;btns.forEach(function(x,i){x.classList.toggle('sel',i===sel);x.setAttribute('aria-checked',i===sel)});sfx('tap');api.onChange(sel)})});
+  return {pick:function(i){if(btns[i])btns[i].click()},reveal:function(correctIdx,whys){locked=true;btns.forEach(function(b,i){b.disabled=true;if(i===correctIdx)b.classList.add('right');else if(i===sel)b.classList.add('wrong');if(whys&&whys[i]){var w=b.querySelector('.why');w.hidden=false;w.textContent=whys[i]}})}}}
+R.mc=function(ex,host,api){var u=choiceUI(host,ex.options.map(function(o){return esc(L(o))}),api);return {pick:u.pick,reveal:function(){u.reveal(ex.answer)}}};
+R.tf=function(ex,host,api){var u=choiceUI(host,[esc(tr('Točno','True')),esc(tr('Netočno','False'))],api);return {pick:u.pick,reveal:function(){u.reveal(ex.answer?0:1)}}};
+R.doctor=function(ex,host,api){host.innerHTML='<div class="badprompt"><small>'+esc(tr('Slab prompt','Weak prompt'))+'</small>'+esc(L(ex.bad))+'</div><div id="dopts"></div>';
+  var u=choiceUI($('#dopts',host),ex.options.map(function(o){return esc(L(o.t))}),api,true);return {pick:u.pick,reveal:function(){u.reveal(ex.answer,ex.options.map(function(o){return L(o.why)}))}}};
+R.compare=function(ex,host,api){var u=choiceUI(host,[esc(L(ex.a)),esc(L(ex.b))],api,true);return {pick:u.pick,reveal:function(){u.reveal(ex.answer)}}};
+R.fill=function(ex,host,api){host.innerHTML='<input id="fillin" class="fill" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="'+esc(tr('Vaš odgovor','Your answer'))+'" placeholder="'+esc(tr('Upišite odgovor…','Type your answer…'))+'"><p class="hint">'+esc(tr('Veličina slova i dijakritici (č, ć, š, ž, đ) nisu bitni.','Letter case and diacritics (č, ć, š, ž, đ) do not matter.'))+'</p><div id="fillfb"></div>';
+  var inp=$('#fillin',host);inp.addEventListener('input',function(){api.onChange(inp.value.trim()?inp.value:null)});setTimeout(function(){try{inp.focus()}catch(e){}},50);
+  return {reveal:function(res){inp.disabled=true;inp.classList.add(res.correct?'right':'wrong');if(!res.correct){$('#fillfb',host).innerHTML='<div class="fix">'+esc(tr('Prihvaćeni odgovori: ','Accepted answers: '))+esc((ex.answers[S.lang]||[]).slice(0,3).join(', '))+'</div>'}}}};
+R.build=function(ex,host,api){var n=ex.parts.length,placed=[],order=shuffleNotIdentity(n),active=-1,locked=false,mark=null,i;for(i=0;i<n;i++)placed.push(-1);
+  function draw(){host.innerHTML='<div class="slots">'+ex.slots.map(function(s,i){var c=placed[i];return '<button type="button" class="slot'+(c>=0?' full':'')+(active===i?' act':'')+(mark?(mark[i]?' ok':' bad'):'')+'" data-slot="'+i+'" aria-label="'+esc(L(s))+': '+(c>=0?esc(L(ex.parts[c])):esc(tr('prazno','empty')))+'"><span class="sl">'+esc(L(s))+'</span><span class="sv">'+(c>=0?esc(L(ex.parts[c])):'…')+'</span></button>'+(mark&&!mark[i]?'<div class="fix">✔ '+esc(L(ex.parts[i]))+'</div>':'')}).join('')+'</div><div class="pool" aria-label="'+esc(tr('Dijelovi prompta','Prompt parts'))+'">'+order.filter(function(c){return placed.indexOf(c)<0}).map(function(c){return '<button type="button" class="chip" draggable="true" data-c="'+c+'">'+esc(L(ex.parts[c]))+'</button>'}).join('')+'</div>';
+    api.onChange(placed.every(function(x){return x>=0})?placed.slice():null)}
+  function put(c,slot){if(locked)return;if(slot<0)slot=placed.indexOf(-1);if(slot<0)return;if(placed[slot]>=0){}placed[slot]=c;active=-1;sfx('tap');draw();var ch=host.querySelector('.chip');if(ch&&!locked)ch.focus()}
+  host.addEventListener('click',function(e){if(locked)return;var ch=e.target.closest('.chip'),sl=e.target.closest('.slot');
+    if(ch){var c=+ch.dataset.c;put(c,active>=0&&placed[active]<0?active:-1)}
+    else if(sl){var i=+sl.dataset.slot;if(placed[i]>=0){placed[i]=-1;active=i;draw()}else{active=active===i?-1:i;draw()}}});
+  host.addEventListener('dragstart',function(e){var ch=e.target.closest('.chip');if(ch){e.dataTransfer.setData('text/plain',ch.dataset.c);e.dataTransfer.effectAllowed='move'}});
+  host.addEventListener('dragover',function(e){if(e.target.closest('.slot'))e.preventDefault()});
+  host.addEventListener('drop',function(e){var sl=e.target.closest('.slot');if(!sl||locked)return;e.preventDefault();var c=parseInt(e.dataTransfer.getData('text/plain'),10);if(!isNaN(c)){var i=+sl.dataset.slot;if(placed[i]>=0)placed[i]=-1;put(c,i)}});
+  draw();return {reveal:function(){locked=true;mark=placed.map(function(c,i){return c===i});active=-1;draw();host.querySelectorAll('button').forEach(function(b){b.disabled=true})}}};
+R.match=function(ex,host,api){var n=ex.pairs.length,pairs=[],rorder=shuffleNotIdentity(n),sel=-1,locked=false,marks=null,i;for(i=0;i<n;i++)pairs.push(-1);
+  function draw(){host.innerHTML='<div class="match"><div class="mcol">'+ex.pairs.map(function(p,i){return '<button type="button" class="mi'+(pairs[i]>=0?' p c'+(i%5):'')+(sel===i?' sel':'')+(marks?(pairs[i]===i?' ok':' bad'):'')+'" data-l="'+i+'">'+esc(L(p[0]))+'</button>'}).join('')+'</div><div class="mcol">'+rorder.map(function(r){var li=pairs.indexOf(r);return '<button type="button" class="mi'+(li>=0?' p c'+(li%5):'')+(marks&&li>=0?(li===r?' ok':' bad'):'')+'" data-r="'+r+'">'+esc(L(ex.pairs[r][1]))+'</button>'}).join('')+'</div></div>'+(marks&&!marks.allOk?'<div class="fix">'+ex.pairs.map(function(p){return esc(L(p[0]))+' → '+esc(L(p[1]))}).join('<br>')+'</div>':'');
+    api.onChange(pairs.every(function(x){return x>=0})?pairs.slice():null)}
+  host.addEventListener('click',function(e){if(locked)return;var b=e.target.closest('.mi');if(!b)return;sfx('tap');
+    if(b.dataset.l!==undefined){var i=+b.dataset.l;if(pairs[i]>=0){pairs[i]=-1;sel=-1}else sel=sel===i?-1:i}
+    else{var r=+b.dataset.r,ex2=pairs.indexOf(r);if(sel>=0){if(ex2>=0)pairs[ex2]=-1;pairs[sel]=r;sel=-1}else if(ex2>=0)pairs[ex2]=-1}draw()});
+  draw();return {reveal:function(){locked=true;marks={allOk:pairs.every(function(p,i){return p===i})};draw();host.querySelectorAll('button').forEach(function(b){b.disabled=true})}}};
+R.order=function(ex,host,api){var n=ex.steps.length,seq=[],pool=shuffleNotIdentity(n),locked=false,marks=false;
+  function draw(){host.innerHTML='<ol class="seq">'+(seq.length?seq.map(function(c,i){return '<li><button type="button" class="step'+(marks?(c===i?' ok':' bad'):'')+'" data-rm="'+i+'"><b>'+(i+1)+'</b>'+esc(L(ex.steps[c]))+'</button></li>'}).join(''):'<li class="ph">'+esc(tr('Dodirnite korake redom','Tap the steps in order'))+'</li>')+'</ol>'
+    +(marks&&seq.some(function(c,i){return c!==i})?'<div class="fix">'+ex.steps.map(function(s,i){return (i+1)+'. '+esc(L(s))}).join('<br>')+'</div>':'')
+    +'<div class="pool">'+pool.filter(function(c){return seq.indexOf(c)<0}).map(function(c){return '<button type="button" class="chip" data-add="'+c+'">'+esc(L(ex.steps[c]))+'</button>'}).join('')+'</div>';
+    api.onChange(seq.length===n?seq.slice():null)}
+  host.addEventListener('click',function(e){if(locked)return;var a=e.target.closest('[data-add]'),r=e.target.closest('[data-rm]');if(a){seq.push(+a.dataset.add);sfx('tap');draw();var c=host.querySelector('.chip');if(c)c.focus()}else if(r){seq.splice(+r.dataset.rm,1);draw()}});
+  draw();return {reveal:function(){locked=true;marks=true;draw();host.querySelectorAll('button').forEach(function(b){b.disabled=true})}}};
+R.spot=function(ex,host,api){var sel=-1,locked=false;host.innerHTML='<p class="spot">'+ex.segments.map(function(s,i){return '<button type="button" class="seg" data-i="'+i+'">'+esc(L(s).trim())+'</button>'}).join(' ')+'</p>';
+  var btns=[].slice.call(host.querySelectorAll('.seg'));btns.forEach(function(b){b.addEventListener('click',function(){if(locked)return;sel=+b.dataset.i;btns.forEach(function(x,i){x.classList.toggle('sel',i===sel)});sfx('tap');api.onChange(sel)})});
+  return {reveal:function(){locked=true;btns.forEach(function(b,i){b.disabled=true;b.classList.remove('sel');if(i===ex.bad)b.classList.add('fake');else if(i===sel)b.classList.add('miss')})}}};
+R.rubric=function(ex,host,api){host.innerHTML='<div class="note">ℹ️ '+esc(tr('Ovo je automatska kontrolna lista elemenata, a ne AI ocjena kvalitete.','This is an automatic checklist of elements, not an AI quality score.'))+'</div><textarea id="rb" class="rb" rows="6" aria-label="'+esc(tr('Vaš prompt','Your prompt'))+'" placeholder="'+esc(tr('Upišite svoj prompt… (Ctrl+Enter za provjeru)','Write your prompt… (Ctrl+Enter to check)'))+'"></textarea><div class="wc" id="wc"></div><div id="rbres"></div>';
+  var ta=$('#rb',host),wc=$('#wc',host),min=ex.rubric.minWords;function upd(){var w=ta.value.trim().split(/\s+/).filter(Boolean).length;wc.textContent=w+' '+tr('riječi','words')+' · '+tr('preporučeno najmanje ','recommended at least ')+min;api.onChange(w>=3?ta.value:null)}ta.addEventListener('input',upd);upd();
+  return {reveal:function(res){ta.disabled=true;var h='<div class="score">'+res.score+'<small>/100</small></div><div class="prog'+(res.correct?'':' gold')+'"><i style="width:'+res.score+'%"></i></div><ul class="check">'+res.checklist.map(function(c){return '<li class="'+(c.passed?'ok':'bad')+'"><span aria-hidden="true">'+(c.passed?'✔':'✖')+'</span><div>'+esc(L(c.label))+'<span class="sr"> '+(c.passed?esc(tr('ispunjeno','met')):esc(tr('nije ispunjeno','not met')))+'</span></div><em>'+(c.passed?'+':'')+c.pts+'</em>'+(c.passed?'':'<small>💡 '+esc(L(c.hint))+'</small>')+'</li>'}).join('')+'</ul><div class="model"><small>'+esc(tr('Ogledni primjer za usporedbu','Model example for comparison'))+'</small>'+esc(L(res.model))+'</div>';$('#rbres',host).innerHTML=h}}};
+
+/* ====================== session runner ====================== */
+function startSession(cfg){tickHearts();if(cfg.mode==='lesson'&&S.hearts<=0){screenNoHearts();return}
+  SES={mode:cfg.mode,lessonId:cfg.lessonId,title:cfg.title,queue:cfg.exercises.slice(),total:cfg.mode==='blitz'?0:cfg.exercises.length,done:0,firstTry:0,answered:0,wrong:0,combo:0,comboBest:0,xp:0,retried:{},start:Date.now(),cur:null,endAt:cfg.mode==='blitz'?Date.now()+60000:0,fixed:0,lvl0:levelFor(S.xp),noHearts:false,timer:null,correct:0};
+  drawSession()}
+function drawSession(){var s=SES;app.innerHTML='<div class="les"><div class="lhead"><button class="iconbtn" data-act="quit" aria-label="'+esc(tr('Izađi iz lekcije','Leave the lesson'))+'">✕</button><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="'+esc(tr('Napredak','Progress'))+'"><i id="barfill"></i></div><div class="hp" id="hp"></div></div><div class="lbody" id="qwrap"></div><div class="lfoot" id="foot" role="status"></div></div>';
+  updateHead();showQuestion();
+  if(s.mode==='blitz')s.timer=setInterval(function(){if(SES!==s){clearInterval(s.timer);return}updateHead();if(Date.now()>=s.endAt){clearInterval(s.timer);finishSession()}},200)}
+function updateHead(){var s=SES,bar=$('#barfill');if(!bar)return;var pct=s.mode==='blitz'?Math.max(0,(s.endAt-Date.now())/600):(s.total?s.done/s.total*100:0);bar.style.width=pct+'%';bar.parentElement.setAttribute('aria-valuenow',Math.round(pct));
+  $('#hp').textContent=s.mode==='lesson'?'❤️ '+S.hearts:s.mode==='blitz'?'⏱ '+Math.max(0,Math.ceil((s.endAt-Date.now())/1000))+'s':''}
+function showQuestion(){var s=SES;if(!s.queue.length){finishSession();return}var ex=s.queue[0],w=$('#qwrap');
+  w.innerHTML='<div class="qtype">'+esc(L(TYPE[ex.type]))+'</div><h2 class="qtext">'+esc(L(ex.q))+'</h2><div id="exbody"></div>';
+  s.cur={ex:ex,answer:null,checked:false};
+  s.cur.r=R[ex.type](ex,$('#exbody'),{onChange:function(a){s.cur.answer=a;setFoot();if(s.mode==='blitz'&&a!==null&&(ex.type==='mc'||ex.type==='tf'||ex.type==='compare'))check()}});
+  setFoot();window.scrollTo(0,0)}
+function setFoot(){var s=SES,c=s&&s.cur,f=$('#foot');if(!f||!c||c.checked)return;var ready=c.answer!==null&&c.answer!==undefined,b=$('#chk');
+  if(s.mode==='blitz'&&c.ex.type!=='fill'){f.className='lfoot';f.innerHTML='<p class="muted" style="text-align:center;margin:0;font-weight:800">'+esc(tr('Odaberi odgovor, brzo!','Pick an answer, quick!'))+'</p>';return}
+  if(b){b.disabled=!ready;return}f.className='lfoot';f.innerHTML='<button class="btn big" id="chk" data-act="check"'+(ready?'':' disabled')+'>'+esc(tr('Provjeri','Check'))+'</button>'}
+function check(){var s=SES,c=s&&s.cur;if(!c||c.checked||c.answer==null)return;c.checked=true;
+  getGrader().grade(c.ex,c.answer,S.lang).catch(function(){return DeterministicGrader.grade(c.ex,c.answer,S.lang)}).then(function(res){if(SES!==s)return;c.res=res;c.r.reveal(res);applyResult(res);showFeedback(res)})}
+function applyResult(res){var s=SES,ex=s.cur.ex,first=!s.retried[ex.id];s.answered++;S.stats.answered++;
+  if(res.correct){S.stats.correct++;s.correct++;if(first)s.firstTry++;s.combo++;s.comboBest=Math.max(s.comboBest,s.combo);S.stats.comboBest=Math.max(S.stats.comboBest,s.combo);
+    var xp=s.mode==='blitz'?5:(first?10:5);if(ex.type==='rubric')xp=Math.round(xp*(0.5+res.score/200));if(s.combo>=3)xp+=3;s.xp+=xp;addXp(xp);
+    if(ex.type==='spot')S.stats.halluc++;if(ex.type==='build'||ex.type==='doctor'||ex.type==='rubric')S.stats.promptsDone++;if(ex.type==='rubric')S.stats.rubricPass++;
+    if(s.mode==='practice'&&S.review[ex.id])sm2(S.review[ex.id],first?4:3);
+    if(s.mode==='practice'&&S.mistakes[ex.id]){delete S.mistakes[ex.id];s.fixed++;questProgress('fix',1)}
+    questProgress('combo',s.combo);s.queue.shift();if(s.mode!=='blitz')s.done++;sfx(s.combo>=3?'combo':'correct')}
+  else{s.combo=0;s.wrong++;recordMistake(ex.id);if(s.mode==='practice'&&S.review[ex.id])sm2(S.review[ex.id],2);
+    if(s.mode==='lesson'&&ex.type!=='rubric'){loseHeart();if(S.hearts<=0)s.noHearts=true}
+    s.queue.shift();if(s.mode==='lesson'&&first){s.retried[ex.id]=true;s.queue.push(ex)}else if(s.mode!=='blitz')s.done++;sfx('wrong')}
+  checkBadges();save();updateHead()}
+var PRAISE=[['Točno!','Correct!'],['Odlično!','Great!'],['Bravo!','Nice!'],['Super!','Awesome!']];
+function showFeedback(res){var s=SES,f=$('#foot'),ok=res.correct,blitz=s.mode==='blitz';
+  var title=ok?(s.combo>=3?'🔥 '+s.combo+' '+tr('zaredom','in a row'):L(PRAISE[Math.floor(Math.random()*PRAISE.length)])):(s.cur.ex.type==='rubric'?tr('Skoro! Pogledajte kontrolnu listu.','Almost! Check the checklist.'):tr('Nije baš. Nema frke!','Not quite. No worries!'));
+  var last=!s.queue.length;f.className='lfoot fb '+(ok?'ok':'bad');
+  if(blitz){f.innerHTML='<div class="fbrow"><div>'+mascot(ok?'cheer':'sad',44)+'</div><div><b>'+esc(title)+'</b></div></div>';setTimeout(function(){if(SES===s&&s.cur.checked&&!s.noHearts){showQuestion();updateHead()}},ok?650:1300);return}
+  f.innerHTML='<div class="fbrow"><div>'+mascot(ok?'cheer':'sad',54)+'</div><div><b>'+esc(title)+'</b><p>'+esc(res.explanation)+'</p></div></div><button class="btn big'+(ok?'':' red')+'" id="nxt" data-act="next">'+esc(last||s.noHearts?tr('Završi','Finish'):tr('Nastavi','Continue'))+'</button>';
+  var n=$('#nxt');if(n)n.focus({preventScroll:true})}
+function next(){var s=SES;if(!s||!s.cur||!s.cur.checked)return;if(s.noHearts){finishSession(true);return}showQuestion();updateHead()}
+
+function summary(o){app.innerHTML='<div class="sum">'+mascot(o.mood||'cheer',120)+'<h1>'+esc(o.title)+'</h1>'+(o.sub?'<p class="muted">'+esc(o.sub)+'</p>':'')+(o.stats?'<div class="sstats">'+o.stats.map(function(x){return '<div><b>'+esc(x[1])+'</b><small>'+esc(x[0])+'</small></div>'}).join('')+'</div>':'')+(o.html||'')+'<button class="btn big" id="sumbtn" data-act="'+(o.act||'home')+'">'+esc(o.btn||tr('Nastavi','Continue'))+'</button>'+(o.btn2?'<button class="btn big ghost" style="margin-top:12px" data-act="'+o.act2+'">'+esc(o.btn2)+'</button>':'')+'</div>';window.scrollTo(0,0)}
+function finishSession(failed){var s=SES;if(!s)return;clearInterval(s.timer);var secs=Math.round((Date.now()-s.start)/1000),mm=Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0');
+  if(s.mode==='lesson'){if(failed){SES=null;screenNoHearts();return}completeLesson(s,mm);return}
+  if(s.mode==='practice'){S.stats.practiceSessions++;var bonus=0,heart=false;if(s.answered>=5&&S.hearts<5){S.hearts++;heart=true}if(s.answered>=3){bonus=10;addXp(bonus)}checkBadges();save();SES=null;sfx('finish');confetti();
+    summary({title:tr('Vježba gotova!','Practice done!'),sub:heart?tr('+1 srce obnovljeno ❤️','+1 heart restored ❤️'):'',stats:[['XP',s.xp+bonus],[tr('Ispravljeno','Fixed'),s.fixed],[tr('Točno','Correct'),s.correct+'/'+s.answered]],btn:tr('Natrag na vježbu','Back to practice'),act:'toPractice'});return}
+  if(s.mode==='blitz'){var best=s.correct>S.blitzBest;if(best)S.blitzBest=s.correct;checkBadges();save();SES=null;sfx('finish');if(best)confetti();
+    summary({title:tr('Blitz gotov!','Blitz over!'),sub:best?tr('Novi rekord! 🎉','New record! 🎉'):tr('Rekord: ','Best: ')+S.blitzBest,stats:[['XP',s.xp],[tr('Točno','Correct'),s.correct],[tr('Najbolji niz','Best combo'),s.comboBest]],btn:tr('Natrag na vježbu','Back to practice'),act:'toPractice'});return}
+  if(s.mode==='placement'){var score=s.correct,th=CONTENT.meta.placement.thresholds.filter(function(t){return t.min<=score}).pop(),n=0;th.complete.forEach(function(id){if(!isDone(id)){S.progress[id]={done:true,stars:1,runs:0};n++}});S.placementDone=true;checkBadges();save();SES=null;sfx('finish');confetti();
+    summary({title:tr('Test razine gotov!','Placement test done!'),sub:n?tr('Preskačeš '+n+' lekcija koje već znaš.','You skip '+n+' lessons you already know.'):tr('Krećeš od početka. Odlično mjesto za start!','You start from the beginning. A great place to start!'),stats:[[tr('Rezultat','Score'),score+'/'+s.total],[tr('Preskočeno','Skipped'),n],['XP',0]],btn:tr('Na stablo vještina','To the skill tree'),act:'home'})}}
+function completeLesson(s,mm){var info=lessonById(s.lessonId),perfect=s.wrong===0,base=20+(perfect?10:0),stars=perfect?3:s.wrong<=2?2:1;addXp(base);s.xp+=base;var p=S.progress[s.lessonId]||{done:false,stars:0,runs:0};p.done=true;p.stars=Math.max(p.stars,stars);p.runs++;S.progress[s.lessonId]=p;
+  if(perfect)S.stats.perfect++;S.gems+=perfect?8:5;questProgress('lesson',1);checkBadges();save();sfx('finish');confetti();
+  var lvlUp=levelFor(S.xp)>s.lvl0,acc=Math.round(s.firstTry/s.total*100);SES=null;
+  summary({title:tr('Lekcija završena!','Lesson complete!'),sub:L(info.l.title)+' '+'⭐'.repeat(stars),stats:[['XP','+'+s.xp],[tr('Točnost','Accuracy'),acc+'%'],[tr('Vrijeme','Time'),mm]],
+    html:'<p class="muted" style="margin:-8px 0 16px">🔥 '+streakShown()+' '+esc(tr('dana u nizu','day streak'))+' · 💎 +'+(perfect?8:5)+'</p>',btn:tr('Nastavi','Continue'),act:lvlUp?'levelup':'home'})}
+function screenLevelUp(){var lv=levelFor(S.xp);sfx('combo');confetti();app.innerHTML='<div class="sum">'+mascot('cheer',120)+'<h1>'+esc(tr('Nova razina!','Level up!'))+'</h1><div class="lvl" aria-label="'+esc(tr('Razina ','Level '))+lv+'">'+lv+'</div><p class="muted">'+esc(tr('Tvoj AI marketing alat postaje sve bolji.','Your AI marketing toolkit keeps getting stronger.'))+'</p><button class="btn big" data-act="home">'+esc(tr('Super!','Awesome!'))+'</button></div>'}
+function screenNoHearts(){app.innerHTML='<div class="sum">'+mascot('sad',120)+'<h1>'+esc(tr('Ostao si bez srca','Out of hearts'))+'</h1><p class="muted">'+esc(tr('Nema brige. Vježbom ponavljanja vraćaš srca, a nova se obnavljaju svakih 30 minuta.','No worries. Practice restores hearts, and new ones refill every 30 minutes.'))+'</p><button class="btn big" data-act="toPractice">'+esc(tr('Vježbaj za srce','Practice for a heart'))+'</button>'+(S.gems>=10?'<button class="btn big blue" style="margin-top:12px" data-act="buyHearts">'+esc(tr('Napuni srca (10 💎)','Refill hearts (10 💎)'))+'</button>':'')+'<button class="btn big ghost" style="margin-top:12px" data-act="home">'+esc(tr('Natrag','Back'))+'</button></div>'}
+
+/* ====================== views ====================== */
+function topbar(){return '<div class="top"><div class="stats"><span class="pill" title="'+esc(tr('Niz','Streak'))+'">🔥 '+streakShown()+'</span><span class="pill" title="'+esc(tr('Srca','Hearts'))+'">❤️ '+S.hearts+'</span><span class="pill" title="'+esc(tr('Dragulji','Gems'))+'">💎 '+S.gems+'</span></div><span class="pill">⭐ '+S.xp+' · '+tr('Raz. ','Lv ')+levelFor(S.xp)+'</span></div>'}
+function nav(){var items=[['learn','🏠',tr('Uči','Learn')],['practice','💪',tr('Vježba','Practice')],['leagues','🏆',tr('Lige','Leagues')],['friends','👥',tr('Prijatelji','Friends')],['profile','👤',tr('Profil','Profile')]];
+  return '<nav class="nav" aria-label="'+esc(tr('Glavna navigacija','Main navigation'))+'"><div>'+items.map(function(i){return '<button type="button" data-act="nav" data-v="'+i[0]+'"'+(view===i[0]||(view==='settings'&&i[0]==='profile')?' aria-current="page"':'')+'><span aria-hidden="true">'+i[1]+'</span>'+esc(i[2])+'</button>'}).join('')+'</div></nav>'}
+function langToggle(){return '<div class="seg2" role="group" aria-label="Language" style="max-width:160px;margin-left:auto"><button type="button" data-act="lang" data-v="hr" aria-pressed="'+(S.lang==='hr')+'">HR</button><button type="button" data-act="lang" data-v="en" aria-pressed="'+(S.lang==='en')+'">EN</button></div>'}
+function landing(){app.innerHTML='<div style="padding-top:14px">'+langToggle()+'</div><div class="hero">'+mascot('cheer',120)+'<h1>AI<b>lingo</b></h1><p>'+esc(tr('Nauči koristiti AI u marketingu i svakodnevnom poslu kroz kratke igrice. Besplatno, bez AI-ja u pozadini.','Learn to use AI in marketing and everyday work through short games. Free, with no AI behind the scenes.'))+'</p><button class="btn big" data-act="start">'+esc(tr('Počni besplatno','Get started'))+'</button><button class="btn big ghost" style="margin-top:12px" data-act="guest">'+esc(tr('Nastavi kao gost','Continue as guest'))+'</button></div>'
+  +'<div class="feat"><div><span>🎮</span><p><b>'+esc(tr('10 vrsta mini-igara','10 kinds of mini-games'))+'</b><br><span class="muted" style="font-size:14px">'+esc(tr('Složi prompt, ulovi halucinaciju, popravi slab prompt i više.','Build a prompt, spot a hallucination, fix a weak prompt and more.'))+'</span></p></div><div><span>⚖️</span><p><b>'+esc(tr('Transparentno ocjenjivanje','Transparent grading'))+'</b><br><span class="muted" style="font-size:14px">'+esc(tr('Jasna pravila i kontrolne liste, bez crne kutije.','Clear rules and checklists, no black box.'))+'</span></p></div><div><span>🔁</span><p><b>'+esc(tr('Pametno ponavljanje','Smart repetition'))+'</b><br><span class="muted" style="font-size:14px">'+esc(tr('Greške se vraćaju kad ih je vrijeme ponoviti (SM-2).','Mistakes come back when it is time to review them (SM-2).'))+'</span></p></div></div>'
+  +'<p class="muted" style="font-size:13px;text-align:center">'+esc(tr('Prototip: napredak se sprema samo u ovom pregledniku (guest mode). Prijava emailom i Googleom stiže u pravoj aplikaciji.','Prototype: progress is stored only in this browser (guest mode). Email and Google sign-in arrive in the full app.'))+'</p>'}
+function onboard(){var st=OB.step,steps='<div class="steps">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=st?'on':'')+'"></i>'}).join('')+'</div>',h='';
+  function opts(list,key){return '<div class="opt-list">'+list.map(function(o){return '<button type="button" class="choice" data-act="ob" data-k="'+key+'" data-v="'+esc(o[0])+'" aria-pressed="'+(OB[key]===o[0])+'"><span aria-hidden="true">'+o[2]+'</span>'+esc(L(o[1]))+'</button>'}).join('')+'</div>'}
+  if(st===0)h='<h2>'+esc(tr('Kako da te zovemo?','What should we call you?'))+'</h2><p class="muted">'+esc(tr('Neobavezno. Ime se vidi samo u ligama i profilu.','Optional. Your name only shows in leagues and your profile.'))+'</p><div style="margin:14px 0"><input id="obname" class="field" maxlength="24" value="'+esc(OB.name)+'" placeholder="'+esc(tr('Tvoje ime','Your name'))+'" aria-label="'+esc(tr('Tvoje ime','Your name'))+'"></div>'+langToggle()+'<button class="btn big" style="margin-top:20px" data-act="obnext">'+esc(tr('Dalje','Next'))+'</button>';
+  if(st===1)h='<h2>'+esc(tr('Što želiš postići?','What do you want to achieve?'))+'</h2>'+opts([['agency',['Posao u marketingu ili agenciji','A marketing or agency job'],'📣'],['biz',['Vlastiti biznis','My own business'],'🏪'],['free',['Freelancing','Freelancing'],'💻'],['daily',['Brži svakodnevni posao','Faster everyday work'],'⚡']],'goal')+'<button class="btn big" data-act="obnext"'+(OB.goal?'':' disabled')+'>'+esc(tr('Dalje','Next'))+'</button>';
+  if(st===2)h='<h2>'+esc(tr('Koliko već znaš o AI-ju?','How much do you already know about AI?'))+'</h2>'+opts([['beg',['Tek počinjem','Just starting'],'🌱'],['mid',['Povremeno koristim ChatGPT ili slično','I use ChatGPT or similar sometimes'],'🌿'],['adv',['Svakodnevno promptam','I prompt every day'],'🌳']],'level')+'<button class="btn big" data-act="obnext"'+(OB.level?'':' disabled')+'>'+esc(tr('Dalje','Next'))+'</button>';
+  if(st===3)h='<h2>'+esc(tr('Dnevni cilj','Daily goal'))+'</h2><div class="opt-list">'+[[5,['Lagano','Casual']],[10,['Uobičajeno','Regular']],[15,['Ozbiljno','Serious']],[20,['Intenzivno','Intense']]].map(function(o){return '<button type="button" class="choice" data-act="ob" data-k="daily" data-v="'+o[0]+'" aria-pressed="'+(OB.daily===o[0])+'"><b>'+o[0]+' min</b><span class="muted">'+esc(L(o[1]))+' · '+GOALXP[o[0]]+' XP</span></button>'}).join('')+'</div><button class="btn big" data-act="obnext">'+esc(tr('Dalje','Next'))+'</button>';
+  if(st===4)h='<div style="text-align:center">'+mascot('think',110)+'<h2>'+esc(tr('Želiš li test razine?','Want a placement test?'))+'</h2><p class="muted">'+esc(tr('8 kratkih pitanja. Ako već znaš osnove, preskačeš prve lekcije.','8 short questions. If you already know the basics, you skip the first lessons.'))+'</p></div><button class="btn big" data-act="obplace">'+esc(tr('Riješi test razine','Take the placement test'))+'</button><button class="btn big ghost" style="margin-top:12px" data-act="obdone">'+esc(tr('Kreni od početka','Start from the beginning'))+'</button>';
+  app.innerHTML='<div style="padding-top:20px">'+steps+h+'</div>'}
+function dailyCard(){ensureQuests();var g=GOALXP[S.dailyGoal],x=todayXp(),pct=Math.min(100,x/g*100);
+  return '<div class="card"><div class="row sp"><h3>'+esc(tr('Dnevni cilj','Daily goal'))+'</h3><span class="pill">'+x+' / '+g+' XP</span></div><div class="prog gold" role="progressbar" aria-valuenow="'+Math.round(pct)+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div>'
+   +'<h3 style="margin-top:14px;font-size:16px">'+esc(tr('Dnevni zadaci','Daily quests'))+'</h3>'+S.quests.items.map(function(it){var d=CONTENT.meta.quests.find(function(q){return q.id===it.id});return '<div class="quest'+(it.done?' done':'')+'"><b>'+(it.done?'✅ ':'')+esc(L(d.title))+'</b><div class="prog"><i style="width:'+(it.progress/d.target*100)+'%"></i></div><small class="muted">'+it.progress+'/'+d.target+' · +'+d.reward+' XP</small></div>'}).join('')+'</div>'}
+function learnView(){var h=dailyCard(),first=true,anyDone=Object.keys(S.progress).length>0;
+  if(!S.placementDone&&!anyDone)h+='<div class="card row sp"><div><h3>'+esc(tr('Već znaš nešto o AI-ju?','Already know some AI?'))+'</h3><p class="muted" style="margin:0">'+esc(tr('Test razine (8 pitanja)','Placement test (8 questions)'))+'</p></div><button class="btn sm blue" data-act="placement">'+esc(tr('Test','Test'))+'</button></div>';
+  var offs=[0,34,52,34,0,-34,-52,-34];
+  CONTENT.units.forEach(function(u){h+='<div class="unit" style="background:'+u.color+(u.published?'':';filter:grayscale(.85);opacity:.8')+'"><small>'+esc(tr('Jedinica ','Unit '))+u.order+(u.published?'':' · '+tr('uskoro','coming soon'))+'</small><h3>'+u.icon+' '+esc(L(u.title))+'</h3><p>'+esc(L(u.summary))+'</p></div><div class="path">';
+    u.lessons.forEach(function(l,i){var st=u.published?lessonState(l.id):'locked',p=S.progress[l.id];var go=st==='open'&&first;if(st==='open')first=false;
+      h+='<button type="button" class="node '+st+'" style="--x:'+offs[i%8]+'px'+(st==='open'||st==='done'?';--c:'+u.color+';--cd:rgba(0,0,0,.28)':'')+'" data-act="node" data-id="'+l.id+'" aria-label="'+esc(L(l.title))+' – '+(st==='done'?tr('završeno','completed'):st==='open'?tr('dostupno','available'):tr('zaključano','locked'))+'">'+(go?'<span class="go">'+esc(tr('KRENI','START'))+'</span>':'')+(st==='locked'?'🔒':st==='done'?'✓':u.icon)+(st==='done'?'<span class="stars" aria-hidden="true">'+'⭐'.repeat(p.stars||1)+'</span>':'')+'</button>'});
+    h+='</div>'});
+  if(sheet){var info=lessonById(sheet),st=info.u.published?lessonState(sheet):'locked',n=info.l.exercises.length;
+    h+='<div class="sheet-bg" data-act="closesheet"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(L(info.l.title))+'" data-stop="1"><small class="muted" style="font-weight:800">'+esc(tr('Jedinica ','Unit '))+info.u.order+'</small><h2>'+esc(L(info.l.title))+'</h2>'
+     +(st==='locked'?'<p class="muted" style="margin:10px 0 16px">'+esc(info.u.published?tr('Završi prethodnu lekciju da otključaš ovu.','Finish the previous lesson to unlock this one.'):tr('Ova jedinica stiže uskoro.','This unit is coming soon.'))+'</p><button class="btn big ghost" data-act="closesheet">'+esc(tr('Zatvori','Close'))+'</button>'
+      :'<p class="muted" style="margin:6px 0 16px">'+n+' '+esc(tr('vježbi','exercises'))+' · ~4 min'+(st==='done'?' · '+esc(tr('ponovi za bolji rezultat','replay for a better score')):'')+'</p><button class="btn big" data-act="lesson" data-id="'+sheet+'">'+esc(st==='done'?tr('Ponovi','Replay'):tr('Započni','Start'))+' +'+(20)+' XP</button>')+'</div></div>'}
+  return h}
+function practiceView(){var due=dueIds().length,mist=Object.keys(S.mistakes).filter(function(id){return CONTENT.byId[id]});
+  var h='<div class="card"><div class="row sp"><h3>🔁 '+esc(tr('Ponavljanje (SM-2)','Spaced repetition (SM-2)'))+'</h3><span class="pill">'+due+' '+esc(tr('za danas','due'))+'</span></div><p class="muted">'+esc(tr('Vježbe u kojima si griješio vraćaju se u sve duljim razmacima. Završi 5+ vježbi i vrati jedno srce.','Exercises you missed return at growing intervals. Finish 5+ and win back a heart.'))+'</p><button class="btn big" data-act="review"'+(due?'':' disabled')+'>'+esc(due?tr('Pokreni vježbu','Start practice'):tr('Nema ničega za ponoviti','Nothing to review'))+'</button></div>'
+   +'<div class="card"><div class="row sp"><h3>⚡ Blitz</h3><span class="pill">'+esc(tr('Rekord ','Best '))+S.blitzBest+'</span></div><p class="muted">'+esc(tr('60 sekundi, što više točnih odgovora. Combo daje bonus XP.','60 seconds, as many correct answers as you can. Combos give bonus XP.'))+'</p><button class="btn big blue" data-act="blitz">'+esc(tr('Pokreni Blitz','Start Blitz'))+'</button></div>'
+   +'<div class="card"><h3>🎲 '+esc(tr('Slobodna vježba','Free practice'))+'</h3><p class="muted">'+esc(tr('8 nasumičnih vježbi iz lekcija koje si prošao.','8 random exercises from lessons you completed.'))+'</p><button class="btn big ghost" data-act="free">'+esc(tr('Nasumična vježba','Random practice'))+'</button></div>'
+   +'<div class="card"><h3>📝 '+esc(tr('Pregled grešaka','Mistakes review'))+' ('+mist.length+')</h3>'+(mist.length?mist.slice(0,12).map(function(id){var o=CONTENT.byId[id];return '<p style="margin:10px 0 0"><b>'+esc(L(o.ex.q))+'</b><br><span class="muted" style="font-size:14px">'+esc(L(o.ex.explain))+'</span></p>'}).join('')+'<p class="muted" style="font-size:13px;margin-top:10px">'+esc(tr('Točan odgovor u Vježbi ukloni grešku s popisa.','A correct answer in Practice removes the mistake from this list.'))+'</p>':'<p class="muted">'+esc(tr('Još nema grešaka. Svaka greška u lekciji pojavit će se ovdje.','No mistakes yet. Every mistake in a lesson will show up here.'))+'</p>')+'</div>';
+  return h}
+function leaguesView(){var t=CONTENT.meta.tiers[S.tier],rows=leagueRows(S.week,S.tier,S.weekXp,false),me=rows.findIndex(function(r){return r.me})+1,now=new Date(),daysLeft=7-((now.getDay()+6)%7);
+  var h='<div class="card" style="text-align:center"><div style="font-size:44px">'+t.icon+'</div><h2>'+esc(tr('Liga: ','League: ')+L(t.name))+'</h2><p class="muted">'+esc(tr('Preostalo dana: ','Days left: '))+daysLeft+' · '+esc(tr('Tvoje mjesto: ','Your rank: '))+me+'/30</p><p class="muted" style="font-size:13px;margin:0">'+esc(tr('Prvih 10 napreduje, zadnjih 5 pada.','Top 10 move up, bottom 5 move down.'))+'</p></div>';
+  if(S.lastLeague)h+='<div class="note">'+esc(S.lastLeague.delta>0?tr('Prošli tjedan: '+S.lastLeague.rank+'. mjesto. Napredovao si u višu ligu! 🎉','Last week: rank '+S.lastLeague.rank+'. You moved up a league! 🎉'):S.lastLeague.delta<0?tr('Prošli tjedan: '+S.lastLeague.rank+'. mjesto. Pao si u nižu ligu. Odigraj revanš!','Last week: rank '+S.lastLeague.rank+'. You dropped a league. Time for a rematch!'):tr('Prošli tjedan: '+S.lastLeague.rank+'. mjesto. Ostaješ u ligi.','Last week: rank '+S.lastLeague.rank+'. You stay in the league.'))+'</div>';
+  h+='<div class="lb" role="list">'+rows.map(function(r,i){return '<div class="r'+(r.me?' me':'')+(i<10?' up':i>=25?' down':'')+'" role="listitem"><b>'+(i+1)+'</b><span class="av" aria-hidden="true">'+r.av+'</span><span>'+esc(r.name)+(r.me?' ('+esc(tr('ti','you'))+')':'')+'</span><span>'+r.xp+' XP</span></div>'}).join('')+'</div><p class="muted" style="font-size:13px">'+esc(tr('Konkurenti su simulirani botovi dok nema dovoljno stvarnih korisnika.','Competitors are simulated bots until there are enough real users.'))+'</p>';return h}
+function friendCode(){var r=seeded('code'+(S.name||'x'));return 'AIL-'+Math.floor(r()*1e6).toString(36).toUpperCase().padStart(4,'0')}
+function friendsView(){var av=CONTENT.meta.avatars,bots=CONTENT.meta.bots;function row(name,i,isF){var r=seeded('f'+name),st=1+Math.floor(r()*40);return '<div class="r" style="display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center;padding:8px 0;font-weight:800"><span class="av" aria-hidden="true">'+av[i%av.length]+'</span><span>'+esc(name)+'<br><small class="muted">🔥 '+st+' '+esc(tr('dana','days'))+' · '+botXp(name,S.week,1,false)+' XP '+esc(tr('ovaj tjedan','this week'))+'</small></span>'+(isF?'':'<button class="btn sm ghost" data-act="addfriend" data-i="'+i+'" aria-label="'+esc(tr('Dodaj ','Add '))+esc(name)+'">+</button>')+'</div>'}
+  var mine=S.friends.map(function(i){return row(bots[i],i,true)}).join(''),sug=[];for(var i=0;i<bots.length&&sug.length<6;i++)if(S.friends.indexOf(i)<0)sug.push(row(bots[i],i,false));
+  return '<div class="card"><h3>'+esc(tr('Tvoj kod prijatelja','Your friend code'))+'</h3><p style="font-size:24px;font-weight:900;margin:4px 0">'+friendCode()+'</p><p class="muted" style="font-size:13px;margin:0">'+esc(tr('U pravoj aplikaciji prijatelji se dodaju kodom ili emailom. U prototipu predlažemo simulirane korisnike.','In the full app friends are added by code or email. This prototype suggests simulated users.'))+'</p></div><div class="card"><h3>'+esc(tr('Prijatelji','Friends'))+' ('+S.friends.length+')</h3>'+(mine||'<p class="muted">'+esc(tr('Još nema prijatelja.','No friends yet.'))+'</p>')+'</div><div class="card"><h3>'+esc(tr('Predloženi','Suggested'))+'</h3>'+sug.join('')+'</div>'}
+function calendar(){var n=new Date(),y=n.getFullYear(),m=n.getMonth(),first=new Date(y,m,1),lead=(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate(),g=GOALXP[S.dailyGoal],h='';
+  ['P','U','S','Č','P','S','N'].forEach(function(d,i){h+='<b aria-hidden="true">'+(S.lang==='hr'?d:['M','T','W','T','F','S','S'][i])+'</b>'});for(var i=0;i<lead;i++)h+='<i class="e"></i>';
+  for(var d=1;d<=days;d++){var k=dkey(new Date(y,m,d)),x=S.activity[k]||0;h+='<i class="'+(x>=g?'g':x>0?'a':'')+(k===today()?' t':'')+'" title="'+x+' XP">'+d+'</i>'}return '<div class="cal" role="img" aria-label="'+esc(tr('Kalendar aktivnosti','Activity calendar'))+'">'+h+'</div>'}
+function profileView(){var lv=levelFor(S.xp),a=levelNeed(lv),b=levelNeed(lv+1),pct=(S.xp-a)/(b-a)*100,acc=S.stats.answered?Math.round(S.stats.correct/S.stats.answered*100):0,done=statVal('lessonsDone');
+  return '<div class="card" style="text-align:center">'+mascot('happy',96)+'<h2>'+esc(S.name||tr('Gost','Guest'))+'</h2><p class="muted">'+esc(tr('Razina ','Level '))+lv+' · '+S.xp+' XP</p><div class="prog" aria-label="XP"><i style="width:'+pct+'%"></i></div><p class="muted" style="font-size:13px;margin-top:6px">'+(b-S.xp)+' XP '+esc(tr('do razine ','to level '))+(lv+1)+'</p><button class="btn sm ghost" data-act="nav" data-v="settings">⚙️ '+esc(tr('Postavke','Settings'))+'</button></div>'
+   +'<div class="grid2" style="margin-bottom:14px"><div class="card" style="margin:0;text-align:center"><b style="font-size:24px">🔥 '+S.streak.best+'</b><br><span class="muted">'+esc(tr('Najduži niz','Best streak'))+'</span></div><div class="card" style="margin:0;text-align:center"><b style="font-size:24px">'+done+'</b><br><span class="muted">'+esc(tr('Lekcija','Lessons'))+'</span></div><div class="card" style="margin:0;text-align:center"><b style="font-size:24px">'+acc+'%</b><br><span class="muted">'+esc(tr('Točnost','Accuracy'))+'</span></div><div class="card" style="margin:0;text-align:center"><b style="font-size:24px">'+S.freezes+' 🧊</b><br><span class="muted">Streak Freeze</span></div></div>'
+   +'<div class="card"><h3>'+esc(tr('Kalendar','Calendar'))+'</h3>'+calendar()+'</div><div class="card"><h3>'+esc(tr('Bedževi','Badges'))+' ('+S.badges.length+'/'+CONTENT.meta.badges.length+')</h3><div class="badges">'+CONTENT.meta.badges.map(function(b){var on=S.badges.indexOf(b.id)>=0;return '<div class="bd'+(on?'':' off')+'"><span aria-hidden="true">'+b.icon+'</span>'+esc(L(b.title))+'<br><small class="muted">'+esc(L(b.desc))+'</small></div>'}).join('')+'</div></div>'}
+function settingsView(){var json=exportOpen?JSON.stringify(S,null,2):'';
+  return '<div class="row sp" style="margin-bottom:10px"><h2>'+esc(tr('Postavke','Settings'))+'</h2><button class="btn sm ghost" data-act="nav" data-v="profile">'+esc(tr('Natrag','Back'))+'</button></div>'
+  +'<div class="card"><h3>'+esc(tr('Jezik','Language'))+'</h3>'+langToggle().replace('max-width:160px;margin-left:auto','')+'</div>'
+  +'<div class="card"><h3>'+esc(tr('Ime','Name'))+'</h3><input id="setname" class="field" maxlength="24" value="'+esc(S.name)+'" aria-label="'+esc(tr('Ime','Name'))+'"></div>'
+  +'<div class="card"><div class="row sp"><h3>'+esc(tr('Zvučni efekti','Sound effects'))+'</h3><button class="btn sm '+(S.sound?'':'ghost')+'" data-act="sound" aria-pressed="'+S.sound+'">'+(S.sound?tr('Uključeni','On'):tr('Isključeni','Off'))+'</button></div></div>'
+  +'<div class="card"><h3>'+esc(tr('Dnevni cilj','Daily goal'))+'</h3><div class="seg2" role="group">'+[5,10,15,20].map(function(m){return '<button type="button" data-act="goal" data-v="'+m+'" aria-pressed="'+(S.dailyGoal===m)+'">'+m+' min</button>'}).join('')+'</div><p class="muted" style="margin:8px 0 0;font-size:13px">'+GOALXP[S.dailyGoal]+' XP</p></div>'
+  +'<div class="card"><h3>💎 '+esc(tr('Trgovina (dragulji se zarađuju učenjem)','Shop (gems are earned by learning)'))+'</h3><p class="muted">'+S.gems+' 💎</p><div class="grid2"><button class="btn sm blue" data-act="buyFreeze"'+(S.gems>=20&&S.freezes<2?'':' disabled')+'>🧊 Streak Freeze · 20 💎</button><button class="btn sm blue" data-act="buyHearts"'+(S.gems>=10&&S.hearts<5?'':' disabled')+'>❤️ '+esc(tr('Srca','Hearts'))+' · 10 💎</button></div></div>'
+  +'<div class="card"><h3>'+esc(tr('Test razine','Placement test'))+'</h3><button class="btn sm ghost" data-act="placement">'+esc(tr('Ponovi test razine','Retake placement test'))+'</button></div>'
+  +'<div class="card"><h3>'+esc(tr('Moji podaci (GDPR)','My data (GDPR)'))+'</h3><p class="muted" style="font-size:14px">'+esc(tr('Sve je spremljeno samo u ovom pregledniku. Možeš izvesti ili trajno obrisati podatke.','Everything is stored only in this browser. You can export or permanently delete your data.'))+'</p><div class="grid2"><button class="btn sm ghost" data-act="export">'+esc(tr('Izvezi JSON','Export JSON'))+'</button>'+(confirmDel?'<button class="btn sm red" data-act="delete">'+esc(tr('Potvrdi brisanje','Confirm delete'))+'</button>':'<button class="btn sm ghost" data-act="delete" style="color:var(--red)">'+esc(tr('Obriši sve','Delete all'))+'</button>')+'</div>'+(exportOpen?'<textarea class="out" id="exp" readonly aria-label="JSON">'+esc(json)+'</textarea><button class="btn sm ghost" data-act="copyexp" style="margin-top:8px">'+esc(tr('Kopiraj','Copy'))+'</button>':'')+'</div>'
+  +'<div class="card"><h3>'+esc(tr('O ocjenjivanju','About grading'))+'</h3><p class="muted" style="font-size:14px;margin:0">'+esc(tr('Sve provjere su deterministička pravila iz podatkovnih datoteka. AI grader: ','All checks are deterministic rules from data files. AI grader: '))+'<b>'+(FEATURES.aiGrader?'ON':'OFF')+'</b>. '+esc(tr('Nijedan vanjski servis se ne poziva.','No external service is ever called.'))+'</p></div>'
+  +'<div class="card"><h3>'+esc(tr('Prijava','Sign-in'))+'</h3><p class="muted" style="font-size:14px">'+esc(tr('Auth.js (email + Google) stiže u pravoj aplikaciji; napredak iz guest moda prenosi se pri registraciji.','Auth.js (email + Google) arrives in the full app; guest progress transfers on sign-up.'))+'</p><div class="grid2"><button class="btn sm ghost" disabled>Google</button><button class="btn sm ghost" disabled>Email</button></div></div>'}
+
+function render(){if(!CONTENT||SES)return;tickHearts();ensureQuests();weekRoll();
+  if(!S.onboarded){if(showLanding)landing();else onboard();return}
+  var body=view==='learn'?learnView():view==='practice'?practiceView():view==='leagues'?leaguesView():view==='friends'?friendsView():view==='settings'?settingsView():profileView();
+  app.innerHTML=topbar()+'<main id="main">'+body+'</main>'+nav()}
+
+/* ====================== actions ====================== */
+function startLesson(id){var info=lessonById(id);sheet=null;startSession({mode:'lesson',lessonId:id,title:L(info.l.title),exercises:info.l.exercises})}
+function pool(types,max){var ids=[];CONTENT.units.forEach(function(u){u.lessons.forEach(function(l){if(isDone(l.id))l.exercises.forEach(function(e){ids.push(e)})})});if(!ids.length)flatLessons().forEach(function(x){x.l.exercises.forEach(function(e){ids.push(e)})});
+  return shuffle(ids.filter(function(e){return !types||types.indexOf(e.type)>=0})).slice(0,max)}
+var ACT={
+ start:function(){showLanding=false;render()},
+ guest:function(){S.onboarded=true;S.name='';save();view='learn';render()},
+ lang:function(d){S.lang=d.v;if(!S.onboarded)OB.name=($('#obname')||{}).value||OB.name;save();render()},
+ ob:function(d){var k=d.k;OB[k]=k==='daily'?+d.v:d.v;render()},
+ obnext:function(){if(OB.step===0)OB.name=($('#obname')||{}).value||'';OB.step++;render()},
+ obdone:function(){finishOnboard(false)},obplace:function(){finishOnboard(true)},
+ nav:function(d){view=d.v;sheet=null;confirmDel=false;exportOpen=false;render();window.scrollTo(0,0)},
+ node:function(d){sheet=d.id;render()},closesheet:function(d,e){if(e.target.closest('[data-stop]')&&!e.target.closest('button'))return;sheet=null;render()},
+ lesson:function(d){startLesson(d.id)},
+ placement:function(){startSession({mode:'placement',title:'',exercises:CONTENT.meta.placement.exercises.map(function(id){return CONTENT.byId[id].ex})})},
+ review:function(){var ids=dueIds().slice(0,8);startSession({mode:'practice',exercises:ids.map(function(id){return CONTENT.byId[id].ex})})},
+ free:function(){startSession({mode:'practice',exercises:pool(null,8)})},
+ blitz:function(){startSession({mode:'blitz',exercises:pool(['mc','tf','compare','fill'],60)})},
+ check:function(){check()},next:function(){next()},
+ quit:function(){var s=SES;if(!s)return;if(s.mode==='lesson'&&s.done===0){leave();return}$('#foot').className='lfoot';$('#foot').innerHTML='<p style="text-align:center;font-weight:900;margin:0 0 10px">'+esc(tr('Sigurno? Napredak ove lekcije se gubi.','Sure? This lesson\'s progress will be lost.'))+'</p><div class="grid2"><button class="btn ghost" data-act="resume">'+esc(tr('Nastavi učiti','Keep learning'))+'</button><button class="btn red" data-act="leave">'+esc(tr('Izađi','Leave'))+'</button></div>'},
+ resume:function(){var c=SES.cur;if(c.checked){showFeedback(c.res)}else{$('#foot').innerHTML='';setFoot()}},
+ leave:function(){leave()},
+ home:function(){SES=null;view='learn';render();window.scrollTo(0,0)},
+ toPractice:function(){SES=null;view='practice';render();window.scrollTo(0,0)},
+ levelup:function(){screenLevelUp()},
+ sound:function(){S.sound=!S.sound;save();if(S.sound)sfx('correct');render()},
+ goal:function(d){S.dailyGoal=+d.v;save();render()},
+ buyFreeze:function(){if(S.gems>=20&&S.freezes<2){S.gems-=20;S.freezes++;save();toast('🧊 Streak Freeze +1');render()}},
+ buyHearts:function(){if(S.gems>=10&&S.hearts<5){S.gems-=10;S.hearts=5;S.heartsAt=0;save();toast('❤️ '+tr('Srca napunjena','Hearts refilled'));if(SES)return;if($('.sum')){ACT.home()}else render()}},
+ addfriend:function(d){var i=+d.i;if(S.friends.indexOf(i)<0){S.friends.push(i);checkBadges();save();render()}},
+ export:function(){exportOpen=!exportOpen;render()},
+ copyexp:function(){var t=$('#exp');try{navigator.clipboard.writeText(t.value).then(function(){toast(tr('Kopirano','Copied'))},function(){t.select()})}catch(e){t.select()}},
+ delete:function(){if(!confirmDel){confirmDel=true;render();return}try{localStorage.removeItem(KEY)}catch(e){}S=defState();confirmDel=false;exportOpen=false;showLanding=true;OB={step:0,name:'',goal:'',level:'',daily:10};ensureQuests();render();toast(tr('Svi podaci obrisani','All data deleted'))}
+};
+function leave(){clearInterval(SES&&SES.timer);SES=null;view='learn';render();window.scrollTo(0,0)}
+function finishOnboard(place){S.onboarded=true;S.name=OB.name.trim();S.goal=OB.goal;S.level=OB.level;S.dailyGoal=OB.daily;save();view='learn';render();if(place)ACT.placement()}
+document.addEventListener('click',function(e){var a=e.target.closest('[data-act]');if(!a)return;var f=ACT[a.dataset.act];if(!f)return;ac();f(a.dataset,e)});
+document.addEventListener('change',function(e){if(e.target.id==='setname'){S.name=e.target.value.trim();save()}});
+document.addEventListener('input',function(e){if(e.target.id==='obname')OB.name=e.target.value});
+document.addEventListener('keydown',function(e){var s=SES;if(!s||!s.cur)return;var c=s.cur,tag=e.target.tagName;
+  if(e.key==='Enter'){if(tag==='BUTTON')return;if(tag==='TEXTAREA'&&!(e.ctrlKey||e.metaKey))return;e.preventDefault();if(!c.checked)check();else next();return}
+  if(!c.checked&&tag!=='INPUT'&&tag!=='TEXTAREA'&&/^[1-9]$/.test(e.key)&&c.r.pick)c.r.pick(+e.key-1)});
+
+/* ====================== boot ====================== */
+S=load();
+app.innerHTML='<p class="muted" style="text-align:center;padding:60px 0">…</p>';
+loadContent().then(function(){ensureQuests();render()}).catch(function(err){app.innerHTML='<div class="card" style="margin-top:40px"><h3>'+esc('Content failed to load')+'</h3><p class="muted">'+esc(String(err))+'</p></div>'});
+})();
+</script>

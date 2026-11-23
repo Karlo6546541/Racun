@@ -1,0 +1,78 @@
+{
+  "futureUnits": [
+    { "id": "unit-3", "order": 3, "icon": "🎯", "color": "#ce82ff", "published": false,
+      "title": ["Napredno promptanje i copywriting", "Advanced prompting and copywriting"],
+      "summary": ["Few-shot primjeri brenda, razmišljanje korak po korak, ograničenja i iteriranje tekstova.", "Brand few-shot examples, step-by-step thinking, constraints and iterating copy."],
+      "lessons": [
+        { "id": "u3l1", "title": ["Few-shot: naučite model svoj glas", "Few-shot: teach the model your voice"], "exercises": [] },
+        { "id": "u3l2", "title": ["Razmišljanje korak po korak", "Step-by-step thinking"], "exercises": [] },
+        { "id": "u3l3", "title": ["Iteriranje objava i emailova", "Iterating posts and emails"], "exercises": [] },
+        { "id": "u3l4", "title": ["Prodajni tekstovi", "Sales copy"], "exercises": [] }
+      ] },
+    { "id": "unit-4", "order": 4, "icon": "📣", "color": "#ff9600", "published": false,
+      "title": ["AI za kampanje, oglase, društvene mreže i SEO", "AI for campaigns, ads, social media and SEO"],
+      "summary": ["Ideje za Meta i Google oglase, hookovi, SEO struktura i repurposing sadržaja.", "Meta and Google ad ideas, hooks, SEO structure and content repurposing."],
+      "lessons": [
+        { "id": "u4l1", "title": ["Ideje za Meta i Google oglase", "Meta and Google ad ideas"], "exercises": [] },
+        { "id": "u4l2", "title": ["Hookovi za Reels, TikTok i LinkedIn", "Hooks for Reels, TikTok and LinkedIn"], "exercises": [] },
+        { "id": "u4l3", "title": ["SEO struktura članka", "SEO article structure"], "exercises": [] },
+        { "id": "u4l4", "title": ["Jedan sadržaj, mnogo kanala", "One piece of content, many channels"], "exercises": [] }
+      ] },
+    { "id": "unit-5", "order": 5, "icon": "🔍", "color": "#ff4b4b", "published": false,
+      "title": ["Lov na AI greške u marketingu", "Hunting AI mistakes in marketing"],
+      "summary": ["Halucinacije, generički AI ton, pristranost i provjera činjenica.", "Hallucinations, generic AI tone, bias and fact-checking."],
+      "lessons": [
+        { "id": "u5l1", "title": ["Izmišljene statistike i izvori", "Invented statistics and sources"], "exercises": [] },
+        { "id": "u5l2", "title": ["Uklanjanje generičkog AI tona", "Removing the generic AI tone"], "exercises": [] },
+        { "id": "u5l3", "title": ["Pristranost u tekstovima", "Bias in copy"], "exercises": [] },
+        { "id": "u5l4", "title": ["Provjera činjenica u praksi", "Fact-checking in practice"], "exercises": [] }
+      ] },
+    { "id": "unit-6", "order": 6, "icon": "🛡️", "color": "#2b70c9", "published": false,
+      "title": ["Sigurnost, privatnost, autorska prava i etika", "Security, privacy, copyright and ethics"],
+      "summary": ["GDPR, podaci klijenata i NDA, označavanje AI sadržaja i identitet brenda.", "GDPR, client data and NDAs, labelling AI content and brand identity."],
+      "lessons": [
+        { "id": "u6l1", "title": ["GDPR i osobni podaci u promptovima", "GDPR and personal data in prompts"], "exercises": [] },
+        { "id": "u6l2", "title": ["Podaci klijenata i NDA", "Client data and NDAs"], "exercises": [] },
+        { "id": "u6l3", "title": ["Autorska prava i označavanje AI sadržaja", "Copyright and labelling AI content"], "exercises": [] },
+        { "id": "u6l4", "title": ["Etika i identitet brenda", "Ethics and brand identity"], "exercises": [] }
+      ] }
+  ],
+  "placement": {
+    "exercises": ["u1l1e1", "u1l1e2", "u1l2e3", "u1l3e2", "u1l3e3", "u2l1e1", "u2l1e6", "u2l3e3"],
+    "thresholds": [
+      { "min": 0, "complete": [] },
+      { "min": 4, "complete": ["u1l1", "u1l2"] },
+      { "min": 6, "complete": ["u1l1", "u1l2", "u1l3", "u1l4"] },
+      { "min": 8, "complete": ["u1l1", "u1l2", "u1l3", "u1l4", "u2l1"] }
+    ]
+  },
+  "quests": [
+    { "id": "lesson", "target": 1, "reward": 15, "mode": "add", "title": ["Završi 1 lekciju", "Finish 1 lesson"] },
+    { "id": "combo", "target": 5, "reward": 15, "mode": "max", "title": ["Ostvari 5 točnih odgovora zaredom", "Get 5 correct answers in a row"] },
+    { "id": "fix", "target": 3, "reward": 20, "mode": "add", "title": ["Ispravi 3 greške u Vježbi", "Fix 3 mistakes in Practice"] }
+  ],
+  "badges": [
+    { "id": "first-lesson", "icon": "🌱", "title": ["Prvi korak", "First step"], "desc": ["Završi prvu lekciju.", "Finish your first lesson."], "rule": { "stat": "lessonsDone", "gte": 1 } },
+    { "id": "first-prompt", "icon": "✍️", "title": ["Prvi prompt", "First prompt"], "desc": ["Točno složi ili napiši prvi prompt.", "Correctly build or write your first prompt."], "rule": { "stat": "promptsDone", "gte": 1 } },
+    { "id": "hallucination-hunter", "icon": "🔎", "title": ["Lovac na halucinacije", "Hallucination hunter"], "desc": ["Uhvati 3 izmišljene tvrdnje.", "Catch 3 invented claims."], "rule": { "stat": "halluc", "gte": 3 } },
+    { "id": "copy-ninja", "icon": "🥷", "title": ["Copywriting ninja", "Copywriting ninja"], "desc": ["Prođi 3 provjere vlastitog prompta.", "Pass 3 checks of your own prompts."], "rule": { "stat": "rubricPass", "gte": 3 } },
+    { "id": "streak-3", "icon": "🔥", "title": ["3 dana u nizu", "3-day streak"], "desc": ["Uči 3 dana zaredom.", "Learn 3 days in a row."], "rule": { "stat": "streakBest", "gte": 3 } },
+    { "id": "streak-7", "icon": "🏅", "title": ["7 dana u nizu", "7-day streak"], "desc": ["Uči 7 dana zaredom.", "Learn 7 days in a row."], "rule": { "stat": "streakBest", "gte": 7 } },
+    { "id": "perfect", "icon": "💯", "title": ["Bez greške", "Flawless"], "desc": ["Završi lekciju bez greške.", "Finish a lesson without a mistake."], "rule": { "stat": "perfect", "gte": 1 } },
+    { "id": "combo-8", "icon": "⚡", "title": ["Combo majstor", "Combo master"], "desc": ["Ostvari niz od 8 točnih.", "Get a streak of 8 correct answers."], "rule": { "stat": "comboBest", "gte": 8 } },
+    { "id": "unit-1", "icon": "🧠", "title": ["AI bez magle", "AI without the fog"], "desc": ["Završi Jedinicu 1.", "Complete Unit 1."], "rule": { "stat": "unit:unit-1", "gte": 1 } },
+    { "id": "unit-2", "icon": "🧩", "title": ["Prompt inženjer", "Prompt engineer"], "desc": ["Završi Jedinicu 2.", "Complete Unit 2."], "rule": { "stat": "unit:unit-2", "gte": 1 } },
+    { "id": "practice-5", "icon": "🔁", "title": ["Ponavljač", "Repeater"], "desc": ["Odradi 5 sesija vježbe.", "Complete 5 practice sessions."], "rule": { "stat": "practiceSessions", "gte": 5 } },
+    { "id": "xp-500", "icon": "🚀", "title": ["500 XP", "500 XP"], "desc": ["Skupi 500 XP.", "Earn 500 XP."], "rule": { "stat": "xpTotal", "gte": 500 } },
+    { "id": "friend", "icon": "🤝", "title": ["Tim", "Team"], "desc": ["Dodaj prvog prijatelja.", "Add your first friend."], "rule": { "stat": "friends", "gte": 1 } }
+  ],
+  "tiers": [
+    { "name": ["Bronca", "Bronze"], "icon": "🥉" },
+    { "name": ["Srebrna", "Silver"], "icon": "🥈" },
+    { "name": ["Zlatna", "Gold"], "icon": "🥇" },
+    { "name": ["Safirna", "Sapphire"], "icon": "💠" },
+    { "name": ["Dijamantna", "Diamond"], "icon": "💎" }
+  ],
+  "bots": ["Ivana M.", "Luka K.", "Marta", "Petar S.", "Ana B.", "Tomislav", "Maja Ž.", "Josip", "Lana", "Dario", "Nika", "Filip", "Katarina", "Matej", "Sara", "Marko B.", "Iva", "Domagoj", "Lucija", "Ante", "Tena", "Karlo", "Petra", "Bruno", "Mia", "Vedran", "Ema", "Zvonimir", "Dora", "Stjepan", "Jelena", "Roko", "Helena", "Mateo", "Paula", "Borna", "Antonija", "Leon", "Magdalena", "Hrvoje"],
+  "avatars": ["🦊", "🐼", "🦉", "🐯", "🐙", "🦄", "🐸", "🐧", "🦁", "🐨"]
+}

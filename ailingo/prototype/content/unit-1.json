@@ -1,0 +1,262 @@
+{
+  "id": "unit-1",
+  "order": 1,
+  "title": ["Što AI jest, a što nije", "What AI is and isn't"],
+  "summary": ["Kako LLM-ovi rade, gdje štede vrijeme i gdje griješe.", "How LLMs work, where they save time and where they fail."],
+  "icon": "🧠",
+  "color": "#58cc02",
+  "published": true,
+  "lessons": [
+    {
+      "id": "u1l1",
+      "title": ["Kako LLM zapravo radi", "How an LLM really works"],
+      "exercises": [
+        { "id": "u1l1e1", "type": "mc",
+          "q": ["Što u osnovi radi jezični model (LLM) kad piše tekst?", "What does a language model (LLM) basically do when it writes text?"],
+          "options": [
+            ["Predviđa sljedeću riječ na temelju obrazaca iz podataka za učenje", "Predicts the next word based on patterns in its training data"],
+            ["Pretražuje internet i prepisuje prvi rezultat", "Searches the web and copies the top result"],
+            ["Razumije vaš brend kao pravi kolega", "Understands your brand like a real colleague"]
+          ], "answer": 0,
+          "explain": ["LLM ne „zna” činjenice kao baza podataka. Slaže vjerojatan niz riječi. Zato zvuči uvjerljivo čak i kad griješi.", "An LLM doesn't “know” facts like a database. It assembles a likely sequence of words. That's why it sounds convincing even when it's wrong."] },
+        { "id": "u1l1e2", "type": "tf",
+          "q": ["Ako AI tekst zvuči sigurno i stručno, onda je točan.", "If AI text sounds confident and expert, it is accurate."],
+          "answer": false,
+          "explain": ["Samopouzdan ton ne znači točnost. Model piše tečno i kad izmišlja.", "A confident tone doesn't mean accuracy. The model writes fluently even when it invents."] },
+        { "id": "u1l1e3", "type": "fill",
+          "q": ["Model ne razumije kao čovjek, već predviđa. Zato mu treba jasan ___ (upit koji mu šaljete).", "A model doesn't understand like a human, it predicts. That's why it needs a clear ___ (the request you send it)."],
+          "answers": { "hr": ["prompt", "upit", "zadatak"], "en": ["prompt", "request", "instruction"] },
+          "explain": ["Prompt je upit koji dajete modelu. Što je jasniji, to je rezultat bolji.", "A prompt is the request you give the model. The clearer it is, the better the result."] },
+        { "id": "u1l1e4", "type": "match",
+          "q": ["Spojite pojam s njegovim značenjem.", "Match each term with its meaning."],
+          "pairs": [
+            [["Prompt", "Prompt"], ["Upit koji dajete modelu", "The request you give the model"]],
+            [["Token", "Token"], ["Dio riječi koji model obrađuje", "A chunk of a word the model processes"]],
+            [["Halucinacija", "Hallucination"], ["Uvjerljiva, ali izmišljena tvrdnja", "A convincing but invented claim"]],
+            [["Kontekst", "Context"], ["Sve što model „vidi” u razgovoru", "Everything the model “sees” in the conversation"]]
+          ],
+          "explain": ["Ova četiri pojma pojavljuju se u svakoj lekciji koja slijedi.", "These four terms appear in every lesson that follows."] },
+        { "id": "u1l1e5", "type": "mc",
+          "q": ["Zašto isti prompt može dati različite odgovore?", "Why can the same prompt give different answers?"],
+          "options": [
+            ["Model bira između više vjerojatnih riječi, pa je ishod varijabilan", "The model chooses among several likely words, so the output varies"],
+            ["Jer se aplikacija pokvarila", "Because the app is broken"],
+            ["Jer AI pamti kad ste ljuti", "Because the AI remembers when you're upset"]
+          ], "answer": 0,
+          "explain": ["Zato je dobro tražiti više varijanti i birati najbolju.", "That's why it's smart to ask for several variants and pick the best."] },
+        { "id": "u1l1e6", "type": "tf",
+          "q": ["Model sam od sebe zna što se jučer dogodilo na tržištu.", "The model knows by itself what happened on the market yesterday."],
+          "answer": false,
+          "explain": ["Znanje modela staje na određenom datumu. Bez povezanog alata za pretragu ne zna nove događaje.", "A model's knowledge stops at a cutoff date. Without a connected search tool it doesn't know recent events."] },
+        { "id": "u1l1e7", "type": "mc",
+          "q": ["Koji zadatak najbolje odgovara LLM-u u marketingu?", "Which task fits an LLM best in marketing?"],
+          "options": [
+            ["Predložiti 15 varijanti naslova za newsletter", "Suggest 15 headline variants for a newsletter"],
+            ["Izračunati točan ROI kampanje iz sirovih podataka bez provjere", "Calculate exact campaign ROI from raw data without checking"],
+            ["Navesti današnje točne cijene konkurencije", "List competitors' exact prices as of today"]
+          ], "answer": 0,
+          "explain": ["Jezični model je jak u generiranju varijanti. Točni brojevi i svježi podaci traže provjeru ili drugi alat.", "A language model is strong at generating variants. Exact numbers and fresh data need checking or another tool."] },
+        { "id": "u1l1e8", "type": "fill",
+          "q": ["Kad AI izmisli uvjerljivu, ali netočnu tvrdnju, to zovemo ___.", "When AI invents a convincing but false claim, we call it a ___."],
+          "answers": { "hr": ["halucinacija", "halucinacije", "halucinaciju"], "en": ["hallucination", "hallucinations"] },
+          "explain": ["Halucinacije su najveći rizik u marketingu: izmišljene statistike, citati i izvori.", "Hallucinations are the biggest marketing risk: invented statistics, quotes and sources."] }
+      ]
+    },
+    {
+      "id": "u1l2",
+      "title": ["Gdje AI štedi vrijeme", "Where AI saves time"],
+      "exercises": [
+        { "id": "u1l2e1", "type": "match",
+          "q": ["Spojite zadatak s načinom na koji AI pomaže.", "Match each task with the way AI helps."],
+          "pairs": [
+            [["20 ideja za naslove", "20 headline ideas"], ["Brainstorming u sekundama", "Brainstorming in seconds"]],
+            [["Izvještaj od 30 stranica", "A 30-page report"], ["Sažetak ključnih točaka", "A summary of key points"]],
+            [["Objava na hrvatskom i engleskom", "A post in Croatian and English"], ["Prijevod i prilagodba", "Translation and adaptation"]],
+            [["Prazna stranica newslettera", "A blank newsletter page"], ["Prvi nacrt za doradu", "A first draft to refine"]]
+          ],
+          "explain": ["U svim slučajevima AI daje brz početak, a vi donosite odluku i završni glas.", "In every case AI gives a fast start, and you bring the decision and the final voice."] },
+        { "id": "u1l2e2", "type": "mc",
+          "q": ["AI je u marketingu najkorisniji kao…", "In marketing, AI is most useful as…"],
+          "options": [
+            ["brz pomoćnik koji pripremi prvi nacrt", "a fast assistant that prepares a first draft"],
+            ["zamjena za strategiju i odluke", "a replacement for strategy and decisions"],
+            ["jedini izvor činjenica", "the only source of facts"]
+          ], "answer": 0,
+          "explain": ["Strategija, odgovornost i provjera ostaju kod ljudi.", "Strategy, accountability and checking stay with people."] },
+        { "id": "u1l2e3", "type": "tf",
+          "q": ["AI može sam odlučiti o strategiji kampanje bez ljudskog pregleda.", "AI can decide a campaign strategy on its own without human review."],
+          "answer": false,
+          "explain": ["Model ne poznaje vaše poslovne ciljeve, proračun ni rizike. Strategiju postavlja čovjek.", "The model doesn't know your business goals, budget or risks. A human sets the strategy."] },
+        { "id": "u1l2e4", "type": "order",
+          "q": ["Složite korake učinkovitog rada s AI-jem.", "Put the steps of effective AI work in order."],
+          "steps": [
+            ["Napišite brief: cilj, publika, ton", "Write a brief: goal, audience, tone"],
+            ["Zatražite od AI-ja nacrt ili više varijanti", "Ask the AI for a draft or several variants"],
+            ["Provjerite činjenice i uskladite ton brenda", "Check facts and match the brand tone"],
+            ["Objavite i pratite rezultate", "Publish and track results"]
+          ],
+          "explain": ["Brief ide prvi, provjera prije objave. Taj redoslijed štedi i vrijeme i reputaciju.", "The brief comes first, checking before publishing. That order saves both time and reputation."] },
+        { "id": "u1l2e5", "type": "fill",
+          "q": ["AI je najbolji za prvi ___ teksta, a ne za završnu verziju.", "AI is best for the first ___ of a text, not the final version."],
+          "answers": { "hr": ["nacrt", "koncept", "draft"], "en": ["draft", "version"] },
+          "explain": ["Nacrt ubrzava početak. Završna verzija traži vaš glas i vašu provjeru.", "A draft speeds up the start. The final version needs your voice and your checking."] },
+        { "id": "u1l2e6", "type": "mc",
+          "q": ["Koji zadatak treba ostati kod čovjeka, a ne kod AI-ja?", "Which task should stay with a human rather than AI?"],
+          "options": [
+            ["Odluka koje obećanje brend smije dati kupcima", "Deciding which promise the brand may make to customers"],
+            ["Popis 10 mogućih hashtagova", "A list of 10 possible hashtags"],
+            ["Skraćivanje teksta na 150 znakova", "Shortening a text to 150 characters"]
+          ], "answer": 0,
+          "explain": ["Obećanja kupcima imaju pravne i reputacijske posljedice, pa ih potvrđuje čovjek.", "Promises to customers have legal and reputational consequences, so a human signs them off."] },
+        { "id": "u1l2e7", "type": "compare",
+          "q": ["Koji pristup je bolji?", "Which approach is better?"],
+          "a": ["Zalijepim prvi AI odgovor na web stranicu bez čitanja.", "I paste the first AI answer onto the website without reading it."],
+          "b": ["Tražim 5 varijanti, biram najbolju i doradim je u glasu brenda.", "I ask for 5 variants, pick the best and refine it in the brand voice."],
+          "answer": 1,
+          "explain": ["Varijante plus ljudski odabir daju bolji tekst i hvataju greške prije objave.", "Variants plus human selection give better copy and catch errors before publishing."] },
+        { "id": "u1l2e8", "type": "tf",
+          "q": ["Prvi AI odgovor rijetko je konačan. Dobar rezultat dolazi iteriranjem.", "The first AI answer is rarely final. A good result comes from iterating."],
+          "answer": true,
+          "explain": ["Dopunite prompt, tražite promjene, usporedite varijante. Tako dolazite do teksta koji možete objaviti.", "Refine the prompt, ask for changes, compare variants. That's how you get text you can publish."] }
+      ]
+    },
+    {
+      "id": "u1l3",
+      "title": ["Gdje AI griješi", "Where AI goes wrong"],
+      "exercises": [
+        { "id": "u1l3e1", "type": "spot",
+          "q": ["Dodirnite izmišljenu ili neprovjerljivu tvrdnju u AI tekstu.", "Tap the invented or unverifiable claim in the AI text."],
+          "segments": [
+            ["Kava je jedan od najpopularnijih napitaka na svijetu. ", "Coffee is one of the most popular drinks in the world. "],
+            ["Prema studiji Instituta za kavu iz Zagreba, 87,4% Hrvata pije kavu prije 8 ujutro. ", "According to a study by the Zagreb Coffee Institute, 87.4% of Croats drink coffee before 8 a.m. "],
+            ["Naša nova mješavina ima bogat okus karamele.", "Our new blend has a rich caramel flavour."]
+          ], "bad": 1,
+          "explain": ["Precizna brojka i institut bez izvora klasična su halucinacija. Dok ne pronađete izvor, ne objavljujte.", "A precise number and an institute with no source is a classic hallucination. Don't publish until you find the source."] },
+        { "id": "u1l3e2", "type": "tf",
+          "q": ["AI nikad ne izmišlja izvore i citate.", "AI never invents sources and quotes."],
+          "answer": false,
+          "explain": ["Modeli često izmisle uvjerljive naslove studija i linkove. Svaki izvor otvorite i provjerite.", "Models often invent convincing study titles and links. Open and check every source."] },
+        { "id": "u1l3e3", "type": "mc",
+          "q": ["Kako najbolje provjeriti statistiku iz AI teksta?", "What is the best way to check a statistic from an AI text?"],
+          "options": [
+            ["Pronaći izvorni dokument i provjeriti broj, godinu i uzorak", "Find the original document and check the number, year and sample"],
+            ["Pitati AI „jesi li siguran?”", "Ask the AI “are you sure?”"],
+            ["Zadržati je ako zvuči logično", "Keep it if it sounds logical"]
+          ], "answer": 0,
+          "explain": ["AI će često potvrditi vlastitu grešku. Jedino pouzdano je izvorni dokument.", "AI will often confirm its own mistake. Only the original document is reliable."] },
+        { "id": "u1l3e4", "type": "match",
+          "q": ["Spojite vrstu greške s primjerom.", "Match the type of error with an example."],
+          "pairs": [
+            [["Halucinacija", "Hallucination"], ["Citat iz studije koja ne postoji", "A quote from a study that doesn't exist"]],
+            [["Zastarjeli podaci", "Outdated data"], ["Pravila oglašavanja koja su se promijenila", "Advertising rules that have changed"]],
+            [["Generički ton", "Generic tone"], ["„U današnjem brzom svijetu…”", "“In today's fast-paced world…”"]],
+            [["Pristranost", "Bias"], ["Stereotipan opis ciljne skupine", "A stereotyped description of the target group"]]
+          ],
+          "explain": ["Svaku od ovih grešaka hvata drugačija provjera: izvor, datum, glas brenda i ljudski pregled.", "Each of these errors is caught by a different check: source, date, brand voice and human review."] },
+        { "id": "u1l3e5", "type": "spot",
+          "q": ["Dodirnite tvrdnju koju nikako ne biste objavili bez dokaza.", "Tap the claim you would never publish without proof."],
+          "segments": [
+            ["Naš novi serum hidratizira kožu. ", "Our new serum hydrates the skin. "],
+            ["Dermatolozi s Harvarda potvrdili su da uklanja bore za 3 dana. ", "Dermatologists from Harvard confirmed it removes wrinkles in 3 days. "],
+            ["Preporučujemo ga uz dnevnu zaštitu od sunca.", "We recommend using it with daily sun protection."]
+          ], "bad": 1,
+          "explain": ["Neprovjerljiva zdravstvena tvrdnja i pozivanje na ugledno ime. Osim što je moguće izmišljena, može biti i pravno rizična.", "An unverifiable health claim that leans on a respected name. Besides possibly being invented, it can be legally risky."] },
+        { "id": "u1l3e6", "type": "fill",
+          "q": ["Izmišljena, ali uvjerljiva tvrdnja AI-ja zove se ___.", "An invented but convincing AI claim is called a ___."],
+          "answers": { "hr": ["halucinacija", "halucinacije"], "en": ["hallucination", "hallucinations"] },
+          "explain": ["Prepoznati halucinaciju znači znati što provjeriti: brojke, imena, citate i linkove.", "Spotting a hallucination means knowing what to check: numbers, names, quotes and links."] },
+        { "id": "u1l3e7", "type": "compare",
+          "q": ["Koji tekst je sigurniji za objavu?", "Which text is safer to publish?"],
+          "a": ["Prema istraživanju, 92,7% kupaca preferira naš proizvod.", "According to research, 92.7% of customers prefer our product."],
+          "b": ["Kupci ističu udobnost proizvoda. [Ovdje dodajte stvarni citat iz recenzije ili podatak iz vlastite ankete.]", "Customers highlight the product's comfort. [Add a real review quote or data from your own survey here.]"],
+          "answer": 1,
+          "explain": ["Tekst A ima preciznu brojku bez izvora. Tekst B ostavlja mjesto za stvaran dokaz.", "Text A has a precise figure with no source. Text B leaves room for real evidence."] },
+        { "id": "u1l3e8", "type": "order",
+          "q": ["Složite korake provjere činjenica.", "Put the fact-checking steps in order."],
+          "steps": [
+            ["Označite sve brojke, imena i citate", "Mark all numbers, names and quotes"],
+            ["Za svaku tvrdnju pronađite izvor", "Find a source for every claim"],
+            ["Ispravite ili izbrišite što ne možete potvrditi", "Fix or delete what you can't confirm"],
+            ["Tek tada objavite", "Only then publish"]
+          ],
+          "explain": ["Provjera ide prije objave, ne nakon prve pritužbe.", "Checking comes before publishing, not after the first complaint."] }
+      ]
+    },
+    {
+      "id": "u1l4",
+      "title": ["Pametna pravila rada", "Smart working rules"],
+      "exercises": [
+        { "id": "u1l4e1", "type": "tf",
+          "q": ["Dovoljno je da AI napiše tekst. Čitanje prije objave nije potrebno.", "It's enough for AI to write the text. Reading it before publishing isn't needed."],
+          "answer": false,
+          "explain": ["Vi ste odgovorni za sve što objavite, bez obzira tko je tekst napisao.", "You are responsible for everything you publish, no matter who wrote the text."] },
+        { "id": "u1l4e2", "type": "mc",
+          "q": ["Što znači „čovjek u petlji” (human in the loop)?", "What does “human in the loop” mean?"],
+          "options": [
+            ["Čovjek pregledava i odobrava rezultat prije nego što ode javnosti", "A human reviews and approves the output before it goes public"],
+            ["Čovjek ručno piše svaki prompt", "A human writes every prompt by hand"],
+            ["AI radi bez ikakvog nadzora", "AI works without any supervision"]
+          ], "answer": 0,
+          "explain": ["Ljudski pregled je zadnja linija obrane od grešaka i neprikladnog tona.", "Human review is the last line of defence against errors and an off-brand tone."] },
+        { "id": "u1l4e3", "type": "match",
+          "q": ["Spojite sadržaj s razinom nadzora.", "Match the content with the level of oversight."],
+          "pairs": [
+            [["Objava na društvenim mrežama", "A social media post"], ["Pregled prije objave", "Review before publishing"]],
+            [["Tekst pravnog ugovora", "Legal contract text"], ["Obavezan pregled stručnjaka", "Mandatory expert review"]],
+            [["Interna bilješka sa sastanka", "An internal meeting note"], ["Brzi pregled", "A quick skim"]],
+            [["Osobni podaci klijenata", "Customer personal data"], ["Ne unositi u javne alate", "Don't enter into public tools"]]
+          ],
+          "explain": ["Što je veći rizik za brend, pravo ili privatnost, to je strožiji nadzor.", "The higher the risk to brand, law or privacy, the stricter the oversight."] },
+        { "id": "u1l4e4", "type": "fill",
+          "q": ["Prije objave uvijek provjerite ___ iz AI teksta.", "Before publishing, always check the ___ in the AI text."],
+          "answers": { "hr": ["činjenice", "brojke", "tvrdnje", "podatke"], "en": ["facts", "claims", "numbers", "figures"] },
+          "explain": ["Činjenice, brojke i tvrdnje su ono što model najčešće izmisli.", "Facts, numbers and claims are what the model most often invents."] },
+        { "id": "u1l4e5", "type": "order",
+          "q": ["Složite siguran tijek rada.", "Put a safe workflow in order."],
+          "steps": [
+            ["Odlučite smije li zadatak u AI alat", "Decide whether the task may go into an AI tool"],
+            ["Uklonite osobne i povjerljive podatke", "Remove personal and confidential data"],
+            ["Zatražite nacrt", "Request a draft"],
+            ["Pregledajte i objavite", "Review and publish"]
+          ],
+          "explain": ["Zaštita podataka ide prije prompta, a pregled prije objave.", "Data protection comes before the prompt, and review before publishing."] },
+        { "id": "u1l4e6", "type": "spot",
+          "q": ["Pročitajte tekst i dodirnite rečenicu koju biste uklonili prije objave.", "Read the text and tap the sentence you would remove before publishing."],
+          "segments": [
+            ["Naša agencija pomaže malim brendovima da rastu. ", "Our agency helps small brands grow. "],
+            ["Jamčimo 300% više upita u 7 dana. ", "We guarantee 300% more enquiries in 7 days. "],
+            ["Javite nam se za besplatnu konzultaciju.", "Contact us for a free consultation."]
+          ], "bad": 1,
+          "explain": ["Neostvariva garancija može biti obmanjujuće oglašavanje. AI često „napuhne” obećanja.", "An unattainable guarantee can be misleading advertising. AI often inflates promises."] },
+        { "id": "u1l4e7", "type": "compare",
+          "q": ["Koji zahtjev AI-ju je bolji?", "Which request to the AI is better?"],
+          "a": ["Napiši sve o umjetnoj inteligenciji.", "Write everything about artificial intelligence."],
+          "b": ["Napiši 3 rečenice o tome kako AI štedi vrijeme malom timu. Bez izmišljenih brojki.", "Write 3 sentences about how AI saves a small team time. No invented numbers."],
+          "answer": 1,
+          "explain": ["Zahtjev B ima opseg, temu i ograničenje. U sljedećoj jedinici to učimo složiti do kraja.", "Request B has scope, topic and a constraint. In the next unit you'll learn to build this fully."] },
+        { "id": "u1l4e8", "type": "rubric",
+          "q": ["Napišite kratak zahtjev AI-ju: neka predloži tekst objave o novoj kavi i neka označi sve što treba provjeriti.", "Write a short request to AI: ask it to suggest a post about a new coffee and to flag everything that needs checking."],
+          "rubric": {
+            "minWords": 10, "lenPts": 10, "vaguePts": 10, "pass": 60,
+            "criteria": [
+              { "id": "task", "pts": 20, "label": ["Traži konkretan tekst (npr. objava)", "Asks for a concrete text (e.g. a post)"],
+                "kw": { "hr": ["napiši", "predloži", "objav", "tekst"], "en": ["write", "suggest", "post", "draft"] },
+                "hint": ["Jasno recite što AI treba napisati: „Napiši objavu…”", "State clearly what the AI should write: “Write a post…”"] },
+              { "id": "verify", "pts": 25, "label": ["Traži označavanje onoga što treba provjeriti", "Asks to flag what needs checking"],
+                "kw": { "hr": ["provjer", "označi", "izvor", "činjenic", "cinjenic"], "en": ["verify", "flag", "mark", "source", "fact", "check"] },
+                "hint": ["Dodajte: „Označi tvrdnje koje treba provjeriti.”", "Add: “Flag claims that need checking.”"] },
+              { "id": "nofake", "pts": 25, "label": ["Zabranjuje izmišljanje brojki ili izvora", "Forbids inventing numbers or sources"],
+                "kw": { "hr": ["ne izmišljaj", "bez izmišljen", "bez statistik", "bez brojk", "nemoj izmišlj"], "en": ["do not invent", "don't invent", "no invented", "no made-up", "without invented", "do not make up"] },
+                "hint": ["Dodajte ograničenje: „Ne izmišljaj brojke ni izvore.”", "Add a constraint: “Don't invent numbers or sources.”"] },
+              { "id": "topic", "pts": 10, "label": ["Navodi temu (kava)", "Names the topic (coffee)"],
+                "kw": { "hr": ["kav"], "en": ["coffee"] },
+                "hint": ["Spomenite o čemu je objava.", "Mention what the post is about."] }
+            ],
+            "vague": { "hr": ["nešto", "bilo što", "sve o ", "nekako", "općenito"], "en": ["something", "anything", "everything about", "somehow", "generic"] },
+            "model": ["Napiši objavu za Instagram o našoj novoj kavi (do 50 riječi). Ne izmišljaj brojke ni izvore, a na kraju označi sve tvrdnje koje moram provjeriti.", "Write an Instagram post about our new coffee (up to 50 words). Don't invent numbers or sources, and at the end flag every claim I need to verify."]
+          },
+          "explain": ["Dobar zahtjev kaže što napisati, što ne smije izmisliti i što treba provjeriti.", "A good request says what to write, what not to invent and what to verify."] }
+      ]
+    }
+  ]
+}
