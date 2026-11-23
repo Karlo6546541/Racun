@@ -552,6 +552,16 @@ details.case summary{cursor:pointer;font-weight:600;color:var(--accent)}
       <div class="note">Podaci u aplikaciji su ilustrativni primjeri izrađeni za ovu prijavu, a ne mjerenja iz tvrtke ni s prijašnjeg posla. Prije slanja upiši svoje podatke i, ako imaš, dodaj stvaran primjer.</div>
     </div>
   </div>
+  <div class="g2">
+    <div class="card"><h3>Primjer iz ove prijave: stvarni problem riješen AI-jem</h3><div class="sub">Točan opis onoga što je stvarno napravljeno. Zamijeni ga vlastitim primjerom ako imaš jači.</div><div class="letter" id="example2">
+      <p><b>Problem.</b> Oglas traži konkretan primjer u kojem je AI riješio stvaran problem, a običan životopis ne može pokazati kako radim s AI alatima na zadacima iz proizvodnje.</p>
+      <p><b>Što je napravljeno.</b> Uz Claude Code izrađena je radna aplikacija za uvođenje AI-ja u proizvodnu tvrtku: mapa procesa s izračunom ušteda, četiri radna agenta (upiti kupaca, certifikati 3.1, 8D, tehnološki list), vijeće uloga s botom koji vodi sjednicu, registar rješenja i praćenje SOP-ova. Ima dvanaest prikaza i radi bez poslužitelja.</p>
+      <p><b>Kako je provjereno.</b> Svaki prikaz je otvoren u pregledniku na računalu i na širini mobitela, bez grešaka u konzoli. Agenti su isprobani na simuliranih 24 upita i 16 certifikata, uz izračun vremena prije i poslije.</p>
+      <p><b>Ograničenje.</b> Svi podaci su ilustrativni ili simulirani, a odluke vijeća računaju se pravilima u pregledniku. Prvi korak na stvarnom poslu bio bi mjerenje stanja prije uvođenja na stvarnim upitima i certifikatima.</p></div>
+      <div class="row" style="margin-top:1rem"><button class="primary" type="button" data-copy="example2">Kopiraj opis</button></div></div>
+    <div class="card"><h3>Životopis</h3><div class="sub">Predložak koji popuniš istinitim podacima. Ime i kontakt dolaze iz naslovnog bloka gore, tekst se sprema u ovom pregledniku.</div><div class="g2" style="grid-template-columns:1fr"><div id="cv-form" style="display:grid;gap:.6rem"></div></div></div>
+  </div>
+  <div class="card"><h3>Pregled životopisa</h3><div class="sub">Tako će izgledati tekst koji kopiraš u životopis ili e-poštu.</div><pre class="draft" id="cv-prev" style="white-space:pre-wrap"></pre><div class="row" style="margin-top:.7rem"><button class="primary" type="button" data-copy="cv-prev">Kopiraj životopis</button></div></div>
 </section>
 </main>
 </div>
@@ -1262,6 +1272,24 @@ function botDebate(){
 $("#bot-debate").onclick=botDebate;
 $("#bot-save").onclick=()=>{if(!lastDec)return;S.dec.unshift({d:new Date().toLocaleDateString("hr-HR"),n:lastDec.n,t:lastDec.t,score:lastDec.score});S.dec=S.dec.slice(0,20);save();renderCouncil();toast("Odluka potvrđena i spremljena u dnevnik")};
 
+/* ---------- životopis i pravi primjer ---------- */
+const CVF=[["cvx-sum","Sažetak","[Dvije do tri rečenice: tko si, koliko godina iskustva imaš i čime se baviš. Piši samo ono što je istina.]",3],
+ ["cv-exp","Radno iskustvo","[Tvrtka, pozicija, razdoblje]\n- [što si radio i s kojim rezultatom]\n- [ako si koristio AI alat, napiši koji i za što]",9],
+ ["cv-edu","Obrazovanje","[Ustanova, smjer, godina]",3],
+ ["cv-skills","Vještine i alati","AI alati: Claude Code (izrada aplikacije za ovu prijavu), [dopuni alate koje stvarno koristiš]\nProizvodnja: [norme, postupci, sustavi koje poznaješ]",4],
+ ["cv-lang","Jezici","[Hrvatski, engleski, ...]",2]];
+S.cv=S.cv||{};
+function cvText(){
+  const h=`${$("#in-name").value}\n${$("#in-tel").value} · ${$("#in-mail").value}`;
+  return h+"\n\n"+CVF.map(f=>`${f[1].toUpperCase()}\n${($("#"+f[0]).value||"").trim()}`).join("\n\n");
+}
+function renderCv(){
+  $("#cv-form").innerHTML=CVF.map(f=>`<label class="f">${f[1]}<textarea id="${f[0]}" rows="${f[3]}" style="font-family:var(--f-body);font-size:.85rem"></textarea></label>`).join("");
+  CVF.forEach(f=>{const el=$("#"+f[0]);el.value=S.cv[f[0]]!==undefined?S.cv[f[0]]:f[2];el.addEventListener("input",()=>{S.cv[f[0]]=el.value;save();$("#cv-prev").textContent=cvText()})});
+  ["in-name","in-tel","in-mail"].forEach(i=>$("#"+i).addEventListener("input",()=>$("#cv-prev").textContent=cvText()));
+  $("#cv-prev").textContent=cvText();
+}
+
 /* ---------- prijava, kopiranje, tema, rute ---------- */
 [["in-name","j-name"],["in-tel","j-tel"],["in-mail","j-mail"]].forEach(([i,c])=>{const el=$("#"+i);el.addEventListener("input",()=>$$("."+c).forEach(n=>n.textContent=el.value))});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-copy]");if(!b)return;const n=$("#"+b.dataset.copy);const txt=(n.tagName==="TEXTAREA"?n.value:(n.innerText||n.textContent)).trim();
@@ -1274,5 +1302,5 @@ addEventListener("hashchange",route);
 
 function renderAll(){$("#rate").value=S.rate;$("#real").value=S.real;$("#bonus").value=S.bonus;
   renderProcTable();renderProcCharts();renderSopAll();renderReg();renderAmb();renderDash();renderPj();renderCouncil();renderTools();renderSim();renderOglas();renderBot()}
-renderAll();renderQuiz();runRfq();runNcr();runCert();runTech();route();
+renderAll();renderCv();renderQuiz();runRfq();runNcr();runCert();runTech();route();
 </script>
