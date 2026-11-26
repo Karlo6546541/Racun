@@ -66,6 +66,7 @@ public class MainActivity extends Activity implements Tv.Listener {
         getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Ui.BG));
         tv = new Tv(getFilesDir());
         tv.listener = this;
+        tv.binder = this::bindToWifi;
         prefs = getSharedPreferences("tv", MODE_PRIVATE);
         tv.setIme(prefs.getBoolean("ime", true));
         autoKeyboard = prefs.getBoolean("autokb", true);
@@ -84,6 +85,26 @@ public class MainActivity extends Activity implements Tv.Listener {
     }
 
     @Override protected void onStop() { super.onStop(); io.execute(tv::close); }
+
+    /** Home addresses go over Wi-Fi even when Android prefers mobile data; Tailscale (100.x) is left alone. */
+    private void bindToWifi(java.net.Socket s, String host) throws java.io.IOException {
+        if (!isLan(host)) return;
+        android.net.ConnectivityManager cm = (android.net.ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (cm == null) return;
+        for (android.net.Network n : cm.getAllNetworks()) {
+            android.net.NetworkCapabilities c = cm.getNetworkCapabilities(n);
+            if (c != null && (c.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)
+                    || c.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET))) {
+                n.bindSocket(s);
+                return;
+            }
+        }
+        throw new java.io.IOException("Mobitel nije spojen na Wi-Fi. Uključi Wi-Fi i spoji se na kućnu mrežu (ista kao TV).");
+    }
+
+    private static boolean isLan(String h) {
+        return h.startsWith("192.168.") || h.startsWith("10.") || h.matches("172\\.(1[6-9]|2\\d|3[01])\\..*");
+    }
 
     // text field on the TV got focus -> bring up the phone keyboard
     @Override public void textFieldFocused() {

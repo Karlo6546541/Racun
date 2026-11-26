@@ -48,6 +48,9 @@ final class Tv {
     private static final int IME_FEATURE = 4;
 
     interface Listener { void textFieldFocused(); }
+    /** Lets the app route the socket over Wi-Fi (Android may otherwise pick mobile data). */
+    interface Binder { void bind(java.net.Socket s, String host) throws IOException; }
+    volatile Binder binder;
     volatile Listener listener;
     volatile long lastErrorAt;
     volatile String lastError = "";
@@ -111,8 +114,17 @@ final class Tv {
 
     private SSLSocket open(String host, int port) throws Exception {
         identity();
-        SSLSocket s = (SSLSocket) ctx.getSocketFactory().createSocket();
-        s.connect(new InetSocketAddress(host, port), 6000);
+        java.net.Socket plain = new java.net.Socket();
+        Binder b = binder;
+        if (b != null) b.bind(plain, host);
+        try {
+            plain.connect(new InetSocketAddress(host, port), 6000);
+        } catch (IOException e) {
+            try { plain.close(); } catch (IOException ignored) {}
+            throw new IOException("TV (" + host + ") se ne javlja na portu " + port
+                    + ". Je li mobitel na istoj Wi-Fi mreži i je li TV upaljen?", e);
+        }
+        SSLSocket s = (SSLSocket) ctx.getSocketFactory().createSocket(plain, host, port, true);
         s.setSoTimeout(10000);
         s.startHandshake();
         return s;
