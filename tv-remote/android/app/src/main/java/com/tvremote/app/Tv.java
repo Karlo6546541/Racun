@@ -48,6 +48,24 @@ final class Tv {
     private static final int IME_FEATURE = 4;
 
     interface Listener { void textFieldFocused(); }
+
+    // ---- event log (shown in the app so problems can be diagnosed from a screenshot)
+    private static final java.util.ArrayDeque<String> LOG = new java.util.ArrayDeque<>();
+    private static final java.text.SimpleDateFormat TIME = new java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US);
+    static void log(String line) {
+        synchronized (LOG) {
+            LOG.addLast(TIME.format(new java.util.Date()) + " " + line);
+            while (LOG.size() > 150) LOG.removeFirst();
+        }
+    }
+    static String logText() {
+        synchronized (LOG) {
+            StringBuilder b = new StringBuilder();
+            for (String l : LOG) b.append(l).append('\n');
+            return b.length() == 0 ? "(prazno)" : b.toString();
+        }
+    }
+    static void clearLog() { synchronized (LOG) { LOG.clear(); } }
     /** Lets the app route the socket over Wi-Fi (Android may otherwise pick mobile data). */
     interface Binder { void bind(java.net.Socket s, String host) throws IOException; }
     volatile Binder binder;
@@ -217,7 +235,9 @@ final class Tv {
     synchronized void connect(String host) throws Exception {
         close();
         this.host = host;
-        sock = open(host, REMOTE_PORT);
+        log("spajam se na " + host + ":" + REMOTE_PORT);
+        try { sock = open(host, REMOTE_PORT); }
+        catch (Exception e) { log("spajanje nije uspjelo: " + e.getMessage()); throw e; }
         out = sock.getOutputStream();
         started = new CountDownLatch(1);
         ready = false;
@@ -229,12 +249,14 @@ final class Tv {
                 while (true) handle(Pb.parse(readFrame(in)));
             } catch (Exception e) {
                 ready = false;
+                log("veza prekinuta: " + e.getMessage());
                 try { s.close(); } catch (IOException ignored) {}
             }
         }, "tv-reader");
         t.setDaemon(true);
         t.start();
         if (!started.await(8, TimeUnit.SECONDS)) {
+            log("TV nije poslao 'start' u 8 s");
             close();
             throw new IOException("TV ne odgovara. Je li upareno i je li TV upaljen?");
         }
@@ -252,7 +274,30 @@ final class Tv {
         }
     }
 
+    private static String describe(Pb.Msg m) {
+        StringBuilder b = new StringBuilder("TV → ");
+        java.util.List<Integer> keys = new java.util.ArrayList<>(m.f.keySet());
+        java.util.Collections.sort(keys);
+        for (int k : keys) {
+            switch (k) {
+                case 1: b.append("configure "); break;
+                case 2: b.append("set_active "); break;
+                case 3: b.append("GREŠKA "); break;
+                case 8: return null; // ping, too noisy
+                case 20: b.append("ime_polje "); break;
+                case 21: b.append("ime_uredi "); break;
+                case 22: b.append("ime_traži "); break;
+                case 40: { Pb.Msg st = m.m(40); b.append("start(upaljen=").append(st == null || st.i(1, 0) != 0).append(") "); break; }
+                case 50: b.append("glasnoća "); break;
+                default: b.append("poruka#").append(k).append(' ');
+            }
+        }
+        return b.toString().trim();
+    }
+
     private void handle(Pb.Msg m) throws IOException {
+        String d = describe(m);
+        if (d != null) log(d);
         if (m.has(1)) { // remote_configure
             Pb.Msg cfg = m.m(1);
             int wanted = BASE_FEATURES | (ime ? IME_FEATURE : 0);
@@ -319,12 +364,15 @@ final class Tv {
     }
 
     void key(int keyCode) throws Exception {
+        log("tipka " + keyCode + (ready ? "" : " (nije spojen, spajam)"));
         send(new Pb().m(10, new Pb().i(1, keyCode).i(2, DIRECTION_SHORT)).framed());
     }
     void link(String url) throws Exception {
+        log("otvori " + url);
         send(new Pb().m(90, new Pb().s(1, url)).framed());
     }
     void text(String s) throws Exception {
+        log("tekst (" + s.length() + " znakova) polje=" + imeFieldCounter);
         Pb edit = new Pb().i(1, 1).m(2, new Pb().i(1, s.length()).i(2, s.length()).s(3, s));
         send(new Pb().m(21, new Pb().i(1, imeCounter).i(2, imeFieldCounter).m(3, edit)).framed());
     }

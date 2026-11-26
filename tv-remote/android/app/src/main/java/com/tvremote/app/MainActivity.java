@@ -1045,6 +1045,10 @@ public class MainActivity extends Activity implements Tv.Listener {
         g2.addView(link("MAC adresa TV-a za paljenje", this::askMac));
         note(c, "Ugašen TV može se probuditi preko mreže samo ako to podržava. Inače ga upali daljinskim ili preko soundbara (HDMI-CEC).");
 
+        LinearLayout gd = group(c, "DIJAGNOSTIKA");
+        gd.addView(link("Prikaži zapis događaja", this::showLog));
+        note(c, "Ako nešto ne radi: pritisni gumb koji ne radi, pa otvori ovo i pošalji mi snimku ekrana.");
+
         LinearLayout g3 = group(c, "TELEVIZOR");
         g3.addView(link("Ponovno upari", () -> {
             String ip = prefs.getString("ip", "");
@@ -1059,6 +1063,25 @@ public class MainActivity extends Activity implements Tv.Listener {
         ver.setPadding(0, dp(28), 0, 0);
         c.addView(ver);
         return scroll(c);
+    }
+
+    private void showLog() {
+        TextView t = text(Tv.logText(), 11.5f, 0xFFD1D1D6, Typeface.MONOSPACE);
+        t.setPadding(dp(18), dp(8), dp(18), dp(8));
+        t.setTextIsSelectable(true);
+        final ScrollView sv = new ScrollView(this);
+        sv.addView(t);
+        sv.post(() -> sv.fullScroll(View.FOCUS_DOWN));
+        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle("Zapis događaja (v" + versionName() + ")")
+                .setView(sv)
+                .setPositiveButton("Zatvori", null)
+                .setNeutralButton("Obriši", (d, w) -> Tv.clearLog())
+                .setNegativeButton("Kopiraj", (d, w) -> {
+                    android.content.ClipboardManager cm = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                    if (cm != null) cm.setPrimaryClip(android.content.ClipData.newPlainText("zapis", Tv.logText()));
+                    say("Zapis kopiran", false);
+                }).show();
     }
 
     private String versionName() {
