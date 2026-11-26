@@ -137,9 +137,12 @@ public class MainActivity extends Activity implements Tv.Listener {
 
     @Override protected void onStop() { super.onStop(); io.execute(tv::close); }
 
+    /** On the touch surface the phone's back gesture is the TV's Back; in a sheet it closes the sheet. */
     @Override public void onBackPressed() {
-        if (mainScreen.getVisibility() == View.VISIBLE && currentTab != TAB_REMOTE) selectTab(TAB_REMOTE);
-        else super.onBackPressed();
+        if (mainScreen.getVisibility() != View.VISIBLE) { super.onBackPressed(); return; }
+        if (currentTab != TAB_REMOTE) { selectTab(TAB_REMOTE); return; }
+        press(BACK);
+        say("Natrag", false);
     }
 
     private final Runnable statusTick = new Runnable() {
@@ -473,7 +476,6 @@ public class MainActivity extends Activity implements Tv.Listener {
         Ui.TrackPad pad = new Ui.TrackPad(this);
         pad.key = this::press;
         pad.onEdgeRight = () -> { selectTab(TAB_KEYBOARD); showKeyboard(); };
-        pad.onEdgeLeft = () -> selectTab(TAB_APPS);
         f.addView(pad, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         return f;
     }
@@ -1202,18 +1204,16 @@ public class MainActivity extends Activity implements Tv.Listener {
     }
 
     private void showGestures() {
-        TextView t = text("Jedan prst\n"
-                + "   povuci — kretanje (brzi zamah = dalje)\n"
-                + "   dodir — OK\n"
-                + "   drži — play / pauza\n\n"
-                + "Dva prsta\n"
-                + "   dodir — natrag\n"
-                + "   gore / dolje — glasnoća\n"
-                + "   lijevo / desno — premotavanje\n\n"
-                + "Tri prsta\n"
-                + "   dodir — početni zaslon\n\n"
-                + "S desnog ruba prema sredini — tipkovnica\n"
-                + "S lijevog ruba prema sredini — izbornik (ili ⋯ gore)\n\n"
+        TextView t = text("Sve se radi jednim prstom (palcem):\n\n"
+                + "Povuci — kretanje (brzi zamah = dalje)\n"
+                + "Dodir — OK\n\n"
+                + "Drži pa pusti — play / pauza\n"
+                + "Drži pa kliži gore / dolje — glasnoća\n"
+                + "Drži pa kliži lijevo / desno — premotavanje\n\n"
+                + "S lijevog ruba prema sredini — natrag\n"
+                + "S donjeg ruba prema gore — početni zaslon\n"
+                + "S desnog ruba prema sredini — tipkovnica\n\n"
+                + "⋯ gore — izbornik (aplikacije, ulaz, zvuk…)\n"
                 + "Glasnoću mijenjaju i tipke za glasnoću na mobitelu.", 15, 0xFFE5E5EA, Typeface.DEFAULT);
         t.setLineSpacing(0, 1.15f);
         t.setPadding(dp(24), dp(8), dp(24), 0);
@@ -1221,7 +1221,7 @@ public class MainActivity extends Activity implements Tv.Listener {
         sv.addView(t);
         new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setTitle("Geste").setView(sv).setPositiveButton("U redu", null).show();
-        prefs.edit().putBoolean("gesturesSeen", true).apply();
+        prefs.edit().putBoolean("gesturesSeen2", true).apply();
     }
 
     private void moreMenu() {
@@ -1515,7 +1515,7 @@ public class MainActivity extends Activity implements Tv.Listener {
         setupScreen.setVisibility(View.GONE);
         mainScreen.setVisibility(View.VISIBLE);
         selectTab(TAB_REMOTE);
-        if (!prefs.getBoolean("gesturesSeen", false)) ui.postDelayed(this::showGestures, 400);
+        if (!prefs.getBoolean("gesturesSeen2", false)) ui.postDelayed(this::showGestures, 400);
         connectQuietly();
     }
 

@@ -202,30 +202,30 @@ final class Ui {
     }
 
     /**
-     * Whole-screen touch surface. One finger: drag = move (a flick adds steps), tap = OK, hold = play/pause.
-     * Two fingers: tap = back, up/down = volume, left/right = rewind/forward. Three fingers: tap = home.
-     * From the right edge inwards = keyboard, from the left edge inwards = quick menu.
+     * One-thumb touch surface. Drag = move (a flick adds steps), tap = OK.
+     * Hold and release = play/pause; hold and slide up/down = volume, left/right = rewind/forward.
+     * From the left edge = back, from the bottom edge up = home, from the right edge = keyboard.
      */
     static class TrackPad extends View {
         interface Key { void press(int code); }
         Key key;
-        Runnable onEdgeRight, onEdgeLeft;
+        Runnable onEdgeRight;
         private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Handler h = new Handler(Looper.getMainLooper());
         private android.view.VelocityTracker vt;
         private float downX, downY, lastX, lastY, accX, accY, touchX = -1, touchY = -1;
-        private float cx0, cy0, mAccX, mAccY;   // two/three finger centre
-        private boolean resetCentre;
         private long downT;
-        private boolean moved, multiMoved, longFired, down, edgeRight, edgeLeft;
-        private int maxPtr;
+        private boolean moved, down, holding, holdUsed, edgeRight, edgeLeft, edgeBottom;
         private String label;
         private long labelAt;
         boolean hint = true;
 
-        private final Runnable longPress = new Runnable() {
+        private final Runnable hold = new Runnable() {
             public void run() {
-                if (down && !moved && maxPtr == 1 && !edgeRight && !edgeLeft) { longFired = true; fire(85, "Play / Pauza"); }
+                if (!down || moved || edgeLeft || edgeRight || edgeBottom) return;
+                holding = true; holdUsed = false; accX = accY = 0;
+                performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                show("↕ glasnoća   ↔ premotavanje");
             }
         };
 
@@ -233,19 +233,31 @@ final class Ui {
 
         private float d(float v) { return dp(getContext(), v); }
 
+        private void show(String text) {
+            label = text; labelAt = System.currentTimeMillis(); hint = false;
+            invalidate();
+            h.postDelayed(this::invalidate, 900);
+        }
+
         private void fire(int code, String text) {
             if (key == null) return;
             performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
             key.press(code);
-            if (text != null) { label = text; labelAt = System.currentTimeMillis(); h.postDelayed(this::invalidate, 750); }
+            if (text != null) show(text);
             hint = false;
             invalidate();
         }
 
-        private void edge(Runnable r) {
-            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-            hint = false;
-            if (r != null) r.run();
+        /** Keep the system back gesture away from the middle of both side edges, where our edge swipes start. */
+        @Override protected void onLayout(boolean changed, int l, int t, int r, int b) {
+            super.onLayout(changed, l, t, r, b);
+            if (android.os.Build.VERSION.SDK_INT >= 29) {
+                int h2 = (b - t) / 2, half = (int) d(100);
+                java.util.List<android.graphics.Rect> ex = new java.util.ArrayList<>();
+                ex.add(new android.graphics.Rect(0, h2 - half, (int) d(40), h2 + half));
+                ex.add(new android.graphics.Rect(r - l - (int) d(40), h2 - half, r - l, h2 + half));
+                setSystemGestureExclusionRects(ex);
+            }
         }
 
         @Override protected void onDraw(Canvas c) {
@@ -254,107 +266,95 @@ final class Ui {
             p.setShader(new android.graphics.LinearGradient(0, 0, 0, hh, 0xFF1E1E21, 0xFF141416, android.graphics.Shader.TileMode.CLAMP));
             c.drawRoundRect(new RectF(0, 0, w, hh), r, r, p);
             p.setShader(null);
-            // edge grips, so the side gestures can be found
+            // grips: left = back, right = keyboard, bottom = home
             p.setColor(0xFF3A3A3C);
             c.drawRoundRect(new RectF(w - d(6), hh / 2 - d(36), w - d(3), hh / 2 + d(36)), d(2), d(2), p);
             c.drawRoundRect(new RectF(d(3), hh / 2 - d(36), d(6), hh / 2 + d(36)), d(2), d(2), p);
+            c.drawRoundRect(new RectF(w / 2 - d(36), hh - d(7), w / 2 + d(36), hh - d(4)), d(2), d(2), p);
 
             if (touchX >= 0) {
-                p.setShader(new android.graphics.RadialGradient(touchX, touchY, d(80), 0x2EFFFFFF, 0x00FFFFFF, android.graphics.Shader.TileMode.CLAMP));
-                c.drawCircle(touchX, touchY, d(80), p);
+                int glow = holding ? 0x4A0A84FF : 0x2EFFFFFF;
+                p.setShader(new android.graphics.RadialGradient(touchX, touchY, d(holding ? 110 : 80), glow, 0x00FFFFFF, android.graphics.Shader.TileMode.CLAMP));
+                c.drawCircle(touchX, touchY, d(holding ? 110 : 80), p);
                 p.setShader(null);
             }
             long age = System.currentTimeMillis() - labelAt;
-            if (label != null && age < 700) {
-                int a = (int) (255 * Math.min(1f, (700 - age) / 250f));
+            if (label != null && (age < 900 || holding)) {
+                int a = holding ? 255 : (int) (255 * Math.min(1f, (900 - age) / 300f));
                 p.setTypeface(MEDIUM); p.setTextAlign(Paint.Align.CENTER);
                 p.setTextSize(17 * getResources().getDisplayMetrics().scaledDensity);
-                float tw = p.measureText(label) + d(36);
-                p.setColor((Math.min(a, 220) << 24) | 0x3A3A3C);
-                c.drawRoundRect(new RectF(w / 2 - tw / 2, hh / 2 - d(24), w / 2 + tw / 2, hh / 2 + d(24)), d(24), d(24), p);
+                float tw = p.measureText(label) + d(40);
+                float y = d(64);
+                p.setColor((Math.min(a, 230) << 24) | 0x3A3A3C);
+                c.drawRoundRect(new RectF(w / 2 - tw / 2, y - d(24), w / 2 + tw / 2, y + d(24)), d(24), d(24), p);
                 p.setColor((a << 24) | 0xFFFFFF);
-                c.drawText(label, w / 2, hh / 2 - (p.descent() + p.ascent()) / 2, p);
-                invalidate();
+                c.drawText(label, w / 2, y - (p.descent() + p.ascent()) / 2, p);
+                if (!holding) invalidate();
             } else if (hint) {
                 p.setTypeface(MEDIUM); p.setTextAlign(Paint.Align.CENTER);
                 p.setColor(0xFF636366);
                 p.setTextSize(15 * getResources().getDisplayMetrics().scaledDensity);
-                c.drawText("Povuci prstom · dodir = OK", w / 2, hh / 2 - d(10), p);
+                c.drawText("Povuci za kretanje · dodir = OK", w / 2, hh / 2 - d(12), p);
                 p.setColor(0xFF48484A);
                 p.setTextSize(12.5f * getResources().getDisplayMetrics().scaledDensity);
-                c.drawText("2 prsta = natrag · 3 prsta = početni zaslon", w / 2, hh / 2 + d(16), p);
-                c.drawText("s desnog ruba = tipkovnica", w / 2, hh / 2 + d(36), p);
+                c.drawText("drži = play/pauza · drži i kliži = glasnoća", w / 2, hh / 2 + d(14), p);
+                c.drawText("s lijevog ruba = natrag · odozdo gore = početni", w / 2, hh / 2 + d(34), p);
             }
-        }
-
-        private void centre(MotionEvent e, boolean skipActionIndex) {
-            float sx = 0, sy = 0; int n = 0;
-            for (int i = 0; i < e.getPointerCount(); i++) {
-                if (skipActionIndex && i == e.getActionIndex()) continue;
-                sx += e.getX(i); sy += e.getY(i); n++;
-            }
-            if (n > 0) { cx0 = sx / n; cy0 = sy / n; }
         }
 
         @Override public boolean onTouchEvent(MotionEvent e) {
+            if (e.getPointerCount() > 1) return true;   // one thumb only
             switch (e.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
                     downX = lastX = touchX = e.getX(); downY = lastY = touchY = e.getY();
-                    accX = accY = 0; moved = multiMoved = longFired = false; down = true; maxPtr = 1;
+                    accX = accY = 0; moved = holding = holdUsed = false; down = true;
                     downT = System.currentTimeMillis();
-                    edgeRight = downX > getWidth() - d(30);
-                    edgeLeft = downX < d(30);
+                    edgeBottom = downY > getHeight() - d(34);
+                    edgeRight = !edgeBottom && downX > getWidth() - d(30);
+                    edgeLeft = !edgeBottom && downX < d(30);
                     vt = android.view.VelocityTracker.obtain(); vt.addMovement(e);
-                    h.postDelayed(longPress, 550);
+                    h.postDelayed(hold, 450);
                     invalidate();
-                    return true;
-                case MotionEvent.ACTION_POINTER_DOWN:
-                    maxPtr = Math.max(maxPtr, e.getPointerCount());
-                    h.removeCallbacks(longPress);
-                    edgeRight = edgeLeft = false;
-                    centre(e, false); mAccX = mAccY = 0;
-                    return true;
-                case MotionEvent.ACTION_POINTER_UP:
-                    resetCentre = true;
                     return true;
                 case MotionEvent.ACTION_MOVE: {
                     if (vt != null) vt.addMovement(e);
-                    if (e.getPointerCount() >= 2 || maxPtr >= 2) {
-                        float ox = cx0, oy = cy0;
-                        centre(e, false);
-                        if (resetCentre) { resetCentre = false; return true; }
-                        mAccX += cx0 - ox; mAccY += cy0 - oy;
-                        if (Math.abs(mAccX) > d(12) || Math.abs(mAccY) > d(12)) multiMoved = true;
-                        if (maxPtr == 2) {
-                            float vs = d(26), hs = d(70);
-                            while (Math.abs(mAccY) >= vs && Math.abs(mAccY) >= Math.abs(mAccX)) {
-                                boolean up = mAccY < 0;
-                                fire(up ? 24 : 25, up ? "Glasnoća +" : "Glasnoća −");
-                                mAccY -= Math.signum(mAccY) * vs; mAccX = 0;
-                            }
-                            while (Math.abs(mAccX) >= hs && Math.abs(mAccX) > Math.abs(mAccY)) {
-                                boolean fwd = mAccX > 0;
-                                fire(fwd ? 90 : 89, fwd ? "Naprijed »" : "« Nazad");
-                                mAccX -= Math.signum(mAccX) * hs; mAccY = 0;
-                            }
-                        }
-                        return true;
-                    }
                     float x = e.getX(), y = e.getY();
                     touchX = x; touchY = y;
-                    if (edgeRight || edgeLeft) {
-                        if (Math.abs(y - downY) > d(40)) { edgeRight = edgeLeft = false; lastX = x; lastY = y; }
-                        else if (edgeRight && downX - x > d(60)) { edgeRight = false; moved = true; edge(onEdgeRight); down = false; }
-                        else if (edgeLeft && x - downX > d(60)) { edgeLeft = false; moved = true; edge(onEdgeLeft); down = false; }
-                        if (Math.hypot(x - downX, y - downY) > d(10)) h.removeCallbacks(longPress);
+                    if (!down) return true;
+                    if (holding) {
+                        accX += x - lastX; accY += y - lastY; lastX = x; lastY = y;
+                        float vs = d(24), hs = d(60);
+                        while (Math.abs(accY) >= vs && Math.abs(accY) >= Math.abs(accX)) {
+                            boolean up = accY < 0;
+                            fire(up ? 24 : 25, up ? "Glasnoća +" : "Glasnoća −");
+                            accY -= Math.signum(accY) * vs; accX = 0; holdUsed = true;
+                        }
+                        while (Math.abs(accX) >= hs && Math.abs(accX) > Math.abs(accY)) {
+                            boolean fwd = accX > 0;
+                            fire(fwd ? 90 : 89, fwd ? "Naprijed »" : "« Nazad");
+                            accX -= Math.signum(accX) * hs; accY = 0; holdUsed = true;
+                        }
                         invalidate();
                         return true;
                     }
-                    if (!down) return true;
+                    if (edgeRight || edgeLeft || edgeBottom) {
+                        if (Math.hypot(x - downX, y - downY) > d(10)) h.removeCallbacks(hold);
+                        if (edgeBottom && downY - y > d(60)) { edgeBottom = false; down = false; fire(3, "Početni zaslon"); }
+                        else if (edgeLeft && x - downX > d(60)) { edgeLeft = false; down = false; fire(4, "Natrag"); }
+                        else if (edgeRight && downX - x > d(60)) {
+                            edgeRight = false; down = false;
+                            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS); hint = false;
+                            if (onEdgeRight != null) onEdgeRight.run();
+                        }
+                        else if ((edgeLeft || edgeRight) && Math.abs(y - downY) > d(40)) { edgeLeft = edgeRight = false; lastX = x; lastY = y; }
+                        else if (edgeBottom && Math.abs(x - downX) > d(40)) { edgeBottom = false; lastX = x; lastY = y; }
+                        invalidate();
+                        return true;
+                    }
                     accX += x - lastX; accY += y - lastY;
                     lastX = x; lastY = y;
-                    if (Math.hypot(x - downX, y - downY) > d(10)) { moved = true; h.removeCallbacks(longPress); }
+                    if (Math.hypot(x - downX, y - downY) > d(10)) { moved = true; h.removeCallbacks(hold); }
                     float st = d(40);
                     while (Math.abs(accX) >= st || Math.abs(accY) >= st) {
                         if (Math.abs(accX) >= Math.abs(accY)) { fire(accX > 0 ? 22 : 21, null); accX -= Math.signum(accX) * st; accY = 0; }
@@ -364,14 +364,12 @@ final class Ui {
                     return true;
                 }
                 case MotionEvent.ACTION_UP: {
-                    h.removeCallbacks(longPress);
+                    h.removeCallbacks(hold);
                     touchX = touchY = -1;
                     boolean wasDown = down;
                     down = false;
                     long dur = System.currentTimeMillis() - downT;
-                    if (longFired) { /* already handled */ }
-                    else if (maxPtr >= 3) { if (!multiMoved) fire(3, "Početni zaslon"); }
-                    else if (maxPtr == 2) { if (!multiMoved) fire(4, "Natrag"); }
+                    if (holding) { if (!holdUsed) fire(85, "Play / Pauza"); holding = false; }
                     else if (wasDown && !moved && dur < 450) fire(23, null);
                     else if (wasDown && moved && vt != null) {
                         vt.addMovement(e);
@@ -390,8 +388,8 @@ final class Ui {
                     return true;
                 }
                 case MotionEvent.ACTION_CANCEL:
-                    h.removeCallbacks(longPress);
-                    touchX = touchY = -1; down = false;
+                    h.removeCallbacks(hold);
+                    touchX = touchY = -1; down = false; holding = false;
                     if (vt != null) { vt.recycle(); vt = null; }
                     invalidate();
                     return true;

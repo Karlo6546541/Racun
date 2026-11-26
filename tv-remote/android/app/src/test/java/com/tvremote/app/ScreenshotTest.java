@@ -148,59 +148,47 @@ public class ScreenshotTest {
         return pad;
     }
 
-    @Test public void twoAndThreeFingerGestures() {
+    private static void drag(Ui.TrackPad p, long t, float x0, float y0, float dxDp, float dyDp, int steps, boolean down, boolean up) {
         float d = RuntimeEnvironment.getApplication().getResources().getDisplayMetrics().density;
+        if (down) p.onTouchEvent(ev(t, android.view.MotionEvent.ACTION_DOWN, new float[][]{{x0, y0}}));
+        for (int i = 1; i <= steps; i++)
+            p.onTouchEvent(ev(t + 20 + i * 40, android.view.MotionEvent.ACTION_MOVE, new float[][]{{x0 + dxDp * d * i / steps, y0 + dyDp * d * i / steps}}));
+        if (up) p.onTouchEvent(ev(t + 40 + steps * 40, android.view.MotionEvent.ACTION_UP, new float[][]{{x0 + dxDp * d, y0 + dyDp * d}}));
+    }
+
+    @Test public void holdAndSlideChangesVolume() {
         java.util.List<Integer> keys = new java.util.ArrayList<>();
         Ui.TrackPad p = pad(keys);
-        // two-finger tap = Back
+        p.onTouchEvent(ev(0, android.view.MotionEvent.ACTION_DOWN, new float[][]{{500, 800}}));
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(600));   // hold
+        drag(p, 600, 500, 800, 0, -60, 12, false, true);                              // slide up 60 dp
+        assertTrue(keys.toString(), keys.equals(java.util.Arrays.asList(24, 24)));       // two volume-up steps, no play/pause
+    }
+
+    @Test public void edgeSwipesAreBackHomeAndKeyboard() {
+        java.util.List<Integer> keys = new java.util.ArrayList<>();
+        Ui.TrackPad p = pad(keys);
+        final int[] kb = {0};
+        p.onEdgeRight = () -> kb[0]++;
+        drag(p, 0, 5, 700, 80, 0, 16, true, true);          // left edge inwards
+        assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(4)));
+        keys.clear();
+        drag(p, 2000, 500, 1395, 0, -80, 16, true, true);   // bottom edge upwards
+        assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(3)));
+        keys.clear();
+        drag(p, 4000, 995, 700, -80, 0, 16, true, true);    // right edge inwards
+        assertTrue("keyboard opened", kb[0] == 1);
+        assertTrue(keys.toString(), keys.isEmpty());
+    }
+
+    @Test public void secondFingerIsIgnored() {
+        java.util.List<Integer> keys = new java.util.ArrayList<>();
+        Ui.TrackPad p = pad(keys);
         p.onTouchEvent(ev(0, android.view.MotionEvent.ACTION_DOWN, new float[][]{{400, 700}}));
         p.onTouchEvent(ev(20, pointerDown(1), new float[][]{{400, 700}, {600, 700}}));
         p.onTouchEvent(ev(120, pointerUp(1), new float[][]{{400, 700}, {600, 700}}));
         p.onTouchEvent(ev(130, android.view.MotionEvent.ACTION_UP, new float[][]{{400, 700}}));
-        assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(4)));
-
-        // two fingers up by 60 dp = volume up twice (one step per 26 dp)
-        keys.clear();
-        p.onTouchEvent(ev(1000, android.view.MotionEvent.ACTION_DOWN, new float[][]{{400, 900}}));
-        p.onTouchEvent(ev(1010, pointerDown(1), new float[][]{{400, 900}, {600, 900}}));
-        for (int i = 1; i <= 12; i++) {
-            float y = 900 - i * 5 * d;
-            p.onTouchEvent(ev(1010 + i * 30, android.view.MotionEvent.ACTION_MOVE, new float[][]{{400, y}, {600, y}}));
-        }
-        p.onTouchEvent(ev(1500, pointerUp(1), new float[][]{{400, 900 - 60 * d}, {600, 900 - 60 * d}}));
-        p.onTouchEvent(ev(1510, android.view.MotionEvent.ACTION_UP, new float[][]{{400, 900 - 60 * d}}));
-        assertTrue(keys.toString(), keys.equals(java.util.Arrays.asList(24, 24)));
-
-        // three-finger tap = Home
-        keys.clear();
-        p.onTouchEvent(ev(3000, android.view.MotionEvent.ACTION_DOWN, new float[][]{{300, 700}}));
-        p.onTouchEvent(ev(3010, pointerDown(1), new float[][]{{300, 700}, {500, 700}}));
-        p.onTouchEvent(ev(3020, pointerDown(2), new float[][]{{300, 700}, {500, 700}, {700, 700}}));
-        p.onTouchEvent(ev(3100, pointerUp(2), new float[][]{{300, 700}, {500, 700}, {700, 700}}));
-        p.onTouchEvent(ev(3110, pointerUp(1), new float[][]{{300, 700}, {500, 700}}));
-        p.onTouchEvent(ev(3120, android.view.MotionEvent.ACTION_UP, new float[][]{{300, 700}}));
-        assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(3)));
-    }
-
-    @Test public void edgeSwipeOpensKeyboardWithoutMoving() {
-        float d = RuntimeEnvironment.getApplication().getResources().getDisplayMetrics().density;
-        java.util.List<Integer> keys = new java.util.ArrayList<>();
-        Ui.TrackPad p = pad(keys);
-        final int[] opened = {0, 0};
-        p.onEdgeRight = () -> opened[0]++;
-        p.onEdgeLeft = () -> opened[1]++;
-        // from the right edge 80 dp inwards
-        p.onTouchEvent(ev(0, android.view.MotionEvent.ACTION_DOWN, new float[][]{{995, 700}}));
-        for (int i = 1; i <= 16; i++) p.onTouchEvent(ev(i * 20, android.view.MotionEvent.ACTION_MOVE, new float[][]{{995 - i * 5 * d, 700}}));
-        p.onTouchEvent(ev(400, android.view.MotionEvent.ACTION_UP, new float[][]{{995 - 80 * d, 700}}));
-        assertTrue("keyboard opened once", opened[0] == 1);
-        assertTrue("no LEFT steps were sent: " + keys, keys.isEmpty());
-        // from the left edge inwards = menu
-        p.onTouchEvent(ev(1000, android.view.MotionEvent.ACTION_DOWN, new float[][]{{5, 700}}));
-        for (int i = 1; i <= 16; i++) p.onTouchEvent(ev(1000 + i * 20, android.view.MotionEvent.ACTION_MOVE, new float[][]{{5 + i * 5 * d, 700}}));
-        p.onTouchEvent(ev(1400, android.view.MotionEvent.ACTION_UP, new float[][]{{5 + 80 * d, 700}}));
-        assertTrue("menu opened once", opened[1] == 1);
-        assertTrue(keys.toString(), keys.isEmpty());
+        assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(23)));   // still just a tap
     }
 
     @Test public void longPressIsPlayPause() {
