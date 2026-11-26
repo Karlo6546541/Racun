@@ -56,8 +56,7 @@ public class ScreenshotTest {
         Context c = RuntimeEnvironment.getApplication();
         c.getSharedPreferences("tv", Context.MODE_PRIVATE).edit()
                 .putString("ip", "192.168.0.177").putBoolean("paired:192.168.0.177", true)
-                .putString("shortcuts", "[{\"name\":\"Netflix – do pretrage\",\"app\":\"Netflix\",\"steps\":\"w6000 k23 w3000 k19 w400 k21 w400 k23 w1200\"},"
-                        + "{\"name\":\"Disney+ PIN\",\"app\":\"Disney+\",\"steps\":\"w7000 k23 w2000 k8 w300 k9 w300 k10 w300 k11 w1200\"}]")
+                .putString("shortcuts", "[{\"name\":\"Disney+ PIN\",\"app\":\"Disney+\",\"steps\":\"w7000 k23 w2000 k8 w300 k9 w300 k10 w300 k11 w1200\"}]")
                 .commit();
         return Robolectric.buildActivity(MainActivity.class).setup().get();
     }
@@ -73,13 +72,6 @@ public class ScreenshotTest {
         String[] names = {"1-remote", "2-apps", "3-keyboard", "4-shortcuts", "5-settings"};
         for (int i = 0; i < names.length; i++) { sel.invoke(a, i); save(a, names[i]); }
 
-        Object netflix = ((List<?>) f(a, "apps")).get(2);
-        Field sa = MainActivity.class.getDeclaredField("searchApp"); sa.setAccessible(true);
-        sa.set(a, netflix);
-        m("styleChips").invoke(a);
-        sel.invoke(a, 1);
-        save(a, "6-apps-netflix");
-
         m("startRecording", String.class, String.class, boolean.class).invoke(a, "Disney+ PIN", "Disney+", false);
         save(a, "7-recording");
     }
@@ -90,9 +82,9 @@ public class ScreenshotTest {
         java.lang.reflect.Constructor<?> ctor = sc.getDeclaredConstructor(String.class, String.class, String.class);
         ctor.setAccessible(true);
         Object slow = ctor.newInstance("Spori", null, "w5000 k23");
-        Method runS = m("runShortcut", sc, String.class);
-        runS.invoke(a, slow, null);
-        runS.invoke(a, slow, null);           // second tap while running: ignored
+        Method runS = m("runShortcut", sc);
+        runS.invoke(a, slow);
+        runS.invoke(a, slow);           // second tap while running: ignored
         shadowOf(Looper.getMainLooper()).idle();
         String banner = ((android.widget.TextView) f(a, "banner")).getText().toString();
         assertTrue(banner, banner.contains("Već radim"));

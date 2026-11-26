@@ -72,7 +72,7 @@ public class MainActivity extends Activity implements Tv.Listener {
 
     // keyboard
     private EditText kbField;
-    private TextView pendingChip, modeHelp;
+    private TextView modeHelp;
     private final List<TextView> modeButtons = new ArrayList<>();
     private boolean suppress, autoKeyboard;
     private int kbMode;
@@ -84,12 +84,7 @@ public class MainActivity extends Activity implements Tv.Listener {
     // apps & search
     private EditText searchField;
     private List<Apps.App> apps = new ArrayList<>();
-    private Apps.App searchApp;
-    private final List<TextView> chips = new ArrayList<>();
-    private LinearLayout appsGrid, chipRow;
-    private TextView searchHint;
-    private volatile String pendingQuery;
-    private volatile long pendingAt;
+    private LinearLayout appsGrid;
 
     // shortcuts: recorded steps replayed on the TV
     private static final class Shortcut {
@@ -97,7 +92,7 @@ public class MainActivity extends Activity implements Tv.Listener {
         Shortcut(String name, String app, String steps) { this.name = name; this.app = app; this.steps = steps; }
     }
     private final List<Shortcut> shortcuts = new ArrayList<>();
-    private LinearLayout shortcutList, searchRoutes;
+    private LinearLayout shortcutList;
     private String recName, recApp;
     private boolean recording;
     private final StringBuilder recSteps = new StringBuilder();
@@ -122,7 +117,6 @@ public class MainActivity extends Activity implements Tv.Listener {
         kbMode = prefs.getInt("kbmode", Typer.AUTO);
         loadApps();
         loadShortcuts();
-        searchApp = apps.get(0);
 
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(Ui.BG);
@@ -161,18 +155,6 @@ public class MainActivity extends Activity implements Tv.Listener {
     // ======================================================================
     // Tv.Listener: a system-keyboard text field got focus on the TV
     @Override public void textFieldFocused() {
-        final String q = pendingQuery;
-        if (q != null && System.currentTimeMillis() - pendingAt < 120_000) {
-            pendingQuery = null;
-            ui.post(() -> {
-                resetField("");
-                suppress = true; kbField.setText(q); kbField.setSelection(q.length()); suppress = false;
-                pushTextNow();
-                updatePendingChip();
-                say("Upisano na TV: „" + q + "“", false);
-            });
-            return;
-        }
         ui.post(() -> {
             if (mainScreen.getVisibility() != View.VISIBLE) return;
             resetField(tv.fieldText);
@@ -457,6 +439,9 @@ public class MainActivity extends Activity implements Tv.Listener {
         c.setOrientation(LinearLayout.VERTICAL);
         c.addView(title("Aplikacije"));
 
+        TextView yt = text("YOUTUBE PRETRAGA", 12.5f, Ui.LABEL, Typeface.DEFAULT);
+        yt.setPadding(dp(16), dp(2), 0, dp(6));
+        c.addView(yt);
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.CENTER_VERTICAL);
@@ -464,7 +449,7 @@ public class MainActivity extends Activity implements Tv.Listener {
         bar.setPadding(dp(10), 0, dp(6), 0);
         bar.addView(new Ui.IconView(this, Ui.SEARCH), new LinearLayout.LayoutParams(dp(26), dp(26)));
         searchField = new EditText(this);
-        searchField.setHint("Pretraži");
+        searchField.setHint("Pjesma ili video");
         searchField.setHintTextColor(0xFF636366);
         searchField.setTextColor(Color.WHITE);
         searchField.setTextSize(17);
@@ -475,18 +460,13 @@ public class MainActivity extends Activity implements Tv.Listener {
         searchField.setOnEditorActionListener((v, a, e) -> { doSearch(); return true; });
         bar.addView(searchField, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         c.addView(bar);
-
-        HorizontalScrollView hs = new HorizontalScrollView(this);
-        hs.setHorizontalScrollBarEnabled(false);
-        chipRow = new LinearLayout(this);
-        chipRow.setOrientation(LinearLayout.HORIZONTAL);
-        hs.addView(chipRow);
-        c.addView(hs, matchWrap(12));
-
-        searchHint = text("", 13, Ui.LABEL, Typeface.DEFAULT);
-        searchHint.setPadding(dp(4), dp(10), dp(4), 0);
-        searchHint.setLineSpacing(0, 1.15f);
-        c.addView(searchHint);
+        Ui.Btn go = new Ui.Btn(this, Ui.SEARCH, "  Traži na YouTubeu", Ui.BLUE, true, this::doSearch);
+        go.textSize(15);
+        LinearLayout.LayoutParams gp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(46));
+        gp.topMargin = dp(10);
+        c.addView(go, gp);
+        note(c, "Rezultati se otvore izravno na TV-u. Za Netflix, Disney+ i ostale otvori aplikaciju, "
+                + "pa na kartici Tipkovnica upiši tekst u njihovu pretragu.");
 
         TextView h = text("Sve aplikacije", 20, Ui.WHITE, Typeface.create("sans-serif", Typeface.BOLD));
         h.setPadding(dp(4), dp(26), 0, dp(2));
@@ -501,14 +481,8 @@ public class MainActivity extends Activity implements Tv.Listener {
         return scroll(c);
     }
 
-    private static String routeName(Apps.App a) { return a.name + " – do pretrage"; }
-
-    private int typingFor(Apps.App a) { return a.typing; }
-
     private void renderApps() {
         appsGrid.removeAllViews();
-        chipRow.removeAllViews();
-        chips.clear();
         int n = apps.size() + 1;
         LinearLayout r = null;
         for (int i = 0; i < n; i++) {
@@ -532,36 +506,6 @@ public class MainActivity extends Activity implements Tv.Listener {
         }
         while (r != null && r.getChildCount() < 4) r.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1f));
 
-        for (final Apps.App a : apps) {
-            final TextView chip = text(a.name, 14, Ui.WHITE, Ui.MEDIUM);
-            chip.setPadding(dp(14), dp(8), dp(14), dp(8));
-            chip.setTag(a);
-            chip.setOnClickListener(v -> { searchApp = a; styleChips(); });
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            p.rightMargin = dp(8);
-            chipRow.addView(chip, p);
-            chips.add(chip);
-        }
-        if (!apps.contains(searchApp)) searchApp = apps.get(0);
-        styleChips();
-    }
-
-    private void styleChips() {
-        for (TextView c : chips) {
-            boolean sel = c.getTag() == searchApp;
-            c.setBackground(round(sel ? Ui.BLUE : Ui.CARD, 18));
-            c.setTextColor(sel ? Color.WHITE : 0xFFD1D1D6);
-        }
-        if (searchHint == null) return;
-        boolean direct = searchApp.search.length > 0;
-        if (direct) {
-            searchHint.setText("Rezultati za " + searchApp.name + " otvaraju se izravno na TV-u.");
-            return;
-        }
-        Shortcut route = findShortcut(routeName(searchApp));
-        searchHint.setText(route != null
-                ? "Otvori " + searchApp.name + ", ponovi naučene korake do pretrage i upiše tekst."
-                : "Za automatsku pretragu u " + searchApp.name + " jednom pokaži put na kartici Nauči.");
     }
 
     // ----------------------------------------------------------------------
@@ -578,7 +522,8 @@ public class MainActivity extends Activity implements Tv.Listener {
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
         c.addView(title("Tipkovnica"));
-        c.addView(caption("Što upišeš ovdje, odmah se upisuje u odabrano polje na TV-u."));
+        c.addView(caption("Na TV-u otvori polje za pretragu, pa piši ovdje: što upišeš, upiše se na TV-u. "
+                + "Za Netflix odaberi način Netflix."));
         c.addView(segmented(Typer.NAMES, kbMode, modeButtons, idx -> {
             kbMode = idx;
             prefs.edit().putInt("kbmode", idx).apply();
@@ -604,20 +549,6 @@ public class MainActivity extends Activity implements Tv.Listener {
         kbField.setOnEditorActionListener((v, a, e) -> { pushTextNow(); press(ENTER); return true; });
         c.addView(kbField);
 
-        pendingChip = text("", 14, Ui.WHITE, Ui.MEDIUM);
-        pendingChip.setBackground(round(0xFF1F3A5F, 12));
-        pendingChip.setPadding(dp(14), dp(10), dp(14), dp(10));
-        pendingChip.setVisibility(View.GONE);
-        pendingChip.setOnClickListener(v -> {
-            final String q = pendingQuery;
-            if (q == null) return;
-            pendingQuery = null;
-            suppress = true; kbField.setText(q); kbField.setSelection(q.length()); suppress = false;
-            pushTextNow();
-            updatePendingChip();
-        });
-        c.addView(pendingChip, matchWrap(12));
-
         Ui.Btn back = new Ui.Btn(this, Ui.BACK, null, Ui.CARD, true, () -> press(BACK));
         Ui.Btn del = new Ui.Btn(this, Ui.NONE, "⌫", Ui.CARD, true, this::deleteOne);
         del.textSize(20);
@@ -631,13 +562,6 @@ public class MainActivity extends Activity implements Tv.Listener {
         clear.setOnClickListener(v -> clearAll());
         c.addView(clear);
         return scroll(c);
-    }
-
-    private void updatePendingChip() {
-        String q = pendingQuery;
-        if (q == null) { pendingChip.setVisibility(View.GONE); return; }
-        pendingChip.setText("Upiši na TV:  „" + q + "“");
-        pendingChip.setVisibility(View.VISIBLE);
     }
 
     private Typer.Sink sink() {
@@ -705,16 +629,8 @@ public class MainActivity extends Activity implements Tv.Listener {
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
         c.addView(title("Nauči"));
-        c.addView(caption("Jednom pokaži korake na TV-u, a mobitel ih poslije ponavlja sam."));
-
-        TextView h1 = text("PRETRAGA U APLIKACIJI", 12.5f, Ui.LABEL, Typeface.DEFAULT);
-        h1.setPadding(dp(16), dp(6), 0, dp(6));
-        c.addView(h1);
-        searchRoutes = new LinearLayout(this);
-        searchRoutes.setOrientation(LinearLayout.VERTICAL);
-        c.addView(searchRoutes);
-        note(c, "Nauči: otvori se aplikacija, ti na kartici Daljinski odabereš profil i dođeš do pretrage, pa Gotovo. "
-                + "Poslije na kartici Aplikacije samo upišeš što tražiš.");
+        c.addView(caption("Jednom pokaži korake na TV-u (npr. odabir profila ili PIN za Disney+), "
+                + "a mobitel ih poslije ponavlja jednim dodirom."));
 
         TextView h2 = text("MOJI KORACI", 12.5f, Ui.LABEL, Typeface.DEFAULT);
         h2.setPadding(dp(16), dp(22), 0, dp(6));
@@ -734,10 +650,8 @@ public class MainActivity extends Activity implements Tv.Listener {
 
     private void renderShortcuts() {
         if (shortcutList == null) return;
-        renderSearchRoutes();
         shortcutList.removeAllViews();
-        List<Shortcut> own = new ArrayList<>();
-        for (Shortcut x : shortcuts) if (!x.name.endsWith(" – do pretrage")) own.add(x);
+        List<Shortcut> own = new ArrayList<>(shortcuts);
         if (own.isEmpty()) {
             TextView e = text("Još ništa naučeno.", 15, 0xFF636366, Typeface.DEFAULT);
             e.setGravity(Gravity.CENTER);
@@ -768,65 +682,23 @@ public class MainActivity extends Activity implements Tv.Listener {
             txt.addView(text((s.app != null ? "Otvori " + s.app + " · " : "") + countSteps(s.steps) + " koraka",
                     12.5f, Ui.LABEL, Typeface.DEFAULT));
             rowV.addView(txt, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-            Ui.Btn play = new Ui.Btn(this, Ui.PLAY, null, Ui.CARD2, false, () -> runShortcut(s, null));
+            Ui.Btn play = new Ui.Btn(this, Ui.PLAY, null, Ui.CARD2, false, () -> runShortcut(s));
             play.maxDiameterDp = 40;
             rowV.addView(play, new LinearLayout.LayoutParams(dp(40), dp(40)));
-            rowV.setOnClickListener(v -> runShortcut(s, null));
+            rowV.setOnClickListener(v -> runShortcut(s));
             rowV.setOnLongClickListener(v -> { shortcutMenu(s); return true; });
             g.addView(rowV);
         }
         shortcutList.addView(g, matchWrap(0));
     }
 
-    /** One row per app without a direct search link: learned or not, with Nauči / Obriši. */
-    private void renderSearchRoutes() {
-        searchRoutes.removeAllViews();
-        LinearLayout g = new LinearLayout(this);
-        g.setOrientation(LinearLayout.VERTICAL);
-        g.setBackground(round(Ui.CARD, 12));
-        boolean firstRow = true;
-        for (final Apps.App a : apps) {
-            if (a.search.length > 0) continue;
-            if (!firstRow) {
-                View d = new View(this);
-                d.setBackgroundColor(0xFF38383A);
-                LinearLayout.LayoutParams dl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
-                dl.leftMargin = dp(16);
-                g.addView(d, dl);
-            }
-            firstRow = false;
-            final Shortcut route = findShortcut(routeName(a));
-            LinearLayout r = new LinearLayout(this);
-            r.setOrientation(LinearLayout.HORIZONTAL);
-            r.setGravity(Gravity.CENTER_VERTICAL);
-            r.setPadding(dp(16), dp(8), dp(8), dp(8));
-            LinearLayout txt = new LinearLayout(this);
-            txt.setOrientation(LinearLayout.VERTICAL);
-            txt.addView(text(a.name, 16, Ui.WHITE, Typeface.DEFAULT));
-            txt.addView(text(route != null ? "Naučeno ✓" : "Nije naučeno", 12.5f, route != null ? Ui.GREEN : Ui.LABEL, Typeface.DEFAULT));
-            r.addView(txt, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-            if (route != null) {
-                TextView del = text("Obriši", 15, Ui.RED, Typeface.DEFAULT);
-                del.setPadding(dp(10), dp(10), dp(12), dp(10));
-                del.setOnClickListener(v -> { shortcuts.remove(route); saveShortcuts(); renderShortcuts(); styleChips(); });
-                r.addView(del);
-            }
-            Ui.Btn learn = new Ui.Btn(this, Ui.NONE, route != null ? "Ponovno" : "Nauči", route != null ? Ui.CARD2 : Ui.BLUE, true,
-                    () -> startRecording(routeName(a), a.name, true));
-            learn.textSize(14);
-            r.addView(learn, new LinearLayout.LayoutParams(dp(92), dp(38)));
-            g.addView(r);
-        }
-        searchRoutes.addView(g, matchWrap(0));
-    }
-
     private void shortcutMenu(final Shortcut s) {
         new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setTitle(s.name)
                 .setItems(new String[]{"Pokreni", "Nauči ponovno", "Obriši"}, (d, w) -> {
-                    if (w == 0) runShortcut(s, null);
-                    else if (w == 1) startRecording(s.name, s.app, s.name.endsWith(" – do pretrage"));
-                    else { shortcuts.remove(s); saveShortcuts(); renderShortcuts(); styleChips(); }
+                    if (w == 0) runShortcut(s);
+                    else if (w == 1) startRecording(s.name, s.app, false);
+                    else { shortcuts.remove(s); saveShortcuts(); renderShortcuts(); }
                 }).show();
     }
 
@@ -920,7 +792,6 @@ public class MainActivity extends Activity implements Tv.Listener {
         } else if (save) {
             say("Nije snimljen nijedan korak", true);
         }
-        styleChips();
     }
 
     private void padTabsForBar(boolean on) {
@@ -951,13 +822,11 @@ public class MainActivity extends Activity implements Tv.Listener {
      * Replays a shortcut: opens its app, then its steps. With a query, types it afterwards
      * in the app's typing mode (used by search).
      */
-    private void runShortcut(final Shortcut s, final String query) {
+    private void runShortcut(final Shortcut s) {
         if (recording) { say("Prvo završi učenje (Gotovo)", true); return; }
         if (replaying) { say("Već radim — dodirni bilo koju tipku daljinskog da zaustaviš", true); return; }
         replaying = true;
         cancelReplay = false;
-        pendingQuery = null;
-        updatePendingChip();
         say("Ponavljam „" + s.name + "“ … dodir na daljinski zaustavlja", false);
         final float speed = replaySpeed();
         launcher.execute(() -> {
@@ -988,16 +857,7 @@ public class MainActivity extends Activity implements Tv.Listener {
                         lastTyped[0] = txt.length();
                     }
                 }
-                if (query != null) {
-                    Apps.App app = a != null ? a : searchApp;
-                    int mode = Typer.resolve(typingFor(app), tv.lastImeAt);
-                    int onTv = mode == Typer.TEXT ? tv.fieldText.length() : 0;
-                    typer.replace(mode, onTv, query, sink());
-                    if (mode == Typer.TEXT) tv.key(ENTER);
-                    say("Upisano „" + query + "“ u " + app.name, false);
-                } else {
-                    say("Gotovo: „" + s.name + "“", false);
-                }
+                say("Gotovo: „" + s.name + "“", false);
             } catch (InterruptedException e) {
                 say("Zaustavljeno", true);
             } catch (Exception e) {
@@ -1271,26 +1131,13 @@ public class MainActivity extends Activity implements Tv.Listener {
         final String q = searchField.getText().toString().trim();
         if (q.isEmpty()) { say("Upiši što tražiš", true); return; }
         hideKeyboard();
-        final Apps.App a = searchApp;
-        if (a.search.length > 0) {
-            String enc;
-            try { enc = URLEncoder.encode(q, "UTF-8").replace("+", "%20"); } catch (Exception e) { enc = q; }
-            List<String> c = new ArrayList<>();
-            for (String t : a.search) c.add(t.replace("%s", enc));
-            launch(c, "Tražim „" + q + "“ u " + a.name);
-            return;
-        }
-        Shortcut route = findShortcut(routeName(a));
-        if (route != null) {
-            runShortcut(new Shortcut(route.name, route.app != null ? route.app : a.name, route.steps), q);
-            return;
-        }
-        // Not learned yet: open the app and type as soon as a system-keyboard field gets focus.
-        pendingQuery = q;
-        pendingAt = System.currentTimeMillis();
-        updatePendingChip();
-        say(a.name + " je otvoren. Pritisni Nauči da pretraga ide sama do kraja.", false);
-        launcher.execute(() -> openSync(a));
+        Apps.App yt = appByName("YouTube");
+        if (yt == null || yt.search.length == 0) { say("YouTube nije dostupan", true); return; }
+        String enc;
+        try { enc = URLEncoder.encode(q, "UTF-8").replace("+", "%20"); } catch (Exception e) { enc = q; }
+        List<String> c = new ArrayList<>();
+        for (String t : yt.search) c.add(t.replace("%s", enc));
+        launch(c, "Tražim „" + q + "“ na YouTubeu");
     }
 
     /** Opens the app; returns false if every way of opening it failed. */
