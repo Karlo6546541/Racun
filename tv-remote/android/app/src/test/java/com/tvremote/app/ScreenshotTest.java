@@ -124,6 +124,94 @@ public class ScreenshotTest {
         assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(19)));
     }
 
+    // ---- multi-touch helpers
+    private static android.view.MotionEvent ev(long t, int action, float[][] pts) {
+        int n = pts.length;
+        android.view.MotionEvent.PointerProperties[] pp = new android.view.MotionEvent.PointerProperties[n];
+        android.view.MotionEvent.PointerCoords[] pc = new android.view.MotionEvent.PointerCoords[n];
+        for (int i = 0; i < n; i++) {
+            pp[i] = new android.view.MotionEvent.PointerProperties(); pp[i].id = i;
+            pp[i].toolType = android.view.MotionEvent.TOOL_TYPE_FINGER;
+            pc[i] = new android.view.MotionEvent.PointerCoords(); pc[i].x = pts[i][0]; pc[i].y = pts[i][1];
+            pc[i].pressure = 1; pc[i].size = 1;
+        }
+        return android.view.MotionEvent.obtain(0, t, action, n, pp, pc, 0, 0, 1, 1, 0, 0, 0, 0);
+    }
+    private static int pointerDown(int index) { return android.view.MotionEvent.ACTION_POINTER_DOWN | (index << android.view.MotionEvent.ACTION_POINTER_INDEX_SHIFT); }
+    private static int pointerUp(int index) { return android.view.MotionEvent.ACTION_POINTER_UP | (index << android.view.MotionEvent.ACTION_POINTER_INDEX_SHIFT); }
+
+    private static Ui.TrackPad pad(java.util.List<Integer> keys) {
+        Ui.TrackPad pad = new Ui.TrackPad(RuntimeEnvironment.getApplication());
+        pad.measure(View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(1400, View.MeasureSpec.EXACTLY));
+        pad.layout(0, 0, 1000, 1400);
+        pad.key = keys::add;
+        return pad;
+    }
+
+    @Test public void twoAndThreeFingerGestures() {
+        float d = RuntimeEnvironment.getApplication().getResources().getDisplayMetrics().density;
+        java.util.List<Integer> keys = new java.util.ArrayList<>();
+        Ui.TrackPad p = pad(keys);
+        // two-finger tap = Back
+        p.onTouchEvent(ev(0, android.view.MotionEvent.ACTION_DOWN, new float[][]{{400, 700}}));
+        p.onTouchEvent(ev(20, pointerDown(1), new float[][]{{400, 700}, {600, 700}}));
+        p.onTouchEvent(ev(120, pointerUp(1), new float[][]{{400, 700}, {600, 700}}));
+        p.onTouchEvent(ev(130, android.view.MotionEvent.ACTION_UP, new float[][]{{400, 700}}));
+        assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(4)));
+
+        // two fingers up by 60 dp = volume up twice (one step per 26 dp)
+        keys.clear();
+        p.onTouchEvent(ev(1000, android.view.MotionEvent.ACTION_DOWN, new float[][]{{400, 900}}));
+        p.onTouchEvent(ev(1010, pointerDown(1), new float[][]{{400, 900}, {600, 900}}));
+        for (int i = 1; i <= 12; i++) {
+            float y = 900 - i * 5 * d;
+            p.onTouchEvent(ev(1010 + i * 30, android.view.MotionEvent.ACTION_MOVE, new float[][]{{400, y}, {600, y}}));
+        }
+        p.onTouchEvent(ev(1500, pointerUp(1), new float[][]{{400, 900 - 60 * d}, {600, 900 - 60 * d}}));
+        p.onTouchEvent(ev(1510, android.view.MotionEvent.ACTION_UP, new float[][]{{400, 900 - 60 * d}}));
+        assertTrue(keys.toString(), keys.equals(java.util.Arrays.asList(24, 24)));
+
+        // three-finger tap = Home
+        keys.clear();
+        p.onTouchEvent(ev(3000, android.view.MotionEvent.ACTION_DOWN, new float[][]{{300, 700}}));
+        p.onTouchEvent(ev(3010, pointerDown(1), new float[][]{{300, 700}, {500, 700}}));
+        p.onTouchEvent(ev(3020, pointerDown(2), new float[][]{{300, 700}, {500, 700}, {700, 700}}));
+        p.onTouchEvent(ev(3100, pointerUp(2), new float[][]{{300, 700}, {500, 700}, {700, 700}}));
+        p.onTouchEvent(ev(3110, pointerUp(1), new float[][]{{300, 700}, {500, 700}}));
+        p.onTouchEvent(ev(3120, android.view.MotionEvent.ACTION_UP, new float[][]{{300, 700}}));
+        assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(3)));
+    }
+
+    @Test public void edgeSwipeOpensKeyboardWithoutMoving() {
+        float d = RuntimeEnvironment.getApplication().getResources().getDisplayMetrics().density;
+        java.util.List<Integer> keys = new java.util.ArrayList<>();
+        Ui.TrackPad p = pad(keys);
+        final int[] opened = {0, 0};
+        p.onEdgeRight = () -> opened[0]++;
+        p.onEdgeLeft = () -> opened[1]++;
+        // from the right edge 80 dp inwards
+        p.onTouchEvent(ev(0, android.view.MotionEvent.ACTION_DOWN, new float[][]{{995, 700}}));
+        for (int i = 1; i <= 16; i++) p.onTouchEvent(ev(i * 20, android.view.MotionEvent.ACTION_MOVE, new float[][]{{995 - i * 5 * d, 700}}));
+        p.onTouchEvent(ev(400, android.view.MotionEvent.ACTION_UP, new float[][]{{995 - 80 * d, 700}}));
+        assertTrue("keyboard opened once", opened[0] == 1);
+        assertTrue("no LEFT steps were sent: " + keys, keys.isEmpty());
+        // from the left edge inwards = menu
+        p.onTouchEvent(ev(1000, android.view.MotionEvent.ACTION_DOWN, new float[][]{{5, 700}}));
+        for (int i = 1; i <= 16; i++) p.onTouchEvent(ev(1000 + i * 20, android.view.MotionEvent.ACTION_MOVE, new float[][]{{5 + i * 5 * d, 700}}));
+        p.onTouchEvent(ev(1400, android.view.MotionEvent.ACTION_UP, new float[][]{{5 + 80 * d, 700}}));
+        assertTrue("menu opened once", opened[1] == 1);
+        assertTrue(keys.toString(), keys.isEmpty());
+    }
+
+    @Test public void longPressIsPlayPause() {
+        java.util.List<Integer> keys = new java.util.ArrayList<>();
+        Ui.TrackPad p = pad(keys);
+        p.onTouchEvent(ev(0, android.view.MotionEvent.ACTION_DOWN, new float[][]{{500, 700}}));
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(700));
+        p.onTouchEvent(ev(800, android.view.MotionEvent.ACTION_UP, new float[][]{{500, 700}}));
+        assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(85)));
+    }
+
     @Test public void recordingSavesSteps() throws Exception {
         MainActivity a = paired();
         m("startRecording", String.class, String.class, boolean.class).invoke(a, "Test", null, false);

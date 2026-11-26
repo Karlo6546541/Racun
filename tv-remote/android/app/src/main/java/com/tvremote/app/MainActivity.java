@@ -67,7 +67,6 @@ public class MainActivity extends Activity implements Tv.Listener {
     private TextView banner, hostLabel;
     private Dot dot;
     private final View[] tabs = new View[5];
-    private final TabItem[] tabItems = new TabItem[5];
     private int currentTab;
 
     // keyboard
@@ -316,7 +315,7 @@ public class MainActivity extends Activity implements Tv.Listener {
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(dp(22), dp(12), dp(16), dp(6));
+        header.setPadding(dp(22), dp(14), dp(16), dp(8));
         dot = new Dot(this);
         header.addView(dot, new LinearLayout.LayoutParams(dp(10), dp(10)));
         LinearLayout names = new LinearLayout(this);
@@ -326,15 +325,6 @@ public class MainActivity extends Activity implements Tv.Listener {
         hostLabel = text("", 12.5f, Ui.LABEL, Typeface.DEFAULT);
         names.addView(hostLabel);
         header.addView(names, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        Ui.Btn more = new Ui.Btn(this, Ui.MORE, null, Ui.CARD, false, this::moreMenu);
-        more.maxDiameterDp = 44;
-        LinearLayout.LayoutParams ml2 = new LinearLayout.LayoutParams(dp(44), dp(44));
-        ml2.rightMargin = dp(10);
-        header.addView(more, ml2);
-        Ui.Btn power = new Ui.Btn(this, Ui.POWER, null, Ui.CARD, false, this::powerTapped);
-        power.fg = Ui.RED; power.maxDiameterDp = 44;
-        power.longAction = this::askMac;
-        header.addView(power, new LinearLayout.LayoutParams(dp(44), dp(44)));
         col.addView(header);
 
         FrameLayout body = new FrameLayout(this);
@@ -343,7 +333,12 @@ public class MainActivity extends Activity implements Tv.Listener {
         tabs[TAB_KEYBOARD] = buildKeyboardTab();
         tabs[TAB_SHORTCUTS] = buildShortcutsTab();
         tabs[TAB_SETTINGS] = buildSettingsTab();
-        for (View t : tabs) body.addView(t);
+        for (View t : tabs) { t.setBackgroundColor(Ui.BG); body.addView(t); }
+        closeBtn = new Ui.Btn(this, Ui.CLOSE, null, Ui.CARD2, false, () -> selectTab(TAB_REMOTE));
+        closeBtn.maxDiameterDp = 40;
+        FrameLayout.LayoutParams cl = new FrameLayout.LayoutParams(dp(40), dp(40), Gravity.TOP | Gravity.END);
+        cl.rightMargin = dp(16); cl.topMargin = dp(6);
+        body.addView(closeBtn, cl);
 
         banner = text("", 13.5f, Ui.WHITE, Ui.MEDIUM);
         banner.setBackground(round(Ui.CARD2, 12));
@@ -363,46 +358,18 @@ public class MainActivity extends Activity implements Tv.Listener {
         body.addView(recordBar, rl);
         col.addView(body, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        View sep = new View(this);
-        sep.setBackgroundColor(0xFF2C2C2E);
-        col.addView(sep, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
-        LinearLayout bar = new LinearLayout(this);
-        bar.setOrientation(LinearLayout.HORIZONTAL);
-        bar.setBackgroundColor(0xFF111113);
-        String[] names2 = {"Daljinski", "Aplikacije", "Tipkovnica", "Nauči", "Postavke"};
-        int[] icons = {Ui.REMOTE, Ui.APPS, Ui.KEYB, Ui.BOLT, Ui.SLIDERS};
-        for (int i = 0; i < tabs.length; i++) {
-            final int idx = i;
-            tabItems[i] = new TabItem(this, icons[i], names2[i]);
-            tabItems[i].setOnClickListener(v -> { selectTab(idx); if (idx == TAB_KEYBOARD) showKeyboard(); });
-            bar.addView(tabItems[i], new LinearLayout.LayoutParams(0, dp(60), 1f));
-        }
-        col.addView(bar);
         selectTab(TAB_REMOTE);
         return col;
     }
 
+    private Ui.Btn closeBtn;
+
+    /** 0 = the touch surface; the others are panels over it, closed with ✕ or the phone's Back. */
     private void selectTab(int i) {
         currentTab = i;
-        for (int k = 0; k < tabs.length; k++) {
-            tabs[k].setVisibility(k == i ? View.VISIBLE : View.GONE);
-            tabItems[k].setSelectedTab(k == i);
-        }
+        for (int k = 0; k < tabs.length; k++) tabs[k].setVisibility(k == i ? View.VISIBLE : View.GONE);
+        if (closeBtn != null) closeBtn.setVisibility(i == TAB_REMOTE ? View.GONE : View.VISIBLE);
         if (i != TAB_KEYBOARD) hideKeyboard();
-    }
-
-    private final class TabItem extends View {
-        private final int icon; private final String name; private boolean sel;
-        private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        TabItem(Context c, int icon, String name) { super(c); this.icon = icon; this.name = name; setClickable(true); }
-        void setSelectedTab(boolean s) { sel = s; invalidate(); }
-        @Override protected void onDraw(Canvas c) {
-            int col = sel ? Ui.BLUE : 0xFF8E8E93;
-            Ui.icon(c, icon, getWidth() / 2f, getHeight() * .38f, dp(7f), col);
-            p.setColor(col); p.setTextAlign(Paint.Align.CENTER); p.setTypeface(Ui.MEDIUM);
-            p.setTextSize(10f * getResources().getDisplayMetrics().scaledDensity);
-            c.drawText(name, getWidth() / 2f, getHeight() * .84f, p);
-        }
     }
 
     private static final class Dot extends View {
@@ -416,19 +383,25 @@ public class MainActivity extends Activity implements Tv.Listener {
     // ----------------------------------------------------------------------
     // remote tab
     private View buildRemoteTab() {
-        LinearLayout c = new LinearLayout(this);
-        c.setOrientation(LinearLayout.VERTICAL);
-        c.setPadding(dp(16), dp(8), dp(16), dp(14));
+        FrameLayout f = new FrameLayout(this);
+        f.setPadding(dp(12), dp(4), dp(12), dp(14));
         Ui.TrackPad pad = new Ui.TrackPad(this);
         pad.key = this::press;
-        c.addView(pad, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-        Ui.Btn kb = new Ui.Btn(this, Ui.KEYB, null, Ui.CARD, false, () -> { selectTab(TAB_KEYBOARD); showKeyboard(); });
-        c.addView(row(0, 16, circle(Ui.BACK, BACK, false), circle(Ui.HOME, HOME, false), circle(Ui.PLAY, PLAY, false), kb));
-        TextView tip = text("Glasnoća: tipke za glasnoću na mobitelu", 12.5f, 0xFF636366, Typeface.DEFAULT);
-        tip.setGravity(Gravity.CENTER);
-        tip.setPadding(0, dp(10), 0, 0);
-        c.addView(tip);
-        return c;
+        pad.onEdgeRight = () -> { selectTab(TAB_KEYBOARD); showKeyboard(); };
+        pad.onEdgeLeft = () -> selectTab(TAB_APPS);
+        FrameLayout.LayoutParams pl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        pl.bottomMargin = dp(78);
+        f.addView(pad, pl);
+
+        Ui.Btn menu = new Ui.Btn(this, Ui.APPS, "Aplikacije", Ui.CARD2, true, () -> selectTab(TAB_APPS));
+        menu.textSize(15);
+        f.addView(menu, new FrameLayout.LayoutParams(dp(176), dp(54), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
+
+        Ui.Btn kb = new Ui.Btn(this, Ui.KEYB, null, Ui.CARD2, false, () -> { selectTab(TAB_KEYBOARD); showKeyboard(); });
+        kb.maxDiameterDp = 54;
+        FrameLayout.LayoutParams kl = new FrameLayout.LayoutParams(dp(54), dp(54), Gravity.BOTTOM | Gravity.END);
+        f.addView(kb, kl);
+        return f;
     }
 
     // ----------------------------------------------------------------------
@@ -436,7 +409,17 @@ public class MainActivity extends Activity implements Tv.Listener {
     private View buildAppsTab() {
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
-        c.addView(title("Aplikacije"));
+        c.addView(title("Izbornik"));
+        Ui.Btn pw = new Ui.Btn(this, Ui.POWER, "Uključi / isključi", Ui.CARD, true, this::powerTapped);
+        pw.fg = 0xFFFF6961; pw.textSize(14); pw.longAction = this::askMac;
+        Ui.Btn in = new Ui.Btn(this, Ui.INPUT, "Ulaz", Ui.CARD, true, () -> press(INPUT));
+        in.textSize(14);
+        c.addView(row(48, 0, pw, in));
+        Ui.Btn mu = new Ui.Btn(this, Ui.MUTE, "Zvuk", Ui.CARD, true, () -> press(MUTE));
+        mu.textSize(14);
+        Ui.Btn st = new Ui.Btn(this, Ui.GEAR, "Postavke TV-a", Ui.CARD, true, this::openTvSettings);
+        st.textSize(14); st.longAction = this::chooseSettingsMethod;
+        c.addView(row(48, 10, mu, st));
 
         TextView yt = text("YOUTUBE PRETRAGA", 12.5f, Ui.LABEL, Typeface.DEFAULT);
         yt.setPadding(dp(16), dp(2), 0, dp(6));
@@ -464,8 +447,8 @@ public class MainActivity extends Activity implements Tv.Listener {
         LinearLayout.LayoutParams gp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(46));
         gp.topMargin = dp(10);
         c.addView(go, gp);
-        note(c, "Rezultati se otvore izravno na TV-u. Za Netflix, Disney+ i ostale otvori aplikaciju, "
-                + "pa na kartici Tipkovnica upiši tekst u njihovu pretragu.");
+        note(c, "Rezultati se otvore izravno na TV-u. Za Netflix i ostale otvori aplikaciju, "
+                + "pa povuci s desnog ruba za tipkovnicu.");
 
         TextView h = text("Sve aplikacije", 20, Ui.WHITE, Typeface.create("sans-serif", Typeface.BOLD));
         h.setPadding(dp(4), dp(26), 0, dp(2));
@@ -473,6 +456,18 @@ public class MainActivity extends Activity implements Tv.Listener {
         appsGrid = new LinearLayout(this);
         appsGrid.setOrientation(LinearLayout.VERTICAL);
         c.addView(appsGrid);
+        TextView more = text("VIŠE", 12.5f, Ui.LABEL, Typeface.DEFAULT);
+        more.setPadding(dp(16), dp(26), 0, dp(6));
+        c.addView(more);
+        LinearLayout g = new LinearLayout(this);
+        g.setOrientation(LinearLayout.VERTICAL);
+        g.setBackground(round(Ui.CARD, 12));
+        g.addView(link("Geste", this::showGestures));
+        divider(g);
+        g.addView(link("Nauči korake (profil, PIN…)", () -> selectTab(TAB_SHORTCUTS)));
+        divider(g);
+        g.addView(link("Postavke aplikacije", () -> selectTab(TAB_SETTINGS)));
+        c.addView(g, matchWrap(0));
         TextView tip = text("Dugo drži pločicu koju si sam dodao da je ukloniš.", 12.5f, 0xFF636366, Typeface.DEFAULT);
         tip.setPadding(dp(4), dp(14), 0, 0);
         c.addView(tip);
@@ -773,8 +768,8 @@ public class MainActivity extends Activity implements Tv.Listener {
         recSteps.setLength(0);
         resetField("");
         recordText.setText("● Učim „" + name + "“. "
-                + (route ? "Pričekaj da se aplikacija otvori, pa ovdje odaberi profil i dođi do polja za pretragu (tekst ne upisuj, pločicu aplikacije ne diraj). "
-                : "Napravi korake na kartici Daljinski ili Tipkovnica. ")
+                + (route ? "Pričekaj da se aplikacija otvori, pa gestama odaberi profil i dođi do polja za pretragu (tekst ne upisuj, pločicu aplikacije ne diraj). "
+                : "Napravi korake gestama ili tipkovnicom. ")
                 + "Zatim pritisni Gotovo.");
         recordBar.setVisibility(View.VISIBLE);
         padTabsForBar(true);
@@ -1107,6 +1102,29 @@ public class MainActivity extends Activity implements Tv.Listener {
                 }).show();
     }
 
+    private void showGestures() {
+        TextView t = text("Jedan prst\n"
+                + "   povuci — kretanje (brzi zamah = dalje)\n"
+                + "   dodir — OK\n"
+                + "   drži — play / pauza\n\n"
+                + "Dva prsta\n"
+                + "   dodir — natrag\n"
+                + "   gore / dolje — glasnoća\n"
+                + "   lijevo / desno — premotavanje\n\n"
+                + "Tri prsta\n"
+                + "   dodir — početni zaslon\n\n"
+                + "S desnog ruba prema sredini — tipkovnica\n"
+                + "S lijevog ruba prema sredini — izbornik\n\n"
+                + "Glasnoću mijenjaju i tipke za glasnoću na mobitelu.", 15, 0xFFE5E5EA, Typeface.DEFAULT);
+        t.setLineSpacing(0, 1.15f);
+        t.setPadding(dp(24), dp(8), dp(24), 0);
+        ScrollView sv = new ScrollView(this);
+        sv.addView(t);
+        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle("Geste").setView(sv).setPositiveButton("U redu", null).show();
+        prefs.edit().putBoolean("gesturesSeen", true).apply();
+    }
+
     private void moreMenu() {
         new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setItems(new String[]{"Ulaz (HDMI, antena…)", "Postavke TV-a", "Isključi / uključi zvuk", "Premotaj natrag", "Premotaj naprijed"},
@@ -1177,6 +1195,7 @@ public class MainActivity extends Activity implements Tv.Listener {
         if (recording && a.name.equals(recApp)) { say(a.name + " je već otvoren za snimanje", false); return; }
         record("o" + b64(a.name));
         say("Otvaram " + a.name, false);
+        selectTab(TAB_REMOTE);
         launcher.execute(() -> openSync(a));
     }
 
@@ -1191,6 +1210,7 @@ public class MainActivity extends Activity implements Tv.Listener {
         List<String> c = new ArrayList<>();
         for (String t : yt.search) c.add(t.replace("%s", enc));
         launch(c, "Tražim „" + q + "“ na YouTubeu");
+        selectTab(TAB_REMOTE);
     }
 
     /** Opens the app; returns false if every way of opening it failed. */
@@ -1396,6 +1416,7 @@ public class MainActivity extends Activity implements Tv.Listener {
         setupScreen.setVisibility(View.GONE);
         mainScreen.setVisibility(View.VISIBLE);
         selectTab(TAB_REMOTE);
+        if (!prefs.getBoolean("gesturesSeen", false)) ui.postDelayed(this::showGestures, 400);
         connectQuietly();
     }
 

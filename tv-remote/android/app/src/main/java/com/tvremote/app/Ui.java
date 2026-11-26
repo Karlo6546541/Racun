@@ -24,7 +24,7 @@ final class Ui {
 
     // icon ids
     static final int NONE = 0, BACK = 1, HOME = 2, PLAY = 3, MUTE = 4, PLUS = 5, MINUS = 6, POWER = 7, INPUT = 8,
-            GEAR = 9, FF = 10, REW = 11, SEARCH = 12, KEYB = 13, MENU = 14, REMOTE = 15, APPS = 16, SLIDERS = 17, BOLT = 18, MORE = 19;
+            GEAR = 9, FF = 10, REW = 11, SEARCH = 12, KEYB = 13, MENU = 14, REMOTE = 15, APPS = 16, SLIDERS = 17, BOLT = 18, MORE = 19, CLOSE = 20;
 
     static void icon(Canvas c, int type, float cx, float cy, float u, int color) {
         Paint st = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -78,6 +78,10 @@ final class Ui {
                 c.drawPath(g, fl);
                 break;
             }
+            case CLOSE:
+                c.drawLine(cx - .8f * u, cy - .8f * u, cx + .8f * u, cy + .8f * u, st);
+                c.drawLine(cx - .8f * u, cy + .8f * u, cx + .8f * u, cy - .8f * u, st);
+                break;
             case MORE:
                 for (int i = -1; i <= 1; i++) c.drawCircle(cx + i * .75f * u, cy, u * .2f, fl);
                 break;
@@ -198,76 +202,98 @@ final class Ui {
     }
 
     /**
-     * Trackpad like a Mac / Apple TV touch surface: dragging moves the TV focus one step per distance travelled,
-     * a quick flick adds a few more steps, a tap is OK.
+     * Whole-screen touch surface. One finger: drag = move (a flick adds steps), tap = OK, hold = play/pause.
+     * Two fingers: tap = back, up/down = volume, left/right = rewind/forward. Three fingers: tap = home.
+     * From the right edge inwards = keyboard, from the left edge inwards = quick menu.
      */
     static class TrackPad extends View {
         interface Key { void press(int code); }
         Key key;
+        Runnable onEdgeRight, onEdgeLeft;
         private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Handler h = new Handler(Looper.getMainLooper());
         private android.view.VelocityTracker vt;
         private float downX, downY, lastX, lastY, accX, accY, touchX = -1, touchY = -1;
+        private float cx0, cy0, mAccX, mAccY;   // two/three finger centre
+        private boolean resetCentre;
         private long downT;
-        private boolean moved;
-        private int flashDir = -1;
-        private long flashAt;
-        private boolean hint = true;
+        private boolean moved, multiMoved, longFired, down, edgeRight, edgeLeft;
+        private int maxPtr;
+        private String label;
+        private long labelAt;
+        boolean hint = true;
+
+        private final Runnable longPress = new Runnable() {
+            public void run() {
+                if (down && !moved && maxPtr == 1 && !edgeRight && !edgeLeft) { longFired = true; fire(85, "Play / Pauza"); }
+            }
+        };
 
         TrackPad(Context c) { super(c); setClickable(true); }
 
-        private float step() { return dp(getContext(), 40); }
+        private float d(float v) { return dp(getContext(), v); }
 
-        private void fire(int code) {
+        private void fire(int code, String text) {
             if (key == null) return;
             performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
             key.press(code);
-            flashDir = code; flashAt = System.currentTimeMillis();
+            if (text != null) { label = text; labelAt = System.currentTimeMillis(); h.postDelayed(this::invalidate, 750); }
+            hint = false;
             invalidate();
-            h.postDelayed(this::invalidate, 260);
+        }
+
+        private void edge(Runnable r) {
+            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            hint = false;
+            if (r != null) r.run();
         }
 
         @Override protected void onDraw(Canvas c) {
-            float w = getWidth(), hh = getHeight(), r = dp(getContext(), 28);
+            float w = getWidth(), hh = getHeight(), r = d(30);
             p.setStyle(Paint.Style.FILL);
-            p.setShader(new android.graphics.LinearGradient(0, 0, 0, hh, 0xFF202023, 0xFF161618, android.graphics.Shader.TileMode.CLAMP));
+            p.setShader(new android.graphics.LinearGradient(0, 0, 0, hh, 0xFF1E1E21, 0xFF141416, android.graphics.Shader.TileMode.CLAMP));
             c.drawRoundRect(new RectF(0, 0, w, hh), r, r, p);
             p.setShader(null);
-            p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(getContext(), 1)); p.setColor(0xFF2C2C2E);
-            c.drawRoundRect(new RectF(0, 0, w, hh), r, r, p);
-            p.setStyle(Paint.Style.FILL);
+            // edge grips, so the side gestures can be found
+            p.setColor(0xFF3A3A3C);
+            c.drawRoundRect(new RectF(w - d(6), hh / 2 - d(36), w - d(3), hh / 2 + d(36)), d(2), d(2), p);
+            c.drawRoundRect(new RectF(d(3), hh / 2 - d(36), d(6), hh / 2 + d(36)), d(2), d(2), p);
 
-            if (touchX >= 0) { // soft glow under the finger
-                p.setShader(new android.graphics.RadialGradient(touchX, touchY, dp(getContext(), 70),
-                        0x30FFFFFF, 0x00FFFFFF, android.graphics.Shader.TileMode.CLAMP));
-                c.drawCircle(touchX, touchY, dp(getContext(), 70), p);
+            if (touchX >= 0) {
+                p.setShader(new android.graphics.RadialGradient(touchX, touchY, d(80), 0x2EFFFFFF, 0x00FFFFFF, android.graphics.Shader.TileMode.CLAMP));
+                c.drawCircle(touchX, touchY, d(80), p);
                 p.setShader(null);
             }
-            long age = System.currentTimeMillis() - flashAt;
-            if (flashDir > 0 && age < 250) { // brief chevron towards the move
-                int a = (int) (200 * (1 - age / 250f));
-                int col = (a << 24) | 0xFFFFFF;
-                float u = dp(getContext(), 7);
-                float cx = w / 2, cy = hh / 2;
-                if (flashDir == 23) { p.setColor(col); c.drawCircle(cx, cy, dp(getContext(), 26), p); }
-                else {
-                    c.save();
-                    float px = flashDir == 21 ? dp(getContext(), 34) : flashDir == 22 ? w - dp(getContext(), 34) : cx;
-                    float py = flashDir == 19 ? dp(getContext(), 34) : flashDir == 20 ? hh - dp(getContext(), 34) : cy;
-                    float rot = flashDir == 21 ? 0 : flashDir == 22 ? 180 : flashDir == 19 ? 90 : -90;
-                    c.rotate(rot, px, py);
-                    icon(c, BACK, px, py, u, col);
-                    c.restore();
-                }
-            }
-            if (hint) {
-                p.setColor(0xFF636366); p.setTextAlign(Paint.Align.CENTER); p.setTypeface(MEDIUM);
+            long age = System.currentTimeMillis() - labelAt;
+            if (label != null && age < 700) {
+                int a = (int) (255 * Math.min(1f, (700 - age) / 250f));
+                p.setTypeface(MEDIUM); p.setTextAlign(Paint.Align.CENTER);
+                p.setTextSize(17 * getResources().getDisplayMetrics().scaledDensity);
+                float tw = p.measureText(label) + d(36);
+                p.setColor((Math.min(a, 220) << 24) | 0x3A3A3C);
+                c.drawRoundRect(new RectF(w / 2 - tw / 2, hh / 2 - d(24), w / 2 + tw / 2, hh / 2 + d(24)), d(24), d(24), p);
+                p.setColor((a << 24) | 0xFFFFFF);
+                c.drawText(label, w / 2, hh / 2 - (p.descent() + p.ascent()) / 2, p);
+                invalidate();
+            } else if (hint) {
+                p.setTypeface(MEDIUM); p.setTextAlign(Paint.Align.CENTER);
+                p.setColor(0xFF636366);
                 p.setTextSize(15 * getResources().getDisplayMetrics().scaledDensity);
-                c.drawText("Povuci prstom za kretanje", w / 2, hh / 2 - dp(getContext(), 4), p);
-                p.setTextSize(13 * getResources().getDisplayMetrics().scaledDensity);
+                c.drawText("Povuci prstom · dodir = OK", w / 2, hh / 2 - d(10), p);
                 p.setColor(0xFF48484A);
-                c.drawText("Dodir = OK", w / 2, hh / 2 + dp(getContext(), 20), p);
+                p.setTextSize(12.5f * getResources().getDisplayMetrics().scaledDensity);
+                c.drawText("2 prsta = natrag · 3 prsta = početni zaslon", w / 2, hh / 2 + d(16), p);
+                c.drawText("s desnog ruba = tipkovnica", w / 2, hh / 2 + d(36), p);
             }
+        }
+
+        private void centre(MotionEvent e, boolean skipActionIndex) {
+            float sx = 0, sy = 0; int n = 0;
+            for (int i = 0; i < e.getPointerCount(); i++) {
+                if (skipActionIndex && i == e.getActionIndex()) continue;
+                sx += e.getX(i); sy += e.getY(i); n++;
+            }
+            if (n > 0) { cx0 = sx / n; cy0 = sy / n; }
         }
 
         @Override public boolean onTouchEvent(MotionEvent e) {
@@ -275,40 +301,88 @@ final class Ui {
                 case MotionEvent.ACTION_DOWN:
                     if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
                     downX = lastX = touchX = e.getX(); downY = lastY = touchY = e.getY();
-                    accX = accY = 0; moved = false; downT = System.currentTimeMillis();
+                    accX = accY = 0; moved = multiMoved = longFired = false; down = true; maxPtr = 1;
+                    downT = System.currentTimeMillis();
+                    edgeRight = downX > getWidth() - d(30);
+                    edgeLeft = downX < d(30);
                     vt = android.view.VelocityTracker.obtain(); vt.addMovement(e);
+                    h.postDelayed(longPress, 550);
                     invalidate();
+                    return true;
+                case MotionEvent.ACTION_POINTER_DOWN:
+                    maxPtr = Math.max(maxPtr, e.getPointerCount());
+                    h.removeCallbacks(longPress);
+                    edgeRight = edgeLeft = false;
+                    centre(e, false); mAccX = mAccY = 0;
+                    return true;
+                case MotionEvent.ACTION_POINTER_UP:
+                    resetCentre = true;
                     return true;
                 case MotionEvent.ACTION_MOVE: {
                     if (vt != null) vt.addMovement(e);
-                    float x = e.getX(), y = e.getY();
-                    accX += x - lastX; accY += y - lastY;
-                    lastX = touchX = x; lastY = touchY = y;
-                    if (Math.hypot(x - downX, y - downY) > dp(getContext(), 10)) { moved = true; hint = false; }
-                    float st = step();
-                    while (Math.abs(accX) >= st || Math.abs(accY) >= st) {
-                        if (Math.abs(accX) >= Math.abs(accY)) {
-                            fire(accX > 0 ? 22 : 21); accX -= Math.signum(accX) * st; accY = 0;
-                        } else {
-                            fire(accY > 0 ? 20 : 19); accY -= Math.signum(accY) * st; accX = 0;
+                    if (e.getPointerCount() >= 2 || maxPtr >= 2) {
+                        float ox = cx0, oy = cy0;
+                        centre(e, false);
+                        if (resetCentre) { resetCentre = false; return true; }
+                        mAccX += cx0 - ox; mAccY += cy0 - oy;
+                        if (Math.abs(mAccX) > d(12) || Math.abs(mAccY) > d(12)) multiMoved = true;
+                        if (maxPtr == 2) {
+                            float vs = d(26), hs = d(70);
+                            while (Math.abs(mAccY) >= vs && Math.abs(mAccY) >= Math.abs(mAccX)) {
+                                boolean up = mAccY < 0;
+                                fire(up ? 24 : 25, up ? "Glasnoća +" : "Glasnoća −");
+                                mAccY -= Math.signum(mAccY) * vs; mAccX = 0;
+                            }
+                            while (Math.abs(mAccX) >= hs && Math.abs(mAccX) > Math.abs(mAccY)) {
+                                boolean fwd = mAccX > 0;
+                                fire(fwd ? 90 : 89, fwd ? "Naprijed »" : "« Nazad");
+                                mAccX -= Math.signum(mAccX) * hs; mAccY = 0;
+                            }
                         }
+                        return true;
+                    }
+                    float x = e.getX(), y = e.getY();
+                    touchX = x; touchY = y;
+                    if (edgeRight || edgeLeft) {
+                        if (Math.abs(y - downY) > d(40)) { edgeRight = edgeLeft = false; lastX = x; lastY = y; }
+                        else if (edgeRight && downX - x > d(60)) { edgeRight = false; moved = true; edge(onEdgeRight); down = false; }
+                        else if (edgeLeft && x - downX > d(60)) { edgeLeft = false; moved = true; edge(onEdgeLeft); down = false; }
+                        if (Math.hypot(x - downX, y - downY) > d(10)) h.removeCallbacks(longPress);
+                        invalidate();
+                        return true;
+                    }
+                    if (!down) return true;
+                    accX += x - lastX; accY += y - lastY;
+                    lastX = x; lastY = y;
+                    if (Math.hypot(x - downX, y - downY) > d(10)) { moved = true; h.removeCallbacks(longPress); }
+                    float st = d(40);
+                    while (Math.abs(accX) >= st || Math.abs(accY) >= st) {
+                        if (Math.abs(accX) >= Math.abs(accY)) { fire(accX > 0 ? 22 : 21, null); accX -= Math.signum(accX) * st; accY = 0; }
+                        else { fire(accY > 0 ? 20 : 19, null); accY -= Math.signum(accY) * st; accX = 0; }
                     }
                     invalidate();
                     return true;
                 }
                 case MotionEvent.ACTION_UP: {
+                    h.removeCallbacks(longPress);
                     touchX = touchY = -1;
-                    if (!moved && System.currentTimeMillis() - downT < 400) { hint = false; fire(23); }
-                    else if (vt != null) {
+                    boolean wasDown = down;
+                    down = false;
+                    long dur = System.currentTimeMillis() - downT;
+                    if (longFired) { /* already handled */ }
+                    else if (maxPtr >= 3) { if (!multiMoved) fire(3, "Početni zaslon"); }
+                    else if (maxPtr == 2) { if (!multiMoved) fire(4, "Natrag"); }
+                    else if (wasDown && !moved && dur < 450) fire(23, null);
+                    else if (wasDown && moved && vt != null) {
                         vt.addMovement(e);
                         vt.computeCurrentVelocity(1000);
-                        float d = getResources().getDisplayMetrics().density;
-                        float vx = vt.getXVelocity() / d, vy = vt.getYVelocity() / d; // dp per second
+                        float dd = getResources().getDisplayMetrics().density;
+                        float vx = vt.getXVelocity() / dd, vy = vt.getYVelocity() / dd;
                         float v = Math.max(Math.abs(vx), Math.abs(vy));
-                        if (v > 1400) { // flick: a few extra steps
+                        if (v > 1400) {
                             final int code = Math.abs(vx) > Math.abs(vy) ? (vx > 0 ? 22 : 21) : (vy > 0 ? 20 : 19);
                             int extra = Math.min(4, (int) (v / 1100));
-                            for (int i = 1; i <= extra; i++) h.postDelayed(() -> fire(code), i * 90L);
+                            for (int i = 1; i <= extra; i++) h.postDelayed(() -> fire(code, null), i * 90L);
                         }
                     }
                     if (vt != null) { vt.recycle(); vt = null; }
@@ -316,7 +390,8 @@ final class Ui {
                     return true;
                 }
                 case MotionEvent.ACTION_CANCEL:
-                    touchX = touchY = -1;
+                    h.removeCallbacks(longPress);
+                    touchX = touchY = -1; down = false;
                     if (vt != null) { vt.recycle(); vt = null; }
                     invalidate();
                     return true;
