@@ -120,5 +120,15 @@ final class Typer {
         }
     }
 
+    /**
+     * Makes the TV field show exactly {@code text}: deletes what is there, then types it all again.
+     * {@code onTv} is how many characters the field holds now (as far as we know).
+     */
+    void replace(int mode, int onTv, String text, Sink out) throws Exception {
+        int clear = mode == GRID ? onTv : onTv + 2;   // a couple of extra deletes cost nothing outside the grid
+        delete(mode, clear, out);
+        append(mode, text, out);
+    }
+
     void resetGrid() { grid.r = 0; grid.c = 0; }
 }

@@ -55,6 +55,8 @@ final class Tv {
     volatile long lastErrorAt;
     /** Last time the TV reported a focused text field that accepts typed text (system keyboard). */
     volatile long lastImeAt;
+    /** Text the TV last reported in its focused field (system keyboard only). */
+    volatile String fieldText = "";
     volatile String lastError = "";
     private volatile boolean ime = true;
     private volatile int imeCounter, imeFieldCounter;
@@ -270,9 +272,15 @@ final class Tv {
             hasImeCounter = imeCounter != 0;
             hasImeFieldCounter = imeFieldCounter != 0;
             lastImeAt = System.currentTimeMillis();
+            byte[] v = tf == null ? null : tf.b(2);
+            if (v != null) fieldText = new String(v, java.nio.charset.StandardCharsets.UTF_8);
         } else if (m.has(22)) { // ime_show_request: TV wants a keyboard
             Pb.Msg sr = m.m(22), tf = sr == null ? null : sr.m(2);
-            if (tf != null) { imeFieldCounter = (int) tf.i(1, 0); hasImeFieldCounter = true; }
+            if (tf != null) {
+                imeFieldCounter = (int) tf.i(1, 0); hasImeFieldCounter = true;
+                byte[] v = tf.b(2);
+                fieldText = v == null ? "" : new String(v, java.nio.charset.StandardCharsets.UTF_8);
+            }
             lastImeAt = System.currentTimeMillis();
             Listener l = listener;
             if (l != null) l.textFieldFocused();

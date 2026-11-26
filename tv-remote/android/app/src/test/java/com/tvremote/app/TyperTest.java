@@ -29,6 +29,22 @@ public class TyperTest {
         return "" + k;
     }
 
+    @Test public void replaceClearsThenTypesAll() throws Exception {
+        final StringBuilder log = new StringBuilder();
+        Typer.Sink sink = new Typer.Sink() {
+            public void key(int k) { log.append(name(k)).append(' '); }
+            public void text(String s) { log.append("TEXT(").append(s).append(") "); }
+            public void pause(long ms) {}
+        };
+        new Typer().replace(Typer.TEXT, 3, "abc", sink);
+        assertEquals("DEL DEL DEL DEL DEL TEXT(abc)", log.toString().trim());
+        log.setLength(0);
+        Typer g = new Typer();
+        g.replace(Typer.GRID, 0, "ab", sink);     // empty Netflix field: just type
+        g.replace(Typer.GRID, 2, "a", sink);      // two deletes, then "a" again
+        assertEquals("OK R OK R R R U OK OK D L L L L OK", log.toString().trim());
+    }
+
     @Test public void plainStripsAccents() {
         assertEquals("sta je dodo 9", Typer.plain("Šta je Đođo 9!"));
     }

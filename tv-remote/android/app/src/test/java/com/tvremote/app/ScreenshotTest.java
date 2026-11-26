@@ -95,7 +95,7 @@ public class ScreenshotTest {
         runS.invoke(a, slow, null);           // second tap while running: ignored
         shadowOf(Looper.getMainLooper()).idle();
         String banner = ((android.widget.TextView) f(a, "banner")).getText().toString();
-        assertTrue(banner, banner.contains("već izvodi"));
+        assertTrue(banner, banner.contains("Već radim"));
         m("press", int.class).invoke(a, 22);  // any remote key stops it
         Field rep = MainActivity.class.getDeclaredField("replaying"); rep.setAccessible(true);
         long end = System.currentTimeMillis() + 3000;
