@@ -24,7 +24,7 @@ final class Ui {
 
     // icon ids
     static final int NONE = 0, BACK = 1, HOME = 2, PLAY = 3, MUTE = 4, PLUS = 5, MINUS = 6, POWER = 7, INPUT = 8,
-            GEAR = 9, FF = 10, REW = 11, SEARCH = 12, KEYB = 13, MENU = 14, REMOTE = 15, APPS = 16, SLIDERS = 17;
+            GEAR = 9, FF = 10, REW = 11, SEARCH = 12, KEYB = 13, MENU = 14, REMOTE = 15, APPS = 16, SLIDERS = 17, BOLT = 18;
 
     static void icon(Canvas c, int type, float cx, float cy, float u, int color) {
         Paint st = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -78,6 +78,10 @@ final class Ui {
                 c.drawPath(g, fl);
                 break;
             }
+            case BOLT:
+                p.moveTo(cx + .25f * u, cy - 1.4f * u); p.lineTo(cx - .85f * u, cy + .15f * u); p.lineTo(cx - .05f * u, cy + .15f * u);
+                p.lineTo(cx - .3f * u, cy + 1.4f * u); p.lineTo(cx + .85f * u, cy - .2f * u); p.lineTo(cx + .05f * u, cy - .2f * u); p.close();
+                c.drawPath(p, st); break;
             case SLIDERS:
                 for (int i = -1; i <= 1; i++) {
                     float y = cy + i * .75f * u, kx = cx + (i == 0 ? .5f : -.45f) * u;

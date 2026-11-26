@@ -53,6 +53,8 @@ final class Tv {
     volatile Binder binder;
     volatile Listener listener;
     volatile long lastErrorAt;
+    /** Last time the TV reported a focused text field that accepts typed text (system keyboard). */
+    volatile long lastImeAt;
     volatile String lastError = "";
     private volatile boolean ime = true;
     private volatile int imeCounter, imeFieldCounter;
@@ -267,9 +269,11 @@ final class Tv {
             imeFieldCounter = tf == null ? 0 : (int) tf.i(1, 0);
             hasImeCounter = imeCounter != 0;
             hasImeFieldCounter = imeFieldCounter != 0;
+            lastImeAt = System.currentTimeMillis();
         } else if (m.has(22)) { // ime_show_request: TV wants a keyboard
             Pb.Msg sr = m.m(22), tf = sr == null ? null : sr.m(2);
             if (tf != null) { imeFieldCounter = (int) tf.i(1, 0); hasImeFieldCounter = true; }
+            lastImeAt = System.currentTimeMillis();
             Listener l = listener;
             if (l != null) l.textFieldFocused();
         } else if (m.has(21)) { // ime_batch_edit echoed by the TV
