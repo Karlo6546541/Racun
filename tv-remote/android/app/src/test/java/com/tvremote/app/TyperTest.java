@@ -42,7 +42,9 @@ public class TyperTest {
         Typer g = new Typer();
         g.replace(Typer.GRID, 0, "ab", sink);     // empty Netflix field: just type
         g.replace(Typer.GRID, 2, "a", sink);      // two deletes, then "a" again
-        assertEquals("OK R OK R R R U OK OK D L L L L OK", log.toString().trim());
+        // a: leave Space (D L x5), OK | b: R, OK | two deletes from b (col 1): R x4 to col 5, UP onto Delete, OK, OK
+        // | then 'a' again from Delete: D L x5, OK
+        assertEquals("D L L L L L OK R OK R R R R U OK OK D L L L L L OK", log.toString().trim());
     }
 
     @Test public void plainStripsAccents() {
@@ -57,10 +59,44 @@ public class TyperTest {
         assertEquals("TEXT(Čao)", run(Typer.TEXT, "Čao"));
     }
 
-    @Test public void gridMode() throws Exception {
-        // a: already focused; b: right; o: row 2 col 2; space: back to row 0, up, left half; then delete: right, OK
-        assertEquals("OK R OK D D R OK U U L U OK R OK", run(Typer.GRID, "abo ", "<DEL>"));
-        // digit 9 is row 5, col 4; from 'a'
-        assertEquals("D D D D D R R R R OK", run(Typer.GRID, "9"));
+    private static final String HOME = "D L L L L L"; // leave Space: DOWN, then LEFT x5 to be sure of column 0
+
+    @Test public void gridStartsOnSpace() throws Exception {
+        assertEquals("OK", run(Typer.GRID, " "));                      // Space is focused at first
+        assertEquals(HOME + " OK", run(Typer.GRID, "a"));              // 'a' = row 0, col 0
+        assertEquals(HOME + " R R R R R OK", run(Typer.GRID, "d"));    // 'd' = row 0, col 5
+    }
+
+    @Test public void gridCroatianLetters() throws Exception {
+        assertEquals(HOME + " R R R OK", run(Typer.GRID, "č"));        // row 0, col 3
+        assertEquals(HOME + " D OK", run(Typer.GRID, "đ"));            // row 1, col 0
+        assertEquals(HOME + " R R R R D D D OK", run(Typer.GRID, "š")); // row 3, col 4
+        assertEquals(HOME + " D D D D D OK", run(Typer.GRID, "ž"));    // row 5, col 0
+    }
+
+    @Test public void gridLastRowHasFiveKeys() throws Exception {
+        // '6' = row 6 col 0; '0' = row 6 col 4 (never col 5, that key does not exist)
+        assertEquals(HOME + " D D D D D D OK", run(Typer.GRID, "6"));
+        assertEquals(HOME + " R R R R D D D D D D OK", run(Typer.GRID, "0"));
+    }
+
+    @Test public void gridMovesBetweenKeys() throws Exception {
+        // "ae": a (row 0 col 0) then e (row 1 col 1): RIGHT, DOWN
+        assertEquals(HOME + " OK R D OK", run(Typer.GRID, "ae"));
+        // from the last row back up is vertical first: '6' then 'a'
+        assertEquals(HOME + " D D D D D D OK U U U U U U OK", run(Typer.GRID, "6a"));
+    }
+
+    @Test public void gridSpaceAndDelete() throws Exception {
+        // type 'a' then Space: UP to the top row under cols 0-2 (we are at col 0), OK
+        assertEquals(HOME + " OK U OK", run(Typer.GRID, "a "));
+        // delete after 'd' (col 5): UP lands on Delete, OK
+        assertEquals(HOME + " R R R R R OK U OK", run(Typer.GRID, "d", "<DEL>"));
+        // Space then Delete on the top row: RIGHT, OK
+        assertEquals("OK R OK", run(Typer.GRID, " ", "<DEL>"));
+    }
+
+    @Test public void gridKeepsCroatianLettersOnly() {
+        assertEquals("šđčćž ab12", Typer.gridText("ŠĐČĆŽ Ab12!?"));
     }
 }

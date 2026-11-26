@@ -570,8 +570,8 @@ public class MainActivity extends Activity implements Tv.Listener {
             "Auto: ako TV otvori svoju tipkovnicu (YouTube i većina aplikacija), tekst ide izravno; inače slovo po slovo.",
             "Tekst: za polja koja koriste tipkovnicu televizora (YouTube, Google, Disney+…).",
             "Tipke: šalje svako slovo kao tipku s tipkovnice. Probaj ako Tekst ne radi.",
-            "Netflix: sam se kreće po Netflixovoj tipkovnici na ekranu (a–z, 0–9 u 6 stupaca) i pritišće OK. "
-                    + "Prije pisanja na TV-u treba biti označeno slovo A."
+            "Netflix: sam se kreće po Netflixovoj tipkovnici na ekranu (razmak, brisanje, a–ž, 0–9) i pritišće OK. "
+                    + "Kad otvoriš pretragu, označen mora biti razmak (gore lijevo)."
     };
 
     private View buildKeyboardTab() {
@@ -1198,9 +1198,43 @@ public class MainActivity extends Activity implements Tv.Listener {
         io.execute(() -> { try { if (!tv.isReady()) tv.connect(prefs.getString("ip", "")); } catch (Exception e) { say(err(e), true); } });
     }
 
+    /**
+     * The Power key is what the Google TV phone app sends, and it toggles. The TV reports whether it is on
+     * (remote_start), so we can say what we are doing; a TV that is off but still answers on the network
+     * is switched on the same way, one that is unreachable gets a Wake-on-LAN packet first.
+     */
     private void powerTapped() {
-        if (tv.isOn()) { run(() -> tv.key(SLEEP), "Gasim TV"); return; }
-        wakeUp();
+        if (replaying) { cancelReplay = true; say("Zaustavljeno", true); return; }
+        say("…", false);
+        launcher.execute(() -> {
+            final String ip = prefs.getString("ip", "");
+            try {
+                if (!tv.isReady()) tv.connect(ip);
+                boolean on = tv.isOn();
+                tv.key(POWER);
+                say(on ? "Gasim TV" : "Palim TV", false);
+            } catch (Exception first) {
+                wakeUnreachable(ip);
+            }
+        });
+    }
+
+    /** TV does not answer: wake it over the network (if a MAC is saved), then press Power once it is reachable. */
+    private void wakeUnreachable(String ip) {
+        final String mac = prefs.getString("mac", "");
+        say(mac.isEmpty() ? "TV se ne javlja — pokušavam ga probuditi…" : "Palim TV preko mreže…", false);
+        for (int i = 0; i < 6; i++) {
+            if (!mac.isEmpty()) { try { sendWol(mac); } catch (Exception ignored) {} }
+            try { Thread.sleep(2500); } catch (InterruptedException ignored) {}
+            try {
+                tv.connect(ip);
+                if (!tv.isOn()) tv.key(POWER);
+                say("TV je upaljen", false);
+                return;
+            } catch (Exception ignored) {}
+        }
+        if (mac.isEmpty()) ui.post(this::askMac);
+        else say("TV se ne javlja preko mreže. Upali ga daljinskim ili preko soundbara (HDMI-CEC).", true);
     }
 
     private void openApp(final Apps.App a) {
@@ -1293,23 +1327,6 @@ public class MainActivity extends Activity implements Tv.Listener {
 
     // ----------------------------------------------------------------------
     // waking a TV that is off
-    private void wakeUp() {
-        final String mac = prefs.getString("mac", "");
-        say("Palim TV…", false);
-        launcher.execute(() -> {
-            int attempts = mac.isEmpty() ? 1 : 5;
-            for (int i = 0; i < attempts; i++) {
-                if (!mac.isEmpty()) { try { sendWol(mac); } catch (Exception ignored) {} }
-                try { tv.key(WAKE); say("TV je upaljen", false); return; }
-                catch (Exception e) {
-                    if (i + 1 < attempts) { try { Thread.sleep(2500); } catch (InterruptedException ignored) {} }
-                }
-            }
-            if (mac.isEmpty()) ui.post(this::askMac);
-            else say("TV se ne pali preko mreže. Upali ga daljinskim ili preko soundbara (HDMI-CEC).", true);
-        });
-    }
-
     private void sendWol(String mac) throws Exception {
         String[] hex = mac.split(":");
         byte[] m = new byte[6];

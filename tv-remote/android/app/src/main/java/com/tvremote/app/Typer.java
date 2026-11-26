@@ -38,17 +38,28 @@ final class Typer {
         return -1;
     }
 
+    /** Lower case; keeps what the Netflix grid has (a-z, 0-9, space and the Croatian č ć đ š ž). */
+    static String gridText(String s) {
+        StringBuilder b = new StringBuilder();
+        for (char c : s.toLowerCase().toCharArray())
+            if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == ' ' || "čćđšž".indexOf(c) >= 0) b.append(c);
+        return b.toString();
+    }
+
     /**
-     * Netflix TV search keyboard: a row with Space (left half) and Delete (right half),
-     * then a–z and 0–9 in rows of six. Focus is assumed to start on "a".
+     * Netflix TV search keyboard as it looks on a Croatian-region TCL (photo of the screen):
+     * a top row with Space (above the first three columns) and Delete (above the last three),
+     * then letters and digits in six columns; the last row has only five keys. Focus starts on Space.
+     * The key a DOWN press lands on from the wide top row is not known, so after leaving it we press
+     * LEFT until the first column is certain (the grid does not wrap).
      */
     static final class Grid {
-        static final String[] ROWS = {"abcdef", "ghijkl", "mnopqr", "stuvwx", "yz1234", "567890"};
-        int r = 0, c = 0; // r == -1 is the Space/Delete row
+        static final String[] ROWS = {"abcčćd", "đefghi", "jklmno", "pqrsšt", "uvwxyz", "ž12345", "67890"};
+        int r = -1, c = 0; // r == -1: top row, c == 0 Space, c == 5 Delete
 
         /** D-pad presses (ending in OK) that type one character, or nothing for unknown ones. */
         List<Integer> type(char ch) {
-            if (ch == ' ') return toTopRow(1);
+            if (ch == ' ') return toTop(false);
             for (int row = 0; row < ROWS.length; row++) {
                 int col = ROWS[row].indexOf(ch);
                 if (col >= 0) return moveTo(row, col);
@@ -56,38 +67,42 @@ final class Typer {
             return new ArrayList<>();
         }
 
-        List<Integer> delete() { return toTopRow(4); }
+        List<Integer> delete() { return toTop(true); }
 
-        private List<Integer> toTopRow(int col) {
+        private List<Integer> toTop(boolean del) {
             List<Integer> k = new ArrayList<>();
             if (r != -1) {
-                k.addAll(moveNoOk(0, col));
+                while (r > 0) { k.add(UP); r--; }
+                int col = del ? 5 : 0;
+                while (c < col) { k.add(RIGHT); c++; }
+                while (c > col) { k.add(LEFT); c--; }
                 k.add(UP);
                 r = -1;
-            }
-            // Space covers columns 0-2, Delete 3-5
-            boolean wantDel = col >= 3, onDel = c >= 3;
-            if (wantDel && !onDel) k.add(RIGHT);
-            if (!wantDel && onDel) k.add(LEFT);
-            c = col;
+            } else if (del && c == 0) { k.add(RIGHT); c = 5; }
+            else if (!del && c == 5) { k.add(LEFT); c = 0; }
             k.add(OK);
             return k;
         }
 
         private List<Integer> moveTo(int row, int col) {
-            List<Integer> k = moveNoOk(row, col);
+            List<Integer> k = new ArrayList<>();
+            if (r == -1) {
+                k.add(DOWN);
+                for (int i = 0; i < 5; i++) k.add(LEFT);
+                r = 0; c = 0;
+            }
+            boolean verticalFirst = r == ROWS.length - 1; // the short last row has no sixth key
+            if (verticalFirst) vertical(k, row);
+            while (c < col) { k.add(RIGHT); c++; }
+            while (c > col) { k.add(LEFT); c--; }
+            if (!verticalFirst) vertical(k, row);
             k.add(OK);
             return k;
         }
 
-        private List<Integer> moveNoOk(int row, int col) {
-            List<Integer> k = new ArrayList<>();
-            if (r == -1) { k.add(DOWN); r = 0; }
+        private void vertical(List<Integer> k, int row) {
             while (r < row) { k.add(DOWN); r++; }
             while (r > row) { k.add(UP); r--; }
-            while (c < col) { k.add(RIGHT); c++; }
-            while (c > col) { k.add(LEFT); c--; }
-            return k;
         }
     }
 
@@ -102,14 +117,14 @@ final class Typer {
     void append(int mode, String s, Sink out) throws Exception {
         if (s.isEmpty()) return;
         if (mode == TEXT) { out.text(s); return; }
-        String p = plain(s);
-        for (char ch : p.toCharArray()) {
-            if (mode == KEYS) {
-                int k = keyFor(ch);
-                if (k > 0) { out.key(k); out.pause(90); }
-            } else {
+        if (mode == GRID) {
+            for (char ch : gridText(s).toCharArray())
                 for (int k : grid.type(ch)) { out.key(k); out.pause(130); }
-            }
+            return;
+        }
+        for (char ch : plain(s).toCharArray()) {
+            int k = keyFor(ch);
+            if (k > 0) { out.key(k); out.pause(90); }
         }
     }
 
@@ -130,5 +145,5 @@ final class Typer {
         append(mode, text, out);
     }
 
-    void resetGrid() { grid.r = 0; grid.c = 0; }
+    void resetGrid() { grid.r = -1; grid.c = 0; }
 }
