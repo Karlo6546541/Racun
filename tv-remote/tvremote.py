@@ -21,7 +21,7 @@ KEYS = {"up": "DPAD_UP", "down": "DPAD_DOWN", "left": "DPAD_LEFT", "right": "DPA
         "vol_up": "VOLUME_UP", "vol_down": "VOLUME_DOWN", "mute": "VOLUME_MUTE",
         "play": "MEDIA_PLAY_PAUSE", "next": "MEDIA_NEXT", "prev": "MEDIA_PREVIOUS",
         "ff": "MEDIA_FAST_FORWARD", "rew": "MEDIA_REWIND", "power": "POWER",
-        "wake": "WAKEUP", "input": "TV_INPUT", "settings": "SETTINGS",
+        "wake": "WAKEUP", "sleep": "SLEEP", "input": "TV_INPUT", "settings": "SETTINGS",
         "del": "DEL", "enter": "ENTER", "search": "SEARCH"}
 APPS = {"youtube": "com.google.android.youtube.tv",
         "ytmusic": "com.google.android.youtube.tvmusic",
@@ -99,6 +99,7 @@ input{width:100%;background:#1c1c1e;color:#eee;border:0;border-radius:12px;paddi
 #st{font-size:13px;color:#888;text-align:center;height:18px}h2{font-size:13px;color:#888;margin:18px 0 0;font-weight:500}
 .ok{background:#2c5cff}</style></head><body>
 <div id="st">&nbsp;</div>
+<div class="row c2"><button data-k="wake" class="ok">⏻ Upali</button><button data-k="sleep">Ugasi</button></div>
 <div class="row c4"><button data-k="power">⏻</button><button data-a="youtube">YouTube</button><button data-a="netflix">Netflix</button><button data-a="prime">Prime</button></div>
 <div class="row c4"><button data-a="ytmusic">YT Music</button><button data-k="input">Input</button><button data-k="settings">⚙</button><button data-a="tcl">TCL</button></div>
 <h2>YouTube pretraga</h2>
