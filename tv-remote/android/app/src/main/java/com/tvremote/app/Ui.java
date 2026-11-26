@@ -105,7 +105,10 @@ final class Ui {
 
     /** Round or pill button with a drawn icon or text, optional hold-to-repeat. */
     static class Btn extends View {
-        int iconType, bg = CARD, fg = WHITE; String text; boolean pill, repeat; Runnable action; float textSp = 16;
+        int iconType, bg = CARD, fg = WHITE; String text; boolean pill, repeat; Runnable action, longAction; float textSp = 16;
+        private boolean longFired;
+        private final Runnable longPress = new Runnable() { public void run() {
+            if (down && longAction != null) { longFired = true; performHapticFeedback(HapticFeedbackConstants.LONG_PRESS); longAction.run(); } } };
         private final Paint bgp = new Paint(Paint.ANTI_ALIAS_FLAG), tp = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Handler h = new Handler(Looper.getMainLooper());
         private boolean down;
@@ -140,15 +143,19 @@ final class Ui {
                 case MotionEvent.ACTION_DOWN:
                     down = true; invalidate(); animate().scaleX(.94f).scaleY(.94f).setDuration(70).start();
                     performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                    longFired = false;
                     if (repeat && action != null) { action.run(); h.postDelayed(loop, 450); }
+                    if (longAction != null) h.postDelayed(longPress, 650);
                     return true;
                 case MotionEvent.ACTION_UP:
                     boolean inside = e.getX() >= 0 && e.getX() <= getWidth() && e.getY() >= 0 && e.getY() <= getHeight();
                     down = false; invalidate(); animate().scaleX(1f).scaleY(1f).setDuration(90).start(); h.removeCallbacks(loop);
-                    if (!repeat && inside && action != null) action.run();
+                    h.removeCallbacks(longPress);
+                    if (!repeat && !longFired && inside && action != null) action.run();
                     return true;
                 case MotionEvent.ACTION_CANCEL:
                     down = false; invalidate(); animate().scaleX(1f).scaleY(1f).setDuration(90).start(); h.removeCallbacks(loop);
+                    h.removeCallbacks(longPress);
                     return true;
             }
             return true;

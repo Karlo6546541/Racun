@@ -238,7 +238,8 @@ public class MainActivity extends Activity implements Tv.Listener {
     private View buildRemoteTab() {
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
-        Ui.Btn on = new Ui.Btn(this, Ui.POWER, "  Upali", Ui.BLUE, true, () -> press(WAKE)); on.textSize(15);
+        Ui.Btn on = new Ui.Btn(this, Ui.POWER, "  Upali", Ui.BLUE, true, this::wakeUp); on.textSize(15);
+        on.longAction = this::askMac;
         Ui.Btn off = new Ui.Btn(this, Ui.NONE, "Ugasi", Ui.CARD, true, () -> press(SLEEP)); off.textSize(15);
         Ui.Btn pwr = new Ui.Btn(this, Ui.POWER, null, Ui.CARD, true, () -> press(POWER)); pwr.fg = Ui.RED;
         c.addView(row(46, on, off, pwr));
@@ -485,6 +486,78 @@ public class MainActivity extends Activity implements Tv.Listener {
             lastTapKey = key; lastTapAt = System.currentTimeMillis(); lastTapIdx = idx;
             setStatus(msg + " ✓ — ako se ništa ne dogodi, dodirni ponovo za drugu metodu");
         });
+    }
+
+    // ---------- waking a TV that is off ----------
+    /** Wake-on-LAN magic packet, then keep trying to reach the remote service while the TV boots. */
+    private void wakeUp() {
+        final String mac = prefs.getString("mac", "");
+        if (mac.isEmpty()) { askMac(); return; }
+        setStatus("Budim TV …");
+        launcher.execute(() -> {
+            for (int i = 0; i < 5; i++) {
+                try { sendWol(mac); } catch (Exception e) { setStatus(err(e)); return; }
+                try { tv.key(WAKE); setStatus("✓ TV je budan"); return; }
+                catch (Exception e) {
+                    setStatus("Budim TV … (" + (i + 1) + "/5)");
+                    try { Thread.sleep(2500); } catch (InterruptedException ignored) {}
+                }
+            }
+            setStatus("TV se ne budi preko mreže: dugo drži Upali za upute");
+        });
+    }
+
+    private void sendWol(String mac) throws Exception {
+        String[] hex = mac.split("[:-]");
+        byte[] m = new byte[6];
+        for (int i = 0; i < 6; i++) m[i] = (byte) Integer.parseInt(hex[i], 16);
+        byte[] pkt = new byte[102];
+        for (int i = 0; i < 6; i++) pkt[i] = (byte) 0xFF;
+        for (int i = 6; i < 102; i += 6) System.arraycopy(m, 0, pkt, i, 6);
+        String ip = prefs.getString("ip", "");
+        java.util.List<String> targets = new java.util.ArrayList<>();
+        targets.add("255.255.255.255");
+        int dot = ip.lastIndexOf('.');
+        if (isLan(ip) && dot > 0) { targets.add(ip.substring(0, dot) + ".255"); targets.add(ip); }
+        try (java.net.DatagramSocket ds = new java.net.DatagramSocket()) {
+            ds.setBroadcast(true);
+            android.net.ConnectivityManager cm = (android.net.ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+            if (cm != null) for (android.net.Network n : cm.getAllNetworks()) {
+                android.net.NetworkCapabilities c = cm.getNetworkCapabilities(n);
+                if (c != null && c.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)) { n.bindSocket(ds); break; }
+            }
+            for (String t : targets) for (int port : new int[]{9, 7}) {
+                try { ds.send(new java.net.DatagramPacket(pkt, pkt.length, java.net.InetAddress.getByName(t), port)); }
+                catch (java.io.IOException ignored) {}
+            }
+        }
+    }
+
+    private void askMac() {
+        LinearLayout l = new LinearLayout(this);
+        l.setOrientation(LinearLayout.VERTICAL); l.setPadding(dp(20), dp(8), dp(20), 0);
+        final EditText mac = new EditText(this);
+        mac.setHint("npr. A1:B2:C3:D4:E5:F6"); mac.setSingleLine(true);
+        mac.setText(prefs.getString("mac", ""));
+        mac.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        TextView h = text("Za paljenje ugašenog TV-a treba MAC adresa njegove Wi-Fi veze.\n\n"
+                + "Na laptopu: adb shell ip link show wlan0 (redak link/ether).\n"
+                + "Ili na TV-u: Postavke → Sustav → O uređaju → Status.\n\n"
+                + "Na TV-u u Postavke → Sustav → Napajanje i energija uključi buđenje preko mreže "
+                + "(Wake on LAN / Wi-Fi, mrežni standby) ako postoji, i isključi način niske potrošnje.\n\n"
+                + "Ako TV to ne podržava, upali ga daljinskim ili preko soundbara (HDMI-CEC).", 13, Ui.LABEL, Typeface.DEFAULT);
+        h.setPadding(0, dp(10), 0, 0);
+        l.addView(mac); l.addView(h);
+        ScrollView sv = new ScrollView(this); sv.addView(l);
+        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle("Paljenje preko mreže").setView(sv)
+                .setNegativeButton("Odustani", null)
+                .setPositiveButton("Spremi", (d, w) -> {
+                    String v = mac.getText().toString().trim().toUpperCase().replace('-', ':');
+                    if (!v.matches("([0-9A-F]{2}:){5}[0-9A-F]{2}")) { Toast("Neispravna MAC adresa"); return; }
+                    prefs.edit().putString("mac", v).apply();
+                    wakeUp();
+                }).show();
     }
 
     // ---------- custom apps ----------
