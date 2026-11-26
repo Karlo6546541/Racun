@@ -24,7 +24,7 @@ final class Ui {
 
     // icon ids
     static final int NONE = 0, BACK = 1, HOME = 2, PLAY = 3, MUTE = 4, PLUS = 5, MINUS = 6, POWER = 7, INPUT = 8,
-            GEAR = 9, FF = 10, REW = 11, SEARCH = 12, KEYB = 13, MENU = 14, REMOTE = 15, APPS = 16, SLIDERS = 17, BOLT = 18;
+            GEAR = 9, FF = 10, REW = 11, SEARCH = 12, KEYB = 13, MENU = 14, REMOTE = 15, APPS = 16, SLIDERS = 17, BOLT = 18, MORE = 19;
 
     static void icon(Canvas c, int type, float cx, float cy, float u, int color) {
         Paint st = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -78,6 +78,9 @@ final class Ui {
                 c.drawPath(g, fl);
                 break;
             }
+            case MORE:
+                for (int i = -1; i <= 1; i++) c.drawCircle(cx + i * .75f * u, cy, u * .2f, fl);
+                break;
             case BOLT:
                 p.moveTo(cx + .25f * u, cy - 1.4f * u); p.lineTo(cx - .85f * u, cy + .15f * u); p.lineTo(cx - .05f * u, cy + .15f * u);
                 p.lineTo(cx - .3f * u, cy + 1.4f * u); p.lineTo(cx + .85f * u, cy - .2f * u); p.lineTo(cx + .05f * u, cy - .2f * u); p.close();
@@ -194,80 +197,129 @@ final class Ui {
         }
     }
 
-    /** Apple-TV-remote style circular click pad: tap ring = direction, tap centre = OK, swipe = navigate. */
-    static class ClickPad extends View {
+    /**
+     * Trackpad like a Mac / Apple TV touch surface: dragging moves the TV focus one step per distance travelled,
+     * a quick flick adds a few more steps, a tap is OK.
+     */
+    static class TrackPad extends View {
         interface Key { void press(int code); }
         Key key;
         private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Handler h = new Handler(Looper.getMainLooper());
-        private float sx, sy; private boolean moved, held; private int zone = -1; // 0 up 1 right 2 down 3 left 4 ok
-        private final Runnable hold = new Runnable() { public void run() { held = true; fire(zone); h.postDelayed(this, 140); } };
+        private android.view.VelocityTracker vt;
+        private float downX, downY, lastX, lastY, accX, accY, touchX = -1, touchY = -1;
+        private long downT;
+        private boolean moved;
+        private int flashDir = -1;
+        private long flashAt;
+        private boolean hint = true;
 
-        ClickPad(Context c) { super(c); setClickable(true); }
+        TrackPad(Context c) { super(c); setClickable(true); }
 
-        @Override protected void onMeasure(int w, int hh) {
-            int s = Math.min(MeasureSpec.getSize(w), dp(getContext(), 272));
-            setMeasuredDimension(MeasureSpec.getSize(w), s);
-        }
-        private float cx() { return getWidth() / 2f; }
-        private float cy() { return getHeight() / 2f; }
-        private float rad() { return Math.min(getWidth(), getHeight()) / 2f - dp(getContext(), 2); }
+        private float step() { return dp(getContext(), 40); }
 
-        private int zoneAt(float x, float y) {
-            float dx = x - cx(), dy = y - cy(), d = (float) Math.hypot(dx, dy);
-            if (d < rad() * .36f) return 4;
-            return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0);
-        }
-        private void fire(int z) {
-            if (key == null || z < 0) return;
+        private void fire(int code) {
+            if (key == null) return;
             performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
-            key.press(z == 0 ? 19 : z == 1 ? 22 : z == 2 ? 20 : z == 3 ? 21 : 23);
+            key.press(code);
+            flashDir = code; flashAt = System.currentTimeMillis();
+            invalidate();
+            h.postDelayed(this::invalidate, 260);
         }
 
         @Override protected void onDraw(Canvas c) {
-            float cx = cx(), cy = cy(), r = rad();
-            p.setStyle(Paint.Style.FILL); p.setColor(CARD); c.drawCircle(cx, cy, r, p);
-            if (zone >= 0 && zone < 4 && !moved) {
-                p.setColor(CARD3);
-                c.save(); Path clip = new Path(); clip.addCircle(cx, cy, r, Path.Direction.CW); c.clipPath(clip);
-                Path w = new Path(); w.moveTo(cx, cy);
-                float start = zone == 0 ? -135 : zone == 1 ? -45 : zone == 2 ? 45 : 135;
-                w.arcTo(new RectF(cx - r, cy - r, cx + r, cy + r), start, 90); w.close();
-                c.drawPath(w, p); c.restore();
-                p.setColor(CARD); c.drawCircle(cx, cy, r * .36f, p);
+            float w = getWidth(), hh = getHeight(), r = dp(getContext(), 28);
+            p.setStyle(Paint.Style.FILL);
+            p.setShader(new android.graphics.LinearGradient(0, 0, 0, hh, 0xFF202023, 0xFF161618, android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(new RectF(0, 0, w, hh), r, r, p);
+            p.setShader(null);
+            p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(getContext(), 1)); p.setColor(0xFF2C2C2E);
+            c.drawRoundRect(new RectF(0, 0, w, hh), r, r, p);
+            p.setStyle(Paint.Style.FILL);
+
+            if (touchX >= 0) { // soft glow under the finger
+                p.setShader(new android.graphics.RadialGradient(touchX, touchY, dp(getContext(), 70),
+                        0x30FFFFFF, 0x00FFFFFF, android.graphics.Shader.TileMode.CLAMP));
+                c.drawCircle(touchX, touchY, dp(getContext(), 70), p);
+                p.setShader(null);
             }
-            p.setColor(zone == 4 && !moved ? CARD3 : CARD2); c.drawCircle(cx, cy, r * .36f, p);
-            float u = r * .07f;
-            icon(c, BACK, cx - r * .72f, cy, u, LABEL);   // left chevron
-            c.save(); c.rotate(180, cx + r * .72f, cy); icon(c, BACK, cx + r * .72f, cy, u, LABEL); c.restore();
-            c.save(); c.rotate(90, cx, cy - r * .72f); icon(c, BACK, cx, cy - r * .72f, u, LABEL); c.restore();
-            c.save(); c.rotate(-90, cx, cy + r * .72f); icon(c, BACK, cx, cy + r * .72f, u, LABEL); c.restore();
-            p.setColor(LABEL); p.setTextAlign(Paint.Align.CENTER); p.setTypeface(MEDIUM);
-            p.setTextSize(r * .16f); c.drawText("OK", cx, cy - (p.descent() + p.ascent()) / 2f, p);
+            long age = System.currentTimeMillis() - flashAt;
+            if (flashDir > 0 && age < 250) { // brief chevron towards the move
+                int a = (int) (200 * (1 - age / 250f));
+                int col = (a << 24) | 0xFFFFFF;
+                float u = dp(getContext(), 7);
+                float cx = w / 2, cy = hh / 2;
+                if (flashDir == 23) { p.setColor(col); c.drawCircle(cx, cy, dp(getContext(), 26), p); }
+                else {
+                    c.save();
+                    float px = flashDir == 21 ? dp(getContext(), 34) : flashDir == 22 ? w - dp(getContext(), 34) : cx;
+                    float py = flashDir == 19 ? dp(getContext(), 34) : flashDir == 20 ? hh - dp(getContext(), 34) : cy;
+                    float rot = flashDir == 21 ? 0 : flashDir == 22 ? 180 : flashDir == 19 ? 90 : -90;
+                    c.rotate(rot, px, py);
+                    icon(c, BACK, px, py, u, col);
+                    c.restore();
+                }
+            }
+            if (hint) {
+                p.setColor(0xFF636366); p.setTextAlign(Paint.Align.CENTER); p.setTypeface(MEDIUM);
+                p.setTextSize(15 * getResources().getDisplayMetrics().scaledDensity);
+                c.drawText("Povuci prstom za kretanje", w / 2, hh / 2 - dp(getContext(), 4), p);
+                p.setTextSize(13 * getResources().getDisplayMetrics().scaledDensity);
+                p.setColor(0xFF48484A);
+                c.drawText("Dodir = OK", w / 2, hh / 2 + dp(getContext(), 20), p);
+            }
         }
 
         @Override public boolean onTouchEvent(MotionEvent e) {
-            switch (e.getAction()) {
+            switch (e.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
-                    sx = e.getX(); sy = e.getY(); moved = false; held = false; zone = zoneAt(sx, sy);
-                    getParent().requestDisallowInterceptTouchEvent(true);
-                    if (zone != 4) h.postDelayed(hold, 450);
-                    invalidate(); return true;
+                    if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
+                    downX = lastX = touchX = e.getX(); downY = lastY = touchY = e.getY();
+                    accX = accY = 0; moved = false; downT = System.currentTimeMillis();
+                    vt = android.view.VelocityTracker.obtain(); vt.addMovement(e);
+                    invalidate();
+                    return true;
                 case MotionEvent.ACTION_MOVE: {
-                    float dx = e.getX() - sx, dy = e.getY() - sy;
-                    if (Math.hypot(dx, dy) > dp(getContext(), 38)) {
-                        h.removeCallbacks(hold); moved = true;
-                        fire(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0));
-                        sx = e.getX(); sy = e.getY(); invalidate();
+                    if (vt != null) vt.addMovement(e);
+                    float x = e.getX(), y = e.getY();
+                    accX += x - lastX; accY += y - lastY;
+                    lastX = touchX = x; lastY = touchY = y;
+                    if (Math.hypot(x - downX, y - downY) > dp(getContext(), 10)) { moved = true; hint = false; }
+                    float st = step();
+                    while (Math.abs(accX) >= st || Math.abs(accY) >= st) {
+                        if (Math.abs(accX) >= Math.abs(accY)) {
+                            fire(accX > 0 ? 22 : 21); accX -= Math.signum(accX) * st; accY = 0;
+                        } else {
+                            fire(accY > 0 ? 20 : 19); accY -= Math.signum(accY) * st; accX = 0;
+                        }
                     }
+                    invalidate();
                     return true;
                 }
-                case MotionEvent.ACTION_UP:
-                    h.removeCallbacks(hold);
-                    if (!moved && !held) fire(zone);
-                    zone = -1; invalidate(); return true;
+                case MotionEvent.ACTION_UP: {
+                    touchX = touchY = -1;
+                    if (!moved && System.currentTimeMillis() - downT < 400) { hint = false; fire(23); }
+                    else if (vt != null) {
+                        vt.addMovement(e);
+                        vt.computeCurrentVelocity(1000);
+                        float d = getResources().getDisplayMetrics().density;
+                        float vx = vt.getXVelocity() / d, vy = vt.getYVelocity() / d; // dp per second
+                        float v = Math.max(Math.abs(vx), Math.abs(vy));
+                        if (v > 1400) { // flick: a few extra steps
+                            final int code = Math.abs(vx) > Math.abs(vy) ? (vx > 0 ? 22 : 21) : (vy > 0 ? 20 : 19);
+                            int extra = Math.min(4, (int) (v / 1100));
+                            for (int i = 1; i <= extra; i++) h.postDelayed(() -> fire(code), i * 90L);
+                        }
+                    }
+                    if (vt != null) { vt.recycle(); vt = null; }
+                    invalidate();
+                    return true;
+                }
                 case MotionEvent.ACTION_CANCEL:
-                    h.removeCallbacks(hold); zone = -1; invalidate(); return true;
+                    touchX = touchY = -1;
+                    if (vt != null) { vt.recycle(); vt = null; }
+                    invalidate();
+                    return true;
             }
             return true;
         }

@@ -95,6 +95,35 @@ public class ScreenshotTest {
         assertTrue("replay should have stopped well before its 5 s wait", !(boolean) rep.get(a));
     }
 
+    @Test public void trackpadGestures() {
+        Context c = RuntimeEnvironment.getApplication();
+        Ui.TrackPad pad = new Ui.TrackPad(c);
+        pad.measure(View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(1400, View.MeasureSpec.EXACTLY));
+        pad.layout(0, 0, 1000, 1400);
+        final java.util.List<Integer> keys = new java.util.ArrayList<>();
+        pad.key = keys::add;
+        float d = c.getResources().getDisplayMetrics().density;
+        long t = 1000;
+        // slow drag to the right over 100 dp: two steps (one per 40 dp)
+        pad.onTouchEvent(android.view.MotionEvent.obtain(t, t, android.view.MotionEvent.ACTION_DOWN, 300, 700, 0));
+        for (int i = 1; i <= 20; i++)
+            pad.onTouchEvent(android.view.MotionEvent.obtain(t, t + i * 50, android.view.MotionEvent.ACTION_MOVE, 300 + i * 5 * d, 700, 0));
+        pad.onTouchEvent(android.view.MotionEvent.obtain(t, t + 1100, android.view.MotionEvent.ACTION_UP, 300 + 100 * d, 700, 0));
+        assertTrue(keys.toString(), keys.equals(java.util.Arrays.asList(22, 22)));
+        // tap: OK
+        keys.clear();
+        pad.onTouchEvent(android.view.MotionEvent.obtain(t, 5000, android.view.MotionEvent.ACTION_DOWN, 500, 500, 0));
+        pad.onTouchEvent(android.view.MotionEvent.obtain(t, 5100, android.view.MotionEvent.ACTION_UP, 502, 501, 0));
+        assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(23)));
+        // drag up 50 dp: one step up
+        keys.clear();
+        pad.onTouchEvent(android.view.MotionEvent.obtain(t, 9000, android.view.MotionEvent.ACTION_DOWN, 500, 900, 0));
+        for (int i = 1; i <= 10; i++)
+            pad.onTouchEvent(android.view.MotionEvent.obtain(t, 9000 + i * 60, android.view.MotionEvent.ACTION_MOVE, 500, 900 - i * 5 * d, 0));
+        pad.onTouchEvent(android.view.MotionEvent.obtain(t, 9700, android.view.MotionEvent.ACTION_UP, 500, 900 - 50 * d, 0));
+        assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(19)));
+    }
+
     @Test public void recordingSavesSteps() throws Exception {
         MainActivity a = paired();
         m("startRecording", String.class, String.class, boolean.class).invoke(a, "Test", null, false);

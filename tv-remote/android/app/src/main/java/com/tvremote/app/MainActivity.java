@@ -326,6 +326,11 @@ public class MainActivity extends Activity implements Tv.Listener {
         hostLabel = text("", 12.5f, Ui.LABEL, Typeface.DEFAULT);
         names.addView(hostLabel);
         header.addView(names, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        Ui.Btn more = new Ui.Btn(this, Ui.MORE, null, Ui.CARD, false, this::moreMenu);
+        more.maxDiameterDp = 44;
+        LinearLayout.LayoutParams ml2 = new LinearLayout.LayoutParams(dp(44), dp(44));
+        ml2.rightMargin = dp(10);
+        header.addView(more, ml2);
         Ui.Btn power = new Ui.Btn(this, Ui.POWER, null, Ui.CARD, false, this::powerTapped);
         power.fg = Ui.RED; power.maxDiameterDp = 44;
         power.longAction = this::askMac;
@@ -413,21 +418,17 @@ public class MainActivity extends Activity implements Tv.Listener {
     private View buildRemoteTab() {
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
-        Ui.Btn gear = new Ui.Btn(this, Ui.GEAR, null, Ui.CARD, false, this::openTvSettings);
-        gear.longAction = this::chooseSettingsMethod;
-        c.addView(row(0, 6, circle(Ui.BACK, BACK, false), circle(Ui.HOME, HOME, false),
-                circle(Ui.INPUT, INPUT, false), gear));
-        Ui.ClickPad pad = new Ui.ClickPad(this);
+        c.setPadding(dp(16), dp(8), dp(16), dp(14));
+        Ui.TrackPad pad = new Ui.TrackPad(this);
         pad.key = this::press;
-        c.addView(pad, matchWrap(20));
-        c.addView(row(0, 20, circle(Ui.REW, REW, false), circle(Ui.PLAY, PLAY, false), circle(Ui.FF, FF, false)));
+        c.addView(pad, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         Ui.Btn kb = new Ui.Btn(this, Ui.KEYB, null, Ui.CARD, false, () -> { selectTab(TAB_KEYBOARD); showKeyboard(); });
-        c.addView(row(0, 14, circle(Ui.MUTE, MUTE, false), circle(Ui.MINUS, VOL_DOWN, true),
-                circle(Ui.PLUS, VOL_UP, true), kb));
-        ScrollView sv = scroll(c);
-        sv.setFillViewport(true);
-        c.setGravity(Gravity.CENTER_VERTICAL);
-        return sv;
+        c.addView(row(0, 16, circle(Ui.BACK, BACK, false), circle(Ui.HOME, HOME, false), circle(Ui.PLAY, PLAY, false), kb));
+        TextView tip = text("Glasnoća: tipke za glasnoću na mobitelu", 12.5f, 0xFF636366, Typeface.DEFAULT);
+        tip.setGravity(Gravity.CENTER);
+        tip.setPadding(0, dp(10), 0, 0);
+        c.addView(tip);
+        return c;
     }
 
     // ----------------------------------------------------------------------
@@ -805,8 +806,9 @@ public class MainActivity extends Activity implements Tv.Listener {
 
     private void padTabsForBar(boolean on) {
         for (View t : tabs) {
-            View c = ((ScrollView) t).getChildAt(0);
-            c.setPadding(c.getPaddingLeft(), c.getPaddingTop(), c.getPaddingRight(), dp(on ? 190 : 28));
+            View c = t instanceof ScrollView ? ((ScrollView) t).getChildAt(0) : t;
+            int normal = t instanceof ScrollView ? 28 : 14;
+            c.setPadding(c.getPaddingLeft(), c.getPaddingTop(), c.getPaddingRight(), dp(on ? 190 : normal));
         }
     }
 
@@ -910,6 +912,10 @@ public class MainActivity extends Activity implements Tv.Listener {
         note(c, "Auto: ako TV otvori polje za tekst, tekst ide izravno (YouTube); inače se slova šalju kao tipke s tipkovnice "
                 + "(Netflix). Mreža hoda po Netflixovoj tipkovnici na ekranu i može pogriješiti. "
                 + "Isključi \"Tipkovnica s mobitela\" ako TV zbog nje prikazuje čudnu poruku.");
+
+        LinearLayout gv = group(c, "GLASNOĆA");
+        gv.addView(toggle("Tipke za glasnoću na mobitelu mijenjaju glasnoću TV-a", prefs.getBoolean("volkeys", true),
+                on -> prefs.edit().putBoolean("volkeys", on).apply()));
 
         LinearLayout gs = group(c, "NAUČI");
         TextView sl = text("Brzina ponavljanja", 16, Ui.WHITE, Typeface.DEFAULT);
@@ -1099,6 +1105,29 @@ public class MainActivity extends Activity implements Tv.Listener {
                     d.dismiss();
                     openTvSettings();
                 }).show();
+    }
+
+    private void moreMenu() {
+        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setItems(new String[]{"Ulaz (HDMI, antena…)", "Postavke TV-a", "Isključi / uključi zvuk", "Premotaj natrag", "Premotaj naprijed"},
+                        (d, w) -> {
+                            if (w == 0) press(INPUT);
+                            else if (w == 1) openTvSettings();
+                            else if (w == 2) press(MUTE);
+                            else if (w == 3) press(REW);
+                            else press(FF);
+                        }).show();
+    }
+
+    /** The phone's volume keys change the TV volume while the remote is open. */
+    @Override public boolean dispatchKeyEvent(android.view.KeyEvent e) {
+        int k = e.getKeyCode();
+        if ((k == android.view.KeyEvent.KEYCODE_VOLUME_UP || k == android.view.KeyEvent.KEYCODE_VOLUME_DOWN)
+                && mainScreen != null && mainScreen.getVisibility() == View.VISIBLE && prefs.getBoolean("volkeys", true)) {
+            if (e.getAction() == android.view.KeyEvent.ACTION_DOWN) press(k == android.view.KeyEvent.KEYCODE_VOLUME_UP ? VOL_UP : VOL_DOWN);
+            return true;
+        }
+        return super.dispatchKeyEvent(e);
     }
 
     private void connectQuietly() {
