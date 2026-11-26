@@ -55,5 +55,17 @@ public class ScreenshotTest {
         sel.setAccessible(true);
         String[] names = {"1-remote", "2-apps", "3-keyboard", "4-settings"};
         for (int i = 0; i < names.length; i++) { sel.invoke(a, i); save(a, names[i]); }
+        // Netflix chosen for search
+        java.lang.reflect.Field appsF = MainActivity.class.getDeclaredField("apps"); appsF.setAccessible(true);
+        java.lang.reflect.Field sa = MainActivity.class.getDeclaredField("searchApp"); sa.setAccessible(true);
+        Object netflix = ((java.util.List<?>) appsF.get(a)).get(2);
+        sa.set(a, netflix);
+        Method style = MainActivity.class.getDeclaredMethod("styleChips"); style.setAccessible(true); style.invoke(a);
+        sel.invoke(a, 1); save(a, "5-apps-netflix");
+        // teaching bar
+        java.lang.reflect.Field rb = MainActivity.class.getDeclaredField("recordBar"); rb.setAccessible(true);
+        Method start = MainActivity.class.getDeclaredMethod("startRecording", Apps.App.class); start.setAccessible(true);
+        start.invoke(a, netflix);
+        save(a, "6-learning");
     }
 }

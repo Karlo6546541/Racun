@@ -75,6 +75,14 @@ public class MainActivity extends Activity implements Tv.Listener {
 
     /** Query waiting to be typed as soon as the TV puts a text field in focus. */
     private volatile String pendingQuery;
+
+    // teaching the route to an app's search screen
+    private Apps.App recordingApp;
+    private final StringBuilder recording = new StringBuilder();
+    private long lastRecordAt;
+    private View recordBar;
+    private TextView macroInfo;
+    private View macroRow;
     private volatile long pendingAt;
 
     private String lastTapKey = ""; private long lastTapAt; private int lastTapIdx;
@@ -306,6 +314,10 @@ public class MainActivity extends Activity implements Tv.Listener {
         FrameLayout.LayoutParams bl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP);
         bl.leftMargin = bl.rightMargin = dp(14); bl.topMargin = dp(2);
         body.addView(banner, bl);
+        recordBar = buildRecordBar();
+        FrameLayout.LayoutParams rl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
+        rl.leftMargin = rl.rightMargin = dp(12); rl.bottomMargin = dp(10);
+        body.addView(recordBar, rl);
         banner.setOnClickListener(v -> banner.setVisibility(View.GONE));
         col.addView(body, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
@@ -419,6 +431,18 @@ public class MainActivity extends Activity implements Tv.Listener {
         how.setPadding(dp(4), dp(10), dp(4), 0);
         how.setLineSpacing(0, 1.15f);
         c.addView(how);
+        LinearLayout mr = new LinearLayout(this);
+        mr.setOrientation(LinearLayout.HORIZONTAL);
+        mr.setGravity(Gravity.CENTER_VERTICAL);
+        mr.setBackground(round(Ui.CARD, 12));
+        mr.setPadding(dp(14), dp(6), dp(6), dp(6));
+        macroInfo = text("", 13.5f, 0xFFD1D1D6, Typeface.DEFAULT);
+        mr.addView(macroInfo, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        Ui.Btn learn = new Ui.Btn(this, Ui.NONE, "Nauči", Ui.CARD2, true, () -> startRecording(searchApp));
+        learn.textSize(14);
+        mr.addView(learn, new LinearLayout.LayoutParams(dp(84), dp(38)));
+        macroRow = mr;
+        c.addView(mr, matchWrap(10));
 
         TextView h = text("Sve aplikacije", 20, Ui.WHITE, Typeface.create("sans-serif", Typeface.BOLD));
         h.setPadding(dp(4), dp(26), 0, dp(2));
@@ -482,11 +506,21 @@ public class MainActivity extends Activity implements Tv.Listener {
         }
         View hint = tabs[1] == null ? null : tabs[1].findViewWithTag("searchHint");
         if (hint == null && appsGrid != null) hint = ((View) appsGrid.getParent()).findViewWithTag("searchHint");
+        String route = macroFor(searchApp);
+        boolean learned = prefs.contains("macro:" + searchApp.name);
         if (hint instanceof TextView) {
             ((TextView) hint).setText(searchApp.search.length > 0
                     ? "Rezultati za " + searchApp.name + " otvaraju se izravno na TV-u."
+                    : route != null
+                    ? "Aplikacija otvori " + searchApp.name + ", odabere prvi profil, dođe do pretrage i upiše pojam."
                     : searchApp.name + " se otvori na TV-u. Na TV-u odaberi pretragu (povećalo) — "
-                    + "tekst se upiše sam čim se otvori polje za unos.");
+                    + "tekst se upiše sam čim se otvori polje za unos. Ili pritisni Nauči.");
+        }
+        if (macroRow != null) {
+            macroRow.setVisibility(searchApp.search.length > 0 ? View.GONE : View.VISIBLE);
+            macroInfo.setText(learned ? "Put do pretrage: naučen na tvom TV-u ✓"
+                    : route != null ? "Put do pretrage: zadani. Ako ne pogodi pretragu, pritisni Nauči."
+                    : "Nauči put do pretrage pa će i ovdje raditi automatski.");
         }
     }
 
@@ -719,7 +753,124 @@ public class MainActivity extends Activity implements Tv.Listener {
         });
     }
 
-    private void press(final int code) { run(() -> tv.key(code), null); }
+    private void press(final int code) {
+        if (recordingApp != null) {
+            long now = System.currentTimeMillis();
+            long gap = Math.max(300, Math.min(15_000, now - lastRecordAt));
+            recording.append('w').append(gap).append(' ').append(code).append(' ');
+            lastRecordAt = now;
+        }
+        run(() -> tv.key(code), null);
+    }
+
+    // ----------------------------------------------------------------------
+    // search routes ("macros"): wNNN waits NNN ms, a name or number is a key press
+    private String macroFor(Apps.App a) {
+        String m = prefs.getString("macro:" + a.name, null);
+        return m != null ? m : a.macro;
+    }
+
+    private static int keyCode(String t) {
+        switch (t) {
+            case "OK": return OK; case "UP": return UP; case "DOWN": return DOWN; case "LEFT": return LEFT;
+            case "RIGHT": return RIGHT; case "BACK": return BACK; case "HOME": return HOME; case "ENTER": return ENTER;
+            default: return Integer.parseInt(t);
+        }
+    }
+
+    private void replay(String macro) throws Exception {
+        for (String t : macro.trim().split("\\s+")) {
+            if (t.isEmpty()) continue;
+            if (t.charAt(0) == 'w') { Thread.sleep(Long.parseLong(t.substring(1))); continue; }
+            tv.key(keyCode(t));
+            Thread.sleep(220);
+        }
+    }
+
+    /** Types with key presses (works in apps with their own on-screen keyboard, like Netflix). */
+    private void typeKeys(String q) throws Exception {
+        String s = java.text.Normalizer.normalize(q.toLowerCase().replace('đ', 'd'), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        for (char ch : s.toCharArray()) {
+            int code;
+            if (ch >= 'a' && ch <= 'z') code = 29 + (ch - 'a');
+            else if (ch >= '0' && ch <= '9') code = 7 + (ch - '0');
+            else if (ch == ' ') code = 62;
+            else continue;
+            tv.key(code);
+            Thread.sleep(110);
+        }
+    }
+
+    /** Opens the app; returns false if every way of opening it failed. */
+    private boolean openSync(Apps.App a) {
+        for (String link : a.launch) {
+            long sent = System.currentTimeMillis();
+            try { tv.link(link); } catch (Exception e) { say(err(e), true); return false; }
+            try { Thread.sleep(1200); } catch (InterruptedException ignored) {}
+            if (tv.lastErrorAt <= sent) return true;
+        }
+        say(a.name + " se ne otvara. Je li instaliran na TV-u?", true);
+        return false;
+    }
+
+    private void macroSearch(final Apps.App a, final String route, final String q) {
+        say("Otvaram " + a.name + " i tražim „" + q + "“ … (ne diraj daljinski)", false);
+        launcher.execute(() -> {
+            if (!openSync(a)) return;
+            try {
+                replay(route);
+                typeKeys(q);
+                say("Pretraga „" + q + "“ u " + a.name + " — ako nije pogodilo, pritisni Nauči", false);
+            } catch (Exception e) { say(err(e), true); }
+        });
+    }
+
+    private View buildRecordBar() {
+        LinearLayout b = new LinearLayout(this);
+        b.setOrientation(LinearLayout.VERTICAL);
+        b.setBackground(round(0xFF3A1D1D, 16));
+        b.setPadding(dp(16), dp(12), dp(16), dp(12));
+        b.setElevation(dp(8));
+        TextView t = text("", 14, Ui.WHITE, Ui.MEDIUM);
+        t.setTag("recText");
+        t.setLineSpacing(0, 1.1f);
+        b.addView(t);
+        Ui.Btn cancel = new Ui.Btn(this, Ui.NONE, "Odustani", Ui.CARD2, true, () -> stopRecording(false));
+        cancel.textSize(15);
+        Ui.Btn done = new Ui.Btn(this, Ui.NONE, "Gotovo", Ui.BLUE, true, () -> stopRecording(true));
+        done.textSize(15);
+        b.addView(row(42, 10, cancel, done));
+        b.setVisibility(View.GONE);
+        return b;
+    }
+
+    private void startRecording(Apps.App a) {
+        recordingApp = a;
+        recording.setLength(0);
+        ((TextView) recordBar.findViewWithTag("recText")).setText("● Učim put do pretrage za " + a.name
+                + ". Kad se aplikacija otvori, daljinskim ovdje odaberi profil i dođi do polja za pretragu "
+                + "(povećalo, pa OK). Zatim pritisni Gotovo.");
+        recordBar.setVisibility(View.VISIBLE);
+        View rc = ((ScrollView) tabs[0]).getChildAt(0);
+        rc.setPadding(rc.getPaddingLeft(), rc.getPaddingTop(), rc.getPaddingRight(), dp(190));
+        selectTab(0);
+        launcher.execute(() -> { if (openSync(a)) ui.post(() -> lastRecordAt = System.currentTimeMillis()); });
+        lastRecordAt = System.currentTimeMillis();
+    }
+
+    private void stopRecording(boolean save) {
+        Apps.App a = recordingApp;
+        recordingApp = null;
+        recordBar.setVisibility(View.GONE);
+        View rc = ((ScrollView) tabs[0]).getChildAt(0);
+        rc.setPadding(rc.getPaddingLeft(), rc.getPaddingTop(), rc.getPaddingRight(), dp(28));
+        if (save && a != null && recording.length() > 0) {
+            prefs.edit().putString("macro:" + a.name, recording.toString() + "w1500").apply();
+            say("Naučeno. Pretraga u " + a.name + " sada ide automatski.", false);
+        }
+        styleChips();
+    }
 
     private void connectQuietly() {
         io.execute(() -> { try { if (!tv.isReady()) tv.connect(prefs.getString("ip", "")); } catch (Exception e) { say(err(e), true); } });
@@ -745,8 +896,11 @@ public class MainActivity extends Activity implements Tv.Listener {
         String enc;
         try { enc = URLEncoder.encode(q, "UTF-8").replace("+", "%20"); } catch (Exception e) { enc = q; }
         for (String t : a.search) c.add(t.replace("%s", enc));
-        if (c.isEmpty()) {
-            // No search link for this app: open it and type the query when the TV search field opens.
+        String route = macroFor(a);
+        if (c.isEmpty() && route != null) {
+            macroSearch(a, route, q);
+        } else if (c.isEmpty()) {
+            // No search link and no route: open it and type the query when the TV search field opens.
             pendingQuery = q;
             pendingAt = System.currentTimeMillis();
             updatePendingChip();

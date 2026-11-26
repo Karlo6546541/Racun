@@ -7,9 +7,12 @@ import java.util.List;
 final class Apps {
     static final class App {
         final String name, mark; final int color; final String[] launch, search;
+        /** Default key route from launch to the app's search screen (see MainActivity.replay), or null. */
+        String macro;
         App(String name, String mark, int color, String[] launch, String[] search) {
             this.name = name; this.mark = mark; this.color = color; this.launch = launch; this.search = search;
         }
+        App macro(String m) { macro = m; return this; }
     }
 
     // Launch candidates: deep link first, then application id (package name).
@@ -24,10 +27,10 @@ final class Apps {
                 new String[]{}));
         l.add(new App("Netflix", "N", 0xFFE50914,
                 new String[]{"netflix://", "com.netflix.ninja", "https://www.netflix.com/browse?source=30"},
-                new String[]{}));
+                new String[]{}).macro("w8000 OK w6000 UP UP UP UP UP UP UP UP w500 LEFT LEFT LEFT LEFT LEFT LEFT LEFT LEFT w500 UP UP UP UP UP UP UP UP w500 OK w2000"));
         l.add(new App("Disney+", "D+", 0xFF113CCF,
                 new String[]{"https://www.disneyplus.com", "disneyplus://", "com.disney.disneyplus"},
-                new String[]{}));
+                new String[]{}).macro("w9000 OK w7000 UP UP UP UP UP UP UP UP w500 LEFT LEFT LEFT LEFT LEFT LEFT LEFT LEFT w500 UP UP UP UP UP UP UP UP w500 OK w2000"));
         l.add(new App("Prime Video", "prime", 0xFF00A8E1,
                 new String[]{"https://app.primevideo.com", "com.amazon.amazonvideo.livingroom"},
                 new String[]{}));
