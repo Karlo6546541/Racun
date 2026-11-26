@@ -281,13 +281,18 @@ final class Tv {
             byte[] msg = e == null ? null : e.b(2);
             lastError = msg == null ? "" : new String(msg, java.nio.charset.StandardCharsets.UTF_8);
             lastErrorAt = System.currentTimeMillis();
-        } else if (m.has(40)) { // remote_start
+        } else if (m.has(40)) { // remote_start (also sent when the TV turns on/off)
+            Pb.Msg st = m.m(40);
+            on = st == null || st.i(1, 0) != 0;
             ready = true;
             started.countDown();
         }
     }
 
     boolean isReady() { return ready; }
+    private volatile boolean on = true;
+    /** Whether the TV said it is on (only meaningful while connected). */
+    boolean isOn() { return ready && on; }
 
     synchronized void close() {
         ready = false;

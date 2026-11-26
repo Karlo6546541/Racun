@@ -24,7 +24,7 @@ final class Ui {
 
     // icon ids
     static final int NONE = 0, BACK = 1, HOME = 2, PLAY = 3, MUTE = 4, PLUS = 5, MINUS = 6, POWER = 7, INPUT = 8,
-            GEAR = 9, FF = 10, REW = 11, SEARCH = 12, KEYB = 13, MENU = 14, REMOTE = 15, APPS = 16;
+            GEAR = 9, FF = 10, REW = 11, SEARCH = 12, KEYB = 13, MENU = 14, REMOTE = 15, APPS = 16, SLIDERS = 17;
 
     static void icon(Canvas c, int type, float cx, float cy, float u, int color) {
         Paint st = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -61,12 +61,29 @@ final class Ui {
                 c.drawRoundRect(new RectF(cx - 1.3f * u, cy - 1f * u, cx + 1.3f * u, cy + 1f * u), u * .3f, u * .3f, st);
                 c.drawLine(cx - .6f * u, cy, cx + .55f * u, cy, st);
                 p.moveTo(cx, cy - .55f * u); p.lineTo(cx + .55f * u, cy); p.lineTo(cx, cy + .55f * u); c.drawPath(p, st); break;
-            case GEAR:
-                c.drawCircle(cx, cy, .5f * u, st);
-                for (int i = 0; i < 8; i++) {
-                    double a = i * Math.PI / 4;
-                    c.drawLine(cx + (float) Math.cos(a) * .95f * u, cy + (float) Math.sin(a) * .95f * u,
-                            cx + (float) Math.cos(a) * 1.3f * u, cy + (float) Math.sin(a) * 1.3f * u, st);
+            case GEAR: {
+                // toothed gear with a hole
+                int teeth = 8;
+                float ro = 1.3f * u, ri = 1.0f * u;
+                Path g = new Path();
+                for (int i = 0; i < teeth * 4; i++) {
+                    double a = i * Math.PI * 2 / (teeth * 4) - Math.PI / 2;
+                    float r = (i % 4 == 0 || i % 4 == 1) ? ro : ri;
+                    float x = cx + (float) Math.cos(a) * r, y = cy + (float) Math.sin(a) * r;
+                    if (i == 0) g.moveTo(x, y); else g.lineTo(x, y);
+                }
+                g.close();
+                g.addCircle(cx, cy, .42f * u, Path.Direction.CW);
+                g.setFillType(Path.FillType.EVEN_ODD);
+                c.drawPath(g, fl);
+                break;
+            }
+            case SLIDERS:
+                for (int i = -1; i <= 1; i++) {
+                    float y = cy + i * .75f * u, kx = cx + (i == 0 ? .5f : -.45f) * u;
+                    c.drawLine(cx - 1.25f * u, y, cx + 1.25f * u, y, st);
+                    Paint bgk = new Paint(Paint.ANTI_ALIAS_FLAG); bgk.setColor(color);
+                    c.drawCircle(kx, y, .32f * u, bgk);
                 }
                 break;
             case FF:
@@ -106,6 +123,7 @@ final class Ui {
     /** Round or pill button with a drawn icon or text, optional hold-to-repeat. */
     static class Btn extends View {
         int iconType, bg = CARD, fg = WHITE; String text; boolean pill, repeat; Runnable action, longAction; float textSp = 16;
+        int maxDiameterDp = 60;
         private boolean longFired;
         private final Runnable longPress = new Runnable() { public void run() {
             if (down && longAction != null) { longFired = true; performHapticFeedback(HapticFeedbackConstants.LONG_PRESS); longAction.run(); } } };
@@ -124,18 +142,28 @@ final class Ui {
 
         @Override protected void onMeasure(int w, int hh) {
             int width = MeasureSpec.getSize(w);
-            int height = MeasureSpec.getMode(hh) == MeasureSpec.EXACTLY ? MeasureSpec.getSize(hh) : (pill ? dp(getContext(), 52) : width);
+            int height = MeasureSpec.getMode(hh) == MeasureSpec.EXACTLY ? MeasureSpec.getSize(hh)
+                    : (pill ? dp(getContext(), 52) : Math.min(width, dp(getContext(), maxDiameterDp)));
             setMeasuredDimension(width, height);
         }
         @Override protected void onDraw(Canvas c) {
             float w = getWidth(), hh = getHeight();
             bgp.setColor(down ? (bg == BLUE ? 0xFF3D9BFF : CARD3) : bg);
-            float r = pill ? hh / 2f : Math.min(w, hh) / 2f;
-            c.drawRoundRect(new RectF(0, 0, w, hh), r, r, bgp);
-            if (iconType != NONE) icon(c, iconType, w / 2f, hh / 2f, Math.min(w, hh) * (pill ? .2f : .17f), fg);
+            if (pill) {
+                c.drawRoundRect(new RectF(0, 0, w, hh), hh / 2f, hh / 2f, bgp);
+            } else {
+                c.drawCircle(w / 2f, hh / 2f, Math.min(w, hh) / 2f, bgp);
+            }
+            float iconX = w / 2f;
+            if (iconType != NONE && text != null && pill) {
+                tp.setTextSize(textSp * getResources().getDisplayMetrics().scaledDensity);
+                iconX = w / 2f - tp.measureText(text) / 2f - hh * .12f;
+            }
+            if (iconType != NONE) icon(c, iconType, iconX, hh / 2f, Math.min(w, hh) * (pill ? .14f : .15f), fg);
             if (text != null) {
                 tp.setColor(fg); tp.setTextSize(textSp * getResources().getDisplayMetrics().scaledDensity);
-                c.drawText(text, w / 2f, hh / 2f - (tp.descent() + tp.ascent()) / 2f, tp);
+                float tx = iconType != NONE && pill ? w / 2f + hh * .22f : w / 2f;
+                c.drawText(text, tx, hh / 2f - (tp.descent() + tp.ascent()) / 2f, tp);
             }
         }
         @Override public boolean onTouchEvent(MotionEvent e) {
@@ -174,7 +202,7 @@ final class Ui {
         ClickPad(Context c) { super(c); setClickable(true); }
 
         @Override protected void onMeasure(int w, int hh) {
-            int s = Math.min(MeasureSpec.getSize(w), dp(getContext(), 300));
+            int s = Math.min(MeasureSpec.getSize(w), dp(getContext(), 272));
             setMeasuredDimension(MeasureSpec.getSize(w), s);
         }
         private float cx() { return getWidth() / 2f; }
@@ -241,11 +269,21 @@ final class Ui {
         }
     }
 
+    /** A drawn icon on its own (for search bars, list rows). */
+    static class IconView extends View {
+        final int type; int color = LABEL;
+        IconView(Context c, int type) { super(c); this.type = type; }
+        @Override protected void onDraw(Canvas c) { icon(c, type, getWidth() / 2f, getHeight() / 2f, Math.min(getWidth(), getHeight()) * .22f, color); }
+    }
+
     /** App tile: coloured rounded square with a mark, name below. */
     static class Tile extends View {
-        final String name, mark; final int color; Runnable action;
+        final String name, mark; final int color; Runnable action, longAction;
         private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private boolean down;
+        private final Handler h = new Handler(Looper.getMainLooper());
+        private boolean down, longFired;
+        private final Runnable lp = new Runnable() { public void run() {
+            if (down && longAction != null) { longFired = true; performHapticFeedback(HapticFeedbackConstants.LONG_PRESS); longAction.run(); } } };
         Tile(Context c, String name, String mark, int color, Runnable a) {
             super(c); this.name = name; this.mark = mark; this.color = color; this.action = a; setClickable(true);
         }
@@ -265,14 +303,16 @@ final class Ui {
         }
         @Override public boolean onTouchEvent(MotionEvent e) {
             switch (e.getAction()) {
-                case MotionEvent.ACTION_DOWN: down = true; invalidate(); animate().scaleX(.94f).scaleY(.94f).setDuration(70).start(); return true;
+                case MotionEvent.ACTION_DOWN:
+                    down = true; longFired = false; invalidate(); animate().scaleX(.94f).scaleY(.94f).setDuration(70).start();
+                    h.postDelayed(lp, 600); return true;
                 case MotionEvent.ACTION_UP:
-                    down = false; invalidate(); animate().scaleX(1).scaleY(1).setDuration(90).start();
-                    if (e.getX() >= 0 && e.getX() <= getWidth() && e.getY() >= 0 && e.getY() <= getHeight() && action != null) {
+                    down = false; invalidate(); animate().scaleX(1).scaleY(1).setDuration(90).start(); h.removeCallbacks(lp);
+                    if (!longFired && e.getX() >= 0 && e.getX() <= getWidth() && e.getY() >= 0 && e.getY() <= getHeight() && action != null) {
                         performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP); action.run();
                     }
                     return true;
-                case MotionEvent.ACTION_CANCEL: down = false; invalidate(); animate().scaleX(1).scaleY(1).setDuration(90).start(); return true;
+                case MotionEvent.ACTION_CANCEL: down = false; h.removeCallbacks(lp); invalidate(); animate().scaleX(1).scaleY(1).setDuration(90).start(); return true;
             }
             return true;
         }

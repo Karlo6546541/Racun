@@ -21,16 +21,16 @@ final class Apps {
                 new String[]{"https://www.youtube.com/results?search_query=%s"}));
         l.add(new App("YT Music", "♪", 0xFFFF375F,
                 new String[]{"https://music.youtube.com", "com.google.android.youtube.tvmusic"},
-                new String[]{"https://music.youtube.com/search?q=%s"}));
+                new String[]{}));
         l.add(new App("Netflix", "N", 0xFFE50914,
                 new String[]{"netflix://", "com.netflix.ninja", "https://www.netflix.com/browse?source=30"},
-                new String[]{"nflx://www.netflix.com/search?q=%s", "https://www.netflix.com/search?q=%s&source=30"}));
+                new String[]{}));
         l.add(new App("Disney+", "D+", 0xFF113CCF,
                 new String[]{"https://www.disneyplus.com", "disneyplus://", "com.disney.disneyplus"},
-                new String[]{"https://www.disneyplus.com/search?q=%s"}));
+                new String[]{}));
         l.add(new App("Prime Video", "prime", 0xFF00A8E1,
                 new String[]{"https://app.primevideo.com", "com.amazon.amazonvideo.livingroom"},
-                new String[]{"https://app.primevideo.com/search?phrase=%s"}));
+                new String[]{}));
         l.add(new App("HBO Max", "max", 0xFF5822B4,
                 new String[]{"https://play.max.com", "hbomax://", "com.wbd.stream", "com.hbo.hbonow"},
                 new String[]{}));
