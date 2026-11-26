@@ -433,8 +433,10 @@ public class MainActivity extends Activity implements Tv.Listener {
     private View buildRemoteTab() {
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
+        Ui.Btn gear = new Ui.Btn(this, Ui.GEAR, null, Ui.CARD, false, this::openTvSettings);
+        gear.longAction = this::chooseSettingsMethod;
         c.addView(row(0, 6, circle(Ui.BACK, BACK, false), circle(Ui.HOME, HOME, false),
-                circle(Ui.INPUT, INPUT, false), circle(Ui.GEAR, SETTINGS, false)));
+                circle(Ui.INPUT, INPUT, false), gear));
         Ui.ClickPad pad = new Ui.ClickPad(this);
         pad.key = this::press;
         c.addView(pad, matchWrap(20));
@@ -978,6 +980,7 @@ public class MainActivity extends Activity implements Tv.Listener {
                     else if (k == 'a') { int c = rest.indexOf(':'); typer.append(Integer.parseInt(rest.substring(0, c)), unb64(rest.substring(c + 1)), sink()); }
                     else if (k == 'd') { int c = rest.indexOf(':'); typer.delete(Integer.parseInt(rest.substring(0, c)), Integer.parseInt(rest.substring(c + 1)), sink()); }
                     else if (k == 'o') { Apps.App o = appByName(unb64(rest)); if (o != null) openSync(o); }
+                    else if (k == 'l') { tv.link(unb64(rest)); nap(1200); }
                     else if (k == 't') {
                         int c = rest.indexOf(':');
                         String txt = unb64(rest.substring(c + 1));
@@ -1158,6 +1161,38 @@ public class MainActivity extends Activity implements Tv.Listener {
     }
 
     private float replaySpeed() { return prefs.getFloat("replaySpeed", 1f); }
+
+    // ----------------------------------------------------------------------
+    // TV settings: the Settings key is handled by the stock launcher, which may be disabled
+    private static final String[] SETTINGS_METHODS = {
+            "Otvori aplikaciju Postavke", "Tipka Postavke", "Tipka zupčanika (TCL)"};
+
+    private void openTvSettings() {
+        if (replaying) { press(SETTINGS); return; }   // stops the replay
+        int m = prefs.getInt("settingsMethod", 0);
+        if (m == 1) { press(SETTINGS); return; }
+        if (m == 2) { press(83); return; }
+        record("l" + b64("com.android.tv.settings"));
+        launcher.execute(() -> {
+            long sent = System.currentTimeMillis();
+            try { tv.link("com.android.tv.settings"); } catch (Exception e) { say(err(e), true); return; }
+            try { Thread.sleep(1200); } catch (InterruptedException ignored) {}
+            if (tv.lastErrorAt > sent) {
+                try { tv.key(SETTINGS); } catch (Exception ignored) {}
+                say("TV nije otvorio Postavke kao aplikaciju; poslana tipka Postavke. Dugo drži zupčanik za drugi način.", true);
+            }
+        });
+    }
+
+    private void chooseSettingsMethod() {
+        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle("Kako otvoriti postavke TV-a")
+                .setSingleChoiceItems(SETTINGS_METHODS, prefs.getInt("settingsMethod", 0), (d, w) -> {
+                    prefs.edit().putInt("settingsMethod", w).apply();
+                    d.dismiss();
+                    openTvSettings();
+                }).show();
+    }
 
     private void connectQuietly() {
         io.execute(() -> { try { if (!tv.isReady()) tv.connect(prefs.getString("ip", "")); } catch (Exception e) { say(err(e), true); } });
