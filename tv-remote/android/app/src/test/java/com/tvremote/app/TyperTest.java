@@ -1,6 +1,7 @@
 package com.tvremote.app;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -94,6 +95,34 @@ public class TyperTest {
         assertEquals(HOME + " R R R R R OK U OK", run(Typer.GRID, "d", "<DEL>"));
         // Space then Delete on the top row: RIGHT, OK
         assertEquals("OK R OK", run(Typer.GRID, " ", "<DEL>"));
+    }
+
+    @Test public void gridWordFromAndPacing() throws Exception {
+        // Derived by hand from the photo: f=row1 col2, r=row3 col2, o=row2 col5, m=row2 col3.
+        // From Space: DOWN, LEFT x5 (column 0), RIGHT x2, DOWN, OK | DOWN DOWN OK | RIGHT x3, UP, OK | LEFT x2 OK
+        assertEquals("D L L L L L R R D OK D D OK R R R U OK L L OK", run(Typer.GRID, "from"));
+
+        // Every OK is preceded by a pause of at least 300 ms and followed by one of at least 300 ms.
+        final java.util.List<String> events = new java.util.ArrayList<>();
+        Typer.Sink sink = new Typer.Sink() {
+            public void key(int k) { events.add("k" + k); }
+            public void text(String t) {}
+            public void pause(long ms) { events.add("p" + ms); }
+        };
+        new Typer().append(Typer.GRID, "o", sink);
+        for (int i = 0; i < events.size(); i++) {
+            if (events.get(i).equals("k23")) {
+                assertTrue("pause before OK", Long.parseLong(events.get(i - 1).substring(1)) >= 300);
+                assertTrue("pause after OK", Long.parseLong(events.get(i + 1).substring(1)) >= 300);
+            }
+        }
+    }
+
+    @Test public void autoPicksSystemKeyboardOnlyWhenTheTvAsked() {
+        assertEquals(Typer.TEXT, Typer.resolve(Typer.AUTO, true, "com.google.android.youtube.tv"));
+        assertEquals(Typer.GRID, Typer.resolve(Typer.AUTO, false, "com.google.android.youtube.tv"));
+        assertEquals(Typer.GRID, Typer.resolve(Typer.AUTO, true, "com.netflix.ninja"));   // Netflix always uses its own grid
+        assertEquals(Typer.KEYS, Typer.resolve(Typer.KEYS, true, ""));
     }
 
     @Test public void gridKeepsCroatianLettersOnly() {

@@ -108,18 +108,28 @@ final class Typer {
 
     final Grid grid = new Grid();
 
-    /** Resolve AUTO for the moment of typing. */
-    static int resolve(int mode, long lastImeAt) {
+    /** Auto: the TV's own keyboard when it asked for one, otherwise Netflix's on-screen grid. */
+    static int resolve(int mode, boolean imeActive, String foregroundApp) {
         if (mode != AUTO) return mode;
-        return System.currentTimeMillis() - lastImeAt < 120_000 ? TEXT : KEYS;
+        if (foregroundApp != null && foregroundApp.toLowerCase().contains("netflix")) return GRID;
+        return imeActive ? TEXT : GRID;
+    }
+
+    /** Netflix drops a key that follows a move too closely, so leave time before every OK. */
+    private static void press(List<Integer> keys, Sink out) throws Exception {
+        for (int i = 0; i < keys.size(); i++) {
+            int k = keys.get(i);
+            out.key(k);
+            boolean nextIsOk = i + 1 < keys.size() && keys.get(i + 1) == OK;
+            out.pause(k == OK ? 320 : nextIsOk ? 300 : 200);
+        }
     }
 
     void append(int mode, String s, Sink out) throws Exception {
         if (s.isEmpty()) return;
         if (mode == TEXT) { out.text(s); return; }
         if (mode == GRID) {
-            for (char ch : gridText(s).toCharArray())
-                for (int k : grid.type(ch)) { out.key(k); out.pause(130); }
+            for (char ch : gridText(s).toCharArray()) press(grid.type(ch), out);
             return;
         }
         for (char ch : plain(s).toCharArray()) {
@@ -130,7 +140,7 @@ final class Typer {
 
     void delete(int mode, int n, Sink out) throws Exception {
         for (int i = 0; i < n; i++) {
-            if (mode == GRID) { for (int k : grid.delete()) { out.key(k); out.pause(130); } }
+            if (mode == GRID) press(grid.delete(), out);
             else { out.key(DEL); out.pause(60); }
         }
     }

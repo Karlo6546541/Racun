@@ -72,8 +72,6 @@ public class MainActivity extends Activity implements Tv.Listener {
 
     // keyboard
     private EditText kbField;
-    private TextView modeHelp;
-    private final List<TextView> modeButtons = new ArrayList<>();
     private boolean suppress, autoKeyboard;
     private int kbMode;
     private final Typer liveTyper = new Typer();
@@ -510,31 +508,11 @@ public class MainActivity extends Activity implements Tv.Listener {
 
     // ----------------------------------------------------------------------
     // keyboard tab
-    private static final String[] MODE_HELP = {
-            "Auto: ako TV otvori svoju tipkovnicu (YouTube i većina aplikacija), tekst ide izravno; inače slovo po slovo.",
-            "Tekst: za polja koja koriste tipkovnicu televizora (YouTube, Google, Disney+…).",
-            "Tipke: šalje svako slovo kao tipku s tipkovnice. Probaj ako Tekst ne radi.",
-            "Netflix: sam se kreće po Netflixovoj tipkovnici na ekranu (razmak, brisanje, a–ž, 0–9) i pritišće OK. "
-                    + "Kad otvoriš pretragu, označen mora biti razmak (gore lijevo)."
-    };
-
     private View buildKeyboardTab() {
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
         c.addView(title("Tipkovnica"));
-        c.addView(caption("Na TV-u otvori polje za pretragu, pa piši ovdje: što upišeš, upiše se na TV-u. "
-                + "Za Netflix odaberi način Netflix."));
-        c.addView(segmented(Typer.NAMES, kbMode, modeButtons, idx -> {
-            kbMode = idx;
-            prefs.edit().putInt("kbmode", idx).apply();
-            liveTyper.resetGrid();
-            modeHelp.setText(MODE_HELP[idx]);
-        }));
-        modeHelp = text(MODE_HELP[kbMode], 13, Ui.LABEL, Typeface.DEFAULT);
-        modeHelp.setPadding(dp(4), dp(8), dp(4), dp(12));
-        modeHelp.setLineSpacing(0, 1.12f);
-        c.addView(modeHelp);
-
+        c.addView(caption("Na TV-u otvori polje za pretragu, pa piši ovdje: što upišeš, upiše se na TV-u."));
         kbField = field("Piši ovdje…");
         kbField.setTextSize(20);
         kbField.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
@@ -575,17 +553,23 @@ public class MainActivity extends Activity implements Tv.Listener {
     /** Called while typing: after a short pause the TV field is replaced with the phone text. */
     private void textChanged() {
         ui.removeCallbacks(pushText);
-        ui.postDelayed(pushText, kbMode == Typer.GRID ? 800 : 450);
+        ui.postDelayed(pushText, 700);
     }
 
     private void pushTextNow() {
         final String target = kbField.getText().toString();
-        if (target.equals(sentText)) return;
-        final int mode = Typer.resolve(kbMode, tv.lastImeAt);
-        final int onTv = Math.max(sentText.length(), mode == Typer.TEXT ? tv.fieldText.length() : 0);
+        final String old = sentText;
+        if (target.equals(old)) return;
+        final int mode = Typer.resolve(kbMode, tv.imeActive, tv.currentApp);
+        final int onTv = Math.max(old.length(), mode == Typer.TEXT ? tv.fieldText.length() : 0);
         sentText = target;
         record("t" + mode + ":" + b64(target));
-        run(() -> liveTyper.replace(mode, onTv, target, sink()), null);
+        run(() -> {
+            if (mode == Typer.TEXT) liveTyper.replace(mode, onTv, target, sink());       // always the whole text
+            else if (target.startsWith(old)) liveTyper.append(mode, target.substring(old.length()), sink());
+            else if (old.startsWith(target)) liveTyper.delete(mode, old.length() - target.length(), sink());
+            else liveTyper.replace(mode, old.length(), target, sink());
+        }, null);
     }
 
     private void deleteOne() {
@@ -877,6 +861,19 @@ public class MainActivity extends Activity implements Tv.Listener {
         c.addView(title("Postavke"));
 
         LinearLayout g1 = group(c, "TIPKOVNICA");
+        TextView tm = text("Način upisa", 16, Ui.WHITE, Typeface.DEFAULT);
+        tm.setPadding(dp(16), dp(14), dp(16), dp(8));
+        g1.addView(tm);
+        final List<TextView> modeButtons = new ArrayList<>();
+        LinearLayout modeSeg = segmented(Typer.NAMES, kbMode, modeButtons, idx -> {
+            kbMode = idx;
+            prefs.edit().putInt("kbmode", idx).apply();
+            liveTyper.resetGrid();
+        });
+        LinearLayout.LayoutParams ml = matchWrap(0);
+        ml.leftMargin = ml.rightMargin = dp(12); ml.bottomMargin = dp(12);
+        g1.addView(modeSeg, ml);
+        divider(g1);
         g1.addView(toggle("Otvori tipkovnicu kad TV traži unos", autoKeyboard, on -> {
             autoKeyboard = on; prefs.edit().putBoolean("autokb", on).apply();
         }));
@@ -885,7 +882,9 @@ public class MainActivity extends Activity implements Tv.Listener {
             prefs.edit().putBoolean("ime", on).apply(); tv.setIme(on);
             io.execute(tv::close); connectQuietly();
         }));
-        note(c, "Isključi drugu opciju ako TV zbog nje prikazuje poruku o tipkovnici na mobitelu umjesto svoje tipkovnice.");
+        note(c, "Auto: ako TV otvori svoju tipkovnicu (YouTube i većina aplikacija), tekst ide izravno; inače se pišu slova na "
+                + "Netflixovoj tipkovnici (polje mora biti otvoreno s označenim razmakom). Ostale načine koristi samo ako Auto ne radi. "
+                + "Isključi \"Tipkovnica s mobitela\" ako TV zbog nje prikazuje čudnu poruku.");
 
         LinearLayout gs = group(c, "NAUČI");
         TextView sl = text("Brzina ponavljanja", 16, Ui.WHITE, Typeface.DEFAULT);
@@ -1048,13 +1047,13 @@ public class MainActivity extends Activity implements Tv.Listener {
     // ----------------------------------------------------------------------
     // TV settings: the Settings key is handled by the stock launcher, which may be disabled
     private static final String[] SETTINGS_METHODS = {
-            "Otvori aplikaciju Postavke", "Tipka Postavke", "Tipka zupčanika (TCL)"};
+            "Tipka zupčanika (TCL, preporučeno)", "Tipka Postavke", "Aplikacija Postavke (poveznica)"};
 
     private void openTvSettings() {
         if (replaying) { press(SETTINGS); return; }   // stops the replay
-        int m = prefs.getInt("settingsMethod", 0);
+        int m = prefs.getInt("settingsMethod2", 0);
+        if (m == 0) { press(83); return; }      // what the TCL remote's gear sends; the firmware opens Settings itself
         if (m == 1) { press(SETTINGS); return; }
-        if (m == 2) { press(83); return; }
         record("l" + b64("com.android.tv.settings"));
         launcher.execute(() -> {
             long sent = System.currentTimeMillis();
@@ -1070,8 +1069,8 @@ public class MainActivity extends Activity implements Tv.Listener {
     private void chooseSettingsMethod() {
         new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setTitle("Kako otvoriti postavke TV-a")
-                .setSingleChoiceItems(SETTINGS_METHODS, prefs.getInt("settingsMethod", 0), (d, w) -> {
-                    prefs.edit().putInt("settingsMethod", w).apply();
+                .setSingleChoiceItems(SETTINGS_METHODS, prefs.getInt("settingsMethod2", 0), (d, w) -> {
+                    prefs.edit().putInt("settingsMethod2", w).apply();
                     d.dismiss();
                     openTvSettings();
                 }).show();

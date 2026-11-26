@@ -73,6 +73,10 @@ final class Tv {
     volatile long lastErrorAt;
     /** Last time the TV reported a focused text field that accepts typed text (system keyboard). */
     volatile long lastImeAt;
+    /** A text field that takes typed text is in focus on the TV (cleared by Back, Home or opening an app). */
+    volatile boolean imeActive;
+    /** Package name of the app in the foreground, as the TV reports it ("" if unknown). */
+    volatile String currentApp = "";
     /** Text the TV last reported in its focused field (system keyboard only). */
     volatile String fieldText = "";
     volatile String lastError = "";
@@ -284,7 +288,7 @@ final class Tv {
                 case 2: b.append("set_active "); break;
                 case 3: b.append("GREŠKA "); break;
                 case 8: return null; // ping, too noisy
-                case 20: b.append("ime_polje "); break;
+                case 20: return null; // logged in handle() with details
                 case 21: b.append("ime_uredi "); break;
                 case 22: b.append("ime_traži "); break;
                 case 40: { Pb.Msg st = m.m(40); b.append("start(upaljen=").append(st == null || st.i(1, 0) != 0).append(") "); break; }
@@ -317,6 +321,13 @@ final class Tv {
             hasImeCounter = imeCounter != 0;
             hasImeFieldCounter = imeFieldCounter != 0;
             lastImeAt = System.currentTimeMillis();
+            // This message also arrives when the foreground app changes: only a non-zero field counter
+            // means a text field really has focus.
+            boolean field = tf != null && tf.i(1, 0) != 0;
+            imeActive = field;
+            byte[] pkg = app == null ? null : app.b(12);
+            if (pkg != null) currentApp = new String(pkg, java.nio.charset.StandardCharsets.UTF_8);
+            log("TV → aplikacija " + currentApp + (field ? ", polje za tekst otvoreno" : ", bez polja za tekst"));
             byte[] v = tf == null ? null : tf.b(2);
             if (v != null) fieldText = new String(v, java.nio.charset.StandardCharsets.UTF_8);
         } else if (m.has(22)) { // ime_show_request: TV wants a keyboard
@@ -327,6 +338,7 @@ final class Tv {
                 fieldText = v == null ? "" : new String(v, java.nio.charset.StandardCharsets.UTF_8);
             }
             lastImeAt = System.currentTimeMillis();
+            imeActive = true;
             Listener l = listener;
             if (l != null) l.textFieldFocused();
         } else if (m.has(21)) { // ime_batch_edit echoed by the TV
@@ -364,10 +376,12 @@ final class Tv {
     }
 
     void key(int keyCode) throws Exception {
+        if (keyCode == 3 || keyCode == 4) imeActive = false;
         log("tipka " + keyCode + (ready ? "" : " (nije spojen, spajam)"));
         send(new Pb().m(10, new Pb().i(1, keyCode).i(2, DIRECTION_SHORT)).framed());
     }
     void link(String url) throws Exception {
+        imeActive = false;
         log("otvori " + url);
         send(new Pb().m(90, new Pb().s(1, url)).framed());
     }
