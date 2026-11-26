@@ -90,7 +90,6 @@ public class MainActivity extends Activity implements Tv.Listener {
     private final List<TextView> appModeButtons = new ArrayList<>();
     private volatile String pendingQuery;
     private volatile long pendingAt;
-    private String lastTapKey = ""; private long lastTapAt; private int lastTapIdx;
 
     // shortcuts: recorded steps replayed on the TV
     private static final class Shortcut {
@@ -105,6 +104,8 @@ public class MainActivity extends Activity implements Tv.Listener {
     private long lastRecordAt;
     private View recordBar;
     private TextView recordText;
+    /** A shortcut is being replayed; a tap on the remote stops it. */
+    private volatile boolean replaying, cancelReplay;
 
     // ======================================================================
     @Override protected void onCreate(Bundle b) {
@@ -677,9 +678,9 @@ public class MainActivity extends Activity implements Tv.Listener {
 
     private Typer.Sink sink() {
         return new Typer.Sink() {
-            public void key(int code) throws Exception { tv.key(code); }
+            public void key(int code) throws Exception { if (replaying && cancelReplay) throw new InterruptedException("stopped"); tv.key(code); }
             public void text(String s) throws Exception { tv.text(s); }
-            public void pause(long ms) throws Exception { Thread.sleep(ms); }
+            public void pause(long ms) throws Exception { if (replaying) nap(ms); else Thread.sleep(ms); }
         };
     }
 
@@ -878,7 +879,7 @@ public class MainActivity extends Activity implements Tv.Listener {
         recSteps.setLength(0);
         liveTyper.resetGrid();
         recordText.setText("● Snimam „" + name + "“. "
-                + (route ? "Kad se aplikacija otvori, ovdje odaberi profil i dođi do polja za pretragu (tekst ne upisuj). "
+                + (route ? "Pričekaj da se aplikacija otvori, pa ovdje odaberi profil i dođi do polja za pretragu (tekst ne upisuj, pločicu aplikacije ne diraj). "
                 : "Napravi korake na kartici Daljinski ili Tipkovnica. ")
                 + "Zatim pritisni Gotovo.");
         recordBar.setVisibility(View.VISIBLE);
@@ -886,7 +887,10 @@ public class MainActivity extends Activity implements Tv.Listener {
         selectTab(TAB_REMOTE);
         lastRecordAt = System.currentTimeMillis();
         final Apps.App a = appByName(app);
-        if (a != null) launcher.execute(() -> { if (openSync(a)) ui.post(() -> lastRecordAt = System.currentTimeMillis() - 3000); });
+        if (a != null) launcher.execute(() -> {
+            try { tv.key(HOME); Thread.sleep(1500); } catch (Exception ignored) {}
+            if (openSync(a)) ui.post(() -> lastRecordAt = System.currentTimeMillis());
+        });
     }
 
     private void stopRecording(boolean save) {
@@ -937,18 +941,29 @@ public class MainActivity extends Activity implements Tv.Listener {
      */
     private void runShortcut(final Shortcut s, final String query) {
         if (recording) { say("Prvo završi snimanje", true); return; }
-        say("Pokrećem „" + s.name + "“ … ne diraj daljinski", false);
+        if (replaying) { say("Prečac se već izvodi — dodirni bilo koju tipku daljinskog da ga zaustaviš", true); return; }
+        replaying = true;
+        cancelReplay = false;
+        pendingQuery = null;
+        updatePendingChip();
+        say("Pokrećem „" + s.name + "“ … dodir na daljinski ga zaustavlja", false);
+        final float speed = replaySpeed();
         launcher.execute(() -> {
             try {
                 Apps.App a = appByName(s.app);
-                if (a != null && !openSync(a)) return;
+                if (a != null) {
+                    tv.key(HOME);              // same starting point as when it was learned
+                    nap((long) (1500 * speed));
+                    if (!openSync(a)) return;
+                }
                 Typer typer = new Typer();
                 for (String t : s.steps.trim().split("\\s+")) {
                     if (t.isEmpty()) continue;
+                    if (cancelReplay) throw new InterruptedException("stopped");
                     char k = t.charAt(0);
                     String rest = t.substring(1);
-                    if (k == 'w') Thread.sleep(Long.parseLong(rest));
-                    else if (k == 'k') { tv.key(Integer.parseInt(rest)); Thread.sleep(150); }
+                    if (k == 'w') nap((long) (Long.parseLong(rest) * speed));
+                    else if (k == 'k') { tv.key(Integer.parseInt(rest)); nap(150); }
                     else if (k == 'a') { int c = rest.indexOf(':'); typer.append(Integer.parseInt(rest.substring(0, c)), unb64(rest.substring(c + 1)), sink()); }
                     else if (k == 'd') { int c = rest.indexOf(':'); typer.delete(Integer.parseInt(rest.substring(0, c)), Integer.parseInt(rest.substring(c + 1)), sink()); }
                     else if (k == 'o') { Apps.App o = appByName(unb64(rest)); if (o != null) openSync(o); }
@@ -963,7 +978,14 @@ public class MainActivity extends Activity implements Tv.Listener {
                 } else {
                     say("Gotovo: „" + s.name + "“", false);
                 }
-            } catch (Exception e) { say(err(e), true); }
+            } catch (InterruptedException e) {
+                say("Prečac zaustavljen", true);
+            } catch (Exception e) {
+                say(err(e), true);
+            } finally {
+                replaying = false;
+                cancelReplay = false;
+            }
         });
     }
 
@@ -984,6 +1006,20 @@ public class MainActivity extends Activity implements Tv.Listener {
             io.execute(tv::close); connectQuietly();
         }));
         note(c, "Isključi drugu opciju ako TV zbog nje prikazuje poruku o tipkovnici na mobitelu umjesto svoje tipkovnice.");
+
+        LinearLayout gs = group(c, "PREČACI");
+        TextView sl = text("Brzina ponavljanja", 16, Ui.WHITE, Typeface.DEFAULT);
+        sl.setPadding(dp(16), dp(14), dp(16), dp(8));
+        gs.addView(sl);
+        final float[] speeds = {1f, 1.5f, 2f};
+        int cur = 0;
+        for (int i = 0; i < speeds.length; i++) if (Math.abs(speeds[i] - replaySpeed()) < .01f) cur = i;
+        LinearLayout seg = segmented(new String[]{"Normalno", "Sporije", "Najsporije"}, cur, new ArrayList<>(),
+                idx -> prefs.edit().putFloat("replaySpeed", speeds[idx]).apply());
+        LinearLayout.LayoutParams sp = matchWrap(0);
+        sp.leftMargin = sp.rightMargin = dp(12); sp.bottomMargin = dp(12);
+        gs.addView(seg, sp);
+        note(c, "Ako prečac ode krivim putem jer se aplikacija na TV-u sporo otvara, odaberi Sporije.");
 
         LinearLayout g2 = group(c, "PALJENJE");
         g2.addView(link("MAC adresa TV-a za paljenje", this::askMac));
@@ -1090,9 +1126,21 @@ public class MainActivity extends Activity implements Tv.Listener {
     }
 
     private void press(final int code) {
+        if (replaying) { cancelReplay = true; say("Prečac zaustavljen", true); return; }
         record("k" + code);
         run(() -> tv.key(code), null);
     }
+
+    /** Sleeps in small steps so a replay can be stopped; waits are stretched by the speed setting. */
+    private void nap(long ms) throws InterruptedException {
+        long end = System.currentTimeMillis() + ms;
+        while (System.currentTimeMillis() < end) {
+            if (cancelReplay) throw new InterruptedException("stopped");
+            Thread.sleep(Math.min(100, Math.max(1, end - System.currentTimeMillis())));
+        }
+    }
+
+    private float replaySpeed() { return prefs.getFloat("replaySpeed", 1f); }
 
     private void connectQuietly() {
         io.execute(() -> { try { if (!tv.isReady()) tv.connect(prefs.getString("ip", "")); } catch (Exception e) { say(err(e), true); } });
@@ -1103,11 +1151,11 @@ public class MainActivity extends Activity implements Tv.Listener {
         wakeUp();
     }
 
-    private void openApp(Apps.App a) {
+    private void openApp(final Apps.App a) {
+        if (recording && a.name.equals(recApp)) { say(a.name + " je već otvoren za snimanje", false); return; }
         record("o" + b64(a.name));
-        List<String> c = new ArrayList<>();
-        for (String s : a.launch) c.add(s);
-        launch("open:" + a.name, c, "Otvaram " + a.name);
+        say("Otvaram " + a.name, false);
+        launcher.execute(() -> openSync(a));
     }
 
     private void doSearch() {
@@ -1120,7 +1168,7 @@ public class MainActivity extends Activity implements Tv.Listener {
             try { enc = URLEncoder.encode(q, "UTF-8").replace("+", "%20"); } catch (Exception e) { enc = q; }
             List<String> c = new ArrayList<>();
             for (String t : a.search) c.add(t.replace("%s", enc));
-            launch("search:" + a.name + ":" + q, c, "Tražim „" + q + "“ u " + a.name);
+            launch(c, "Tražim „" + q + "“ u " + a.name);
             return;
         }
         Shortcut route = findShortcut(routeName(a));
@@ -1132,38 +1180,38 @@ public class MainActivity extends Activity implements Tv.Listener {
         pendingQuery = q;
         pendingAt = System.currentTimeMillis();
         updatePendingChip();
-        List<String> c = new ArrayList<>();
-        for (String s : a.launch) c.add(s);
-        launch("open:" + a.name, c, a.name + " je otvoren. Pritisni Nauči da pretraga ide sama do kraja.");
+        say(a.name + " je otvoren. Pritisni Nauči da pretraga ide sama do kraja.", false);
+        launcher.execute(() -> openSync(a));
     }
 
     /** Opens the app; returns false if every way of opening it failed. */
     private boolean openSync(Apps.App a) {
-        for (String link : a.launch) {
+        int first = Math.max(0, Math.min(a.launch.length - 1, prefs.getInt("link:" + a.name, 0)));
+        for (int i = 0; i < a.launch.length; i++) {
+            int idx = (first + i) % a.launch.length;
             long sent = System.currentTimeMillis();
-            try { tv.link(link); } catch (Exception e) { say(err(e), true); return false; }
+            try { tv.link(a.launch[idx]); } catch (Exception e) { say(err(e), true); return false; }
             try { Thread.sleep(1200); } catch (InterruptedException ignored) {}
-            if (tv.lastErrorAt <= sent) return true;
+            if (tv.lastErrorAt <= sent) {
+                if (idx != first) prefs.edit().putInt("link:" + a.name, idx).apply();
+                return true;
+            }
         }
         say(a.name + " se ne otvara. Je li instaliran na TV-u?", true);
         return false;
     }
 
-    private void launch(final String key, final List<String> cands, final String msg) {
+    /** Sends links in order until the TV accepts one. */
+    private void launch(final List<String> cands, final String msg) {
         launcher.execute(() -> {
-            int idx = 0;
-            long now = System.currentTimeMillis();
-            if (key.equals(lastTapKey) && now - lastTapAt < 10_000) idx = (lastTapIdx + 1) % cands.size();
-            for (int tries = 0; tries < cands.size(); tries++) {
+            for (String link : cands) {
                 long sent = System.currentTimeMillis();
-                try { tv.link(cands.get(idx)); }
+                try { tv.link(link); }
                 catch (Exception e) { say(err(e), true); return; }
                 try { Thread.sleep(1200); } catch (InterruptedException ignored) {}
-                if (tv.lastErrorAt <= sent) break;
-                idx = (idx + 1) % cands.size();
+                if (tv.lastErrorAt <= sent) { say(msg, false); return; }
             }
-            lastTapKey = key; lastTapAt = System.currentTimeMillis(); lastTapIdx = idx;
-            say(msg, false);
+            say("TV nije prihvatio poveznicu", true);
         });
     }
 

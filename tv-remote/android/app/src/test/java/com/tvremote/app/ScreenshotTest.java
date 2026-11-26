@@ -84,6 +84,25 @@ public class ScreenshotTest {
         save(a, "7-recording");
     }
 
+    @Test public void replayDoesNotOverlapAndStopsOnTap() throws Exception {
+        MainActivity a = paired();
+        Class<?> sc = Class.forName("com.tvremote.app.MainActivity$Shortcut");
+        java.lang.reflect.Constructor<?> ctor = sc.getDeclaredConstructor(String.class, String.class, String.class);
+        ctor.setAccessible(true);
+        Object slow = ctor.newInstance("Spori", null, "w5000 k23");
+        Method runS = m("runShortcut", sc, String.class);
+        runS.invoke(a, slow, null);
+        runS.invoke(a, slow, null);           // second tap while running: ignored
+        shadowOf(Looper.getMainLooper()).idle();
+        String banner = ((android.widget.TextView) f(a, "banner")).getText().toString();
+        assertTrue(banner, banner.contains("već izvodi"));
+        m("press", int.class).invoke(a, 22);  // any remote key stops it
+        Field rep = MainActivity.class.getDeclaredField("replaying"); rep.setAccessible(true);
+        long end = System.currentTimeMillis() + 3000;
+        while ((boolean) rep.get(a) && System.currentTimeMillis() < end) Thread.sleep(50);
+        assertTrue("replay should have stopped well before its 5 s wait", !(boolean) rep.get(a));
+    }
+
     @Test public void recordingSavesSteps() throws Exception {
         MainActivity a = paired();
         m("startRecording", String.class, String.class, boolean.class).invoke(a, "Test", null, false);
