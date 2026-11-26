@@ -144,7 +144,11 @@ public class MainActivity extends Activity implements Tv.Listener {
 
     private final Runnable statusTick = new Runnable() {
         public void run() {
-            if (dot != null) dot.set(tv.isReady() ? (tv.isOn() ? Ui.GREEN : 0xFFFF9F0A) : 0xFF48484A);
+            if (dot != null) {
+                dot.set(tv.isReady() ? (tv.isOn() ? Ui.GREEN : 0xFFFF9F0A) : 0xFF48484A);
+                String ip = prefs.getString("ip", "");
+                hostLabel.setText(ip + "  ·  " + (tv.isReady() ? (tv.isOn() ? "Spojeno" : "U mirovanju") : "Nije spojeno"));
+            }
             ui.postDelayed(this, 1000);
         }
     };
@@ -172,8 +176,8 @@ public class MainActivity extends Activity implements Tv.Listener {
     }
 
     private TextView title(String s) {
-        TextView t = text(s, 32, Ui.WHITE, Typeface.create("sans-serif", Typeface.BOLD));
-        t.setPadding(dp(4), dp(4), 0, dp(10));
+        TextView t = text(s, 28, Ui.WHITE, Typeface.create("sans-serif", Typeface.BOLD));
+        t.setPadding(dp(4), 0, 0, dp(12));
         return t;
     }
 
@@ -308,68 +312,149 @@ public class MainActivity extends Activity implements Tv.Listener {
     // ======================================================================
     // main screen
     private View buildMain() {
+        FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(Ui.BG);
         LinearLayout col = new LinearLayout(this);
         col.setOrientation(LinearLayout.VERTICAL);
-        col.setBackgroundColor(Ui.BG);
 
+        // navigation bar: name, status, ⋯ and power
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(dp(22), dp(14), dp(16), dp(8));
-        dot = new Dot(this);
-        header.addView(dot, new LinearLayout.LayoutParams(dp(10), dp(10)));
+        header.setPadding(dp(20), dp(14), dp(16), dp(10));
         LinearLayout names = new LinearLayout(this);
         names.setOrientation(LinearLayout.VERTICAL);
-        names.setPadding(dp(10), 0, 0, 0);
-        names.addView(text("Televizor", 17, Ui.WHITE, Ui.MEDIUM));
-        hostLabel = text("", 12.5f, Ui.LABEL, Typeface.DEFAULT);
-        names.addView(hostLabel);
+        names.addView(text("Televizor", 28, Ui.WHITE, Typeface.create("sans-serif", Typeface.BOLD)));
+        LinearLayout statusRow = new LinearLayout(this);
+        statusRow.setOrientation(LinearLayout.HORIZONTAL);
+        statusRow.setGravity(Gravity.CENTER_VERTICAL);
+        dot = new Dot(this);
+        statusRow.addView(dot, new LinearLayout.LayoutParams(dp(8), dp(8)));
+        hostLabel = text("", 13.5f, Ui.LABEL, Typeface.DEFAULT);
+        hostLabel.setPadding(dp(7), 0, 0, 0);
+        statusRow.addView(hostLabel);
+        names.addView(statusRow);
         header.addView(names, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        Ui.Btn more = new Ui.Btn(this, Ui.MORE, null, Ui.CARD2, false, () -> selectTab(TAB_APPS));
+        more.maxDiameterDp = 40;
+        LinearLayout.LayoutParams ml = new LinearLayout.LayoutParams(dp(40), dp(40));
+        ml.rightMargin = dp(10);
+        header.addView(more, ml);
+        Ui.Btn power = new Ui.Btn(this, Ui.POWER, null, Ui.CARD2, false, this::powerTapped);
+        power.fg = 0xFFFF453A; power.maxDiameterDp = 40;
+        power.longAction = this::askMac;
+        header.addView(power, new LinearLayout.LayoutParams(dp(40), dp(40)));
         col.addView(header);
 
         FrameLayout body = new FrameLayout(this);
         tabs[TAB_REMOTE] = buildRemoteTab();
+        body.addView(tabs[TAB_REMOTE]);
+        col.addView(body, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        root.addView(col);
+
+        // sheet over everything (iOS style): dimmed backdrop, rounded top, grabber, "Gotovo"
+        scrim = new View(this);
+        scrim.setBackgroundColor(0x99000000);
+        scrim.setAlpha(0f);
+        scrim.setVisibility(View.GONE);
+        scrim.setOnClickListener(v -> selectTab(TAB_REMOTE));
+        root.addView(scrim, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        sheet = new LinearLayout(this);
+        sheet.setOrientation(LinearLayout.VERTICAL);
+        GradientDrawable sg = new GradientDrawable();
+        sg.setColor(0xFF0E0E10);
+        float rr = dp(26);
+        sg.setCornerRadii(new float[]{rr, rr, rr, rr, 0, 0, 0, 0});
+        sheet.setBackground(sg);
+        sheet.setElevation(dp(16));
+        sheet.setClickable(true);
+        FrameLayout top = new FrameLayout(this);
+        View grab = new View(this);
+        grab.setBackground(round(0xFF48484A, 3));
+        top.addView(grab, new FrameLayout.LayoutParams(dp(38), dp(5), Gravity.CENTER_HORIZONTAL | Gravity.TOP));
+        ((FrameLayout.LayoutParams) grab.getLayoutParams()).topMargin = dp(8);
+        TextView done = text("Gotovo", 17, Ui.BLUE, Ui.MEDIUM);
+        done.setPadding(dp(16), dp(8), dp(20), dp(8));
+        done.setOnClickListener(v -> selectTab(TAB_REMOTE));
+        FrameLayout.LayoutParams dl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.END | Gravity.BOTTOM);
+        top.addView(done, dl);
+        top.setOnTouchListener(new View.OnTouchListener() {   // drag the grabber down to close
+            float y0;
+            public boolean onTouch(View v, android.view.MotionEvent e) {
+                switch (e.getActionMasked()) {
+                    case android.view.MotionEvent.ACTION_DOWN: y0 = e.getRawY(); return true;
+                    case android.view.MotionEvent.ACTION_MOVE: sheet.setTranslationY(Math.max(0, e.getRawY() - y0)); return true;
+                    case android.view.MotionEvent.ACTION_UP:
+                        if (e.getRawY() - y0 > dp(90)) selectTab(TAB_REMOTE);
+                        else sheet.animate().translationY(0).setDuration(180).start();
+                        return true;
+                }
+                return false;
+            }
+        });
+        sheet.addView(top, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(60)));
+        FrameLayout sheetBody = new FrameLayout(this);
         tabs[TAB_APPS] = buildAppsTab();
         tabs[TAB_KEYBOARD] = buildKeyboardTab();
         tabs[TAB_SHORTCUTS] = buildShortcutsTab();
         tabs[TAB_SETTINGS] = buildSettingsTab();
-        for (View t : tabs) { t.setBackgroundColor(Ui.BG); body.addView(t); }
-        closeBtn = new Ui.Btn(this, Ui.CLOSE, null, Ui.CARD2, false, () -> selectTab(TAB_REMOTE));
-        closeBtn.maxDiameterDp = 40;
-        FrameLayout.LayoutParams cl = new FrameLayout.LayoutParams(dp(40), dp(40), Gravity.TOP | Gravity.END);
-        cl.rightMargin = dp(16); cl.topMargin = dp(6);
-        body.addView(closeBtn, cl);
+        for (int i = 1; i < tabs.length; i++) sheetBody.addView(tabs[i]);
+        sheet.addView(sheetBody, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        sheet.setVisibility(View.GONE);
+        FrameLayout.LayoutParams shl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, Gravity.BOTTOM);
+        shl.topMargin = dp(54);
+        root.addView(sheet, shl);
 
         banner = text("", 13.5f, Ui.WHITE, Ui.MEDIUM);
-        banner.setBackground(round(Ui.CARD2, 12));
-        banner.setPadding(dp(14), dp(10), dp(14), dp(10));
+        banner.setBackground(round(0xF03A3A3C, 18));
+        banner.setPadding(dp(16), dp(11), dp(16), dp(11));
         banner.setMaxLines(3);
         banner.setEllipsize(TextUtils.TruncateAt.END);
         banner.setVisibility(View.GONE);
-        banner.setElevation(dp(6));
+        banner.setElevation(dp(24));
         banner.setOnClickListener(v -> banner.setVisibility(View.GONE));
-        FrameLayout.LayoutParams bl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP);
-        bl.leftMargin = bl.rightMargin = dp(14); bl.topMargin = dp(2);
-        body.addView(banner, bl);
+        FrameLayout.LayoutParams bl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
+        bl.leftMargin = bl.rightMargin = dp(16); bl.bottomMargin = dp(30);
+        root.addView(banner, bl);
 
         recordBar = buildRecordBar();
+        recordBar.setElevation(dp(24));
         FrameLayout.LayoutParams rl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
-        rl.leftMargin = rl.rightMargin = dp(12); rl.bottomMargin = dp(10);
-        body.addView(recordBar, rl);
-        col.addView(body, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        rl.leftMargin = rl.rightMargin = dp(12); rl.bottomMargin = dp(14);
+        root.addView(recordBar, rl);
 
         selectTab(TAB_REMOTE);
-        return col;
+        return root;
     }
 
-    private Ui.Btn closeBtn;
+    private View scrim;
+    private LinearLayout sheet;
 
-    /** 0 = the touch surface; the others are panels over it, closed with ✕ or the phone's Back. */
+    /** 0 = the touch surface; the others slide up as a sheet over it. */
     private void selectTab(int i) {
+        int before = currentTab;
         currentTab = i;
-        for (int k = 0; k < tabs.length; k++) tabs[k].setVisibility(k == i ? View.VISIBLE : View.GONE);
-        if (closeBtn != null) closeBtn.setVisibility(i == TAB_REMOTE ? View.GONE : View.VISIBLE);
+        if (sheet == null) return;
+        if (i == TAB_REMOTE) {
+            hideKeyboard();
+            if (sheet.getVisibility() == View.VISIBLE) {
+                sheet.animate().translationY(sheet.getHeight() > 0 ? sheet.getHeight() : dp(800)).setDuration(220)
+                        .withEndAction(() -> { if (currentTab == TAB_REMOTE) sheet.setVisibility(View.GONE); }).start();
+                scrim.animate().alpha(0f).setDuration(220)
+                        .withEndAction(() -> { if (currentTab == TAB_REMOTE) scrim.setVisibility(View.GONE); }).start();
+            }
+            return;
+        }
+        for (int k = 1; k < tabs.length; k++) tabs[k].setVisibility(k == i ? View.VISIBLE : View.GONE);
         if (i != TAB_KEYBOARD) hideKeyboard();
+        if (sheet.getVisibility() != View.VISIBLE || before == TAB_REMOTE) {
+            sheet.setVisibility(View.VISIBLE);
+            scrim.setVisibility(View.VISIBLE);
+            sheet.setTranslationY(sheet.getHeight() > 0 ? sheet.getHeight() : dp(800));
+            sheet.animate().translationY(0).setDuration(300).setInterpolator(new android.view.animation.DecelerateInterpolator(2f)).start();
+            scrim.animate().alpha(1f).setDuration(300).start();
+        }
     }
 
     private static final class Dot extends View {
@@ -384,23 +469,12 @@ public class MainActivity extends Activity implements Tv.Listener {
     // remote tab
     private View buildRemoteTab() {
         FrameLayout f = new FrameLayout(this);
-        f.setPadding(dp(12), dp(4), dp(12), dp(14));
+        f.setPadding(dp(12), dp(2), dp(12), dp(16));
         Ui.TrackPad pad = new Ui.TrackPad(this);
         pad.key = this::press;
         pad.onEdgeRight = () -> { selectTab(TAB_KEYBOARD); showKeyboard(); };
         pad.onEdgeLeft = () -> selectTab(TAB_APPS);
-        FrameLayout.LayoutParams pl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        pl.bottomMargin = dp(78);
-        f.addView(pad, pl);
-
-        Ui.Btn menu = new Ui.Btn(this, Ui.APPS, "Aplikacije", Ui.CARD2, true, () -> selectTab(TAB_APPS));
-        menu.textSize(15);
-        f.addView(menu, new FrameLayout.LayoutParams(dp(176), dp(54), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
-
-        Ui.Btn kb = new Ui.Btn(this, Ui.KEYB, null, Ui.CARD2, false, () -> { selectTab(TAB_KEYBOARD); showKeyboard(); });
-        kb.maxDiameterDp = 54;
-        FrameLayout.LayoutParams kl = new FrameLayout.LayoutParams(dp(54), dp(54), Gravity.BOTTOM | Gravity.END);
-        f.addView(kb, kl);
+        f.addView(pad, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         return f;
     }
 
@@ -410,19 +484,18 @@ public class MainActivity extends Activity implements Tv.Listener {
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
         c.addView(title("Izbornik"));
-        Ui.Btn pw = new Ui.Btn(this, Ui.POWER, "Uključi / isključi", Ui.CARD, true, this::powerTapped);
-        pw.fg = 0xFFFF6961; pw.textSize(14); pw.longAction = this::askMac;
-        Ui.Btn in = new Ui.Btn(this, Ui.INPUT, "Ulaz", Ui.CARD, true, () -> press(INPUT));
-        in.textSize(14);
-        c.addView(row(48, 0, pw, in));
-        Ui.Btn mu = new Ui.Btn(this, Ui.MUTE, "Zvuk", Ui.CARD, true, () -> press(MUTE));
-        mu.textSize(14);
-        Ui.Btn st = new Ui.Btn(this, Ui.GEAR, "Postavke TV-a", Ui.CARD, true, this::openTvSettings);
-        st.textSize(14); st.longAction = this::chooseSettingsMethod;
-        c.addView(row(48, 10, mu, st));
+        LinearLayout tiles = new LinearLayout(this);
+        tiles.setOrientation(LinearLayout.HORIZONTAL);
+        tiles.addView(actionTile(Ui.INPUT, "Ulaz", () -> press(INPUT)), tileLp(0));
+        tiles.addView(actionTile(Ui.MUTE, "Zvuk", () -> press(MUTE)), tileLp(10));
+        View st = actionTile(Ui.GEAR, "Postavke TV-a", this::openTvSettings);
+        st.setOnLongClickListener(v -> { chooseSettingsMethod(); return true; });
+        tiles.addView(st, tileLp(10));
+        tiles.addView(actionTile(Ui.KEYB, "Tipkovnica", () -> { selectTab(TAB_KEYBOARD); showKeyboard(); }), tileLp(10));
+        c.addView(tiles);
 
-        TextView yt = text("YOUTUBE PRETRAGA", 12.5f, Ui.LABEL, Typeface.DEFAULT);
-        yt.setPadding(dp(16), dp(2), 0, dp(6));
+        TextView yt = text("YOUTUBE", 12.5f, Ui.LABEL, Typeface.DEFAULT);
+        yt.setPadding(dp(16), dp(24), 0, dp(6));
         c.addView(yt);
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
@@ -442,16 +515,10 @@ public class MainActivity extends Activity implements Tv.Listener {
         searchField.setOnEditorActionListener((v, a, e) -> { doSearch(); return true; });
         bar.addView(searchField, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         c.addView(bar);
-        Ui.Btn go = new Ui.Btn(this, Ui.SEARCH, "  Traži na YouTubeu", Ui.BLUE, true, this::doSearch);
-        go.textSize(15);
-        LinearLayout.LayoutParams gp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(46));
-        gp.topMargin = dp(10);
-        c.addView(go, gp);
-        note(c, "Rezultati se otvore izravno na TV-u. Za Netflix i ostale otvori aplikaciju, "
-                + "pa povuci s desnog ruba za tipkovnicu.");
+        note(c, "Upiši pjesmu ili video i pritisni Traži na tipkovnici — rezultati se otvore na TV-u.");
 
-        TextView h = text("Sve aplikacije", 20, Ui.WHITE, Typeface.create("sans-serif", Typeface.BOLD));
-        h.setPadding(dp(4), dp(26), 0, dp(2));
+        TextView h = text("APLIKACIJE", 12.5f, Ui.LABEL, Typeface.DEFAULT);
+        h.setPadding(dp(16), dp(24), 0, 0);
         c.addView(h);
         appsGrid = new LinearLayout(this);
         appsGrid.setOrientation(LinearLayout.VERTICAL);
@@ -1102,6 +1169,38 @@ public class MainActivity extends Activity implements Tv.Listener {
                 }).show();
     }
 
+    private LinearLayout.LayoutParams tileLp(int leftDp) {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(84), 1f);
+        lp.leftMargin = dp(leftDp);
+        return lp;
+    }
+
+    /** Control-Center-like square: icon on top, label below. */
+    private View actionTile(int icon, String label, Runnable r) {
+        LinearLayout t = new LinearLayout(this);
+        t.setOrientation(LinearLayout.VERTICAL);
+        t.setGravity(Gravity.CENTER);
+        t.setBackground(round(Ui.CARD, 18));
+        Ui.IconView iv = new Ui.IconView(this, icon);
+        iv.color = Ui.WHITE;
+        t.addView(iv, new LinearLayout.LayoutParams(dp(30), dp(30)));
+        TextView l = text(label, 11.5f, 0xFFD1D1D6, Ui.MEDIUM);
+        l.setGravity(Gravity.CENTER);
+        l.setPadding(dp(2), dp(6), dp(2), 0);
+        l.setSingleLine(true);
+        l.setEllipsize(TextUtils.TruncateAt.END);
+        t.addView(l);
+        t.setClickable(true);
+        t.setOnClickListener(v -> { v.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP); r.run(); });
+        t.setOnTouchListener((v, e) -> {
+            if (e.getActionMasked() == android.view.MotionEvent.ACTION_DOWN) v.animate().scaleX(.95f).scaleY(.95f).setDuration(80).start();
+            else if (e.getActionMasked() == android.view.MotionEvent.ACTION_UP || e.getActionMasked() == android.view.MotionEvent.ACTION_CANCEL)
+                v.animate().scaleX(1f).scaleY(1f).setDuration(120).start();
+            return false;
+        });
+        return t;
+    }
+
     private void showGestures() {
         TextView t = text("Jedan prst\n"
                 + "   povuci — kretanje (brzi zamah = dalje)\n"
@@ -1114,7 +1213,7 @@ public class MainActivity extends Activity implements Tv.Listener {
                 + "Tri prsta\n"
                 + "   dodir — početni zaslon\n\n"
                 + "S desnog ruba prema sredini — tipkovnica\n"
-                + "S lijevog ruba prema sredini — izbornik\n\n"
+                + "S lijevog ruba prema sredini — izbornik (ili ⋯ gore)\n\n"
                 + "Glasnoću mijenjaju i tipke za glasnoću na mobitelu.", 15, 0xFFE5E5EA, Typeface.DEFAULT);
         t.setLineSpacing(0, 1.15f);
         t.setPadding(dp(24), dp(8), dp(24), 0);

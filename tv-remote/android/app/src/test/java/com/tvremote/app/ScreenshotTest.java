@@ -30,7 +30,7 @@ import java.util.List;
 public class ScreenshotTest {
 
     private static void save(MainActivity a, String name) throws Exception {
-        shadowOf(Looper.getMainLooper()).idle();
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(600));
         View v = a.getWindow().getDecorView();
         v.measure(View.MeasureSpec.makeMeasureSpec(v.getWidth(), View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(v.getHeight(), View.MeasureSpec.EXACTLY));
