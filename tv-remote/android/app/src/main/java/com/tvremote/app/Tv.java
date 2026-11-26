@@ -43,8 +43,18 @@ import javax.net.ssl.X509TrustManager;
 final class Tv {
     static final int REMOTE_PORT = 6466, PAIR_PORT = 6467;
     private static final char[] PW = "tvremote".toCharArray();
-    // PING | KEY | POWER | VOLUME | APP_LINK
-    private static final int WANTED_FEATURES = 1 | 2 | 32 | 64 | 512;
+    // PING | KEY | POWER | VOLUME | APP_LINK  (+ IME = 4 when phone keyboard is wanted)
+    private static final int BASE_FEATURES = 1 | 2 | 32 | 64 | 512;
+    private static final int IME_FEATURE = 4;
+
+    interface Listener { void textFieldFocused(); }
+    volatile Listener listener;
+    volatile long lastErrorAt;
+    volatile String lastError = "";
+    private volatile boolean ime = true;
+    private volatile int imeCounter, imeFieldCounter;
+    private volatile boolean hasImeCounter, hasImeFieldCounter;
+    void setIme(boolean on) { ime = on; }
     static final int DIRECTION_SHORT = 3;
 
     private final File p12;
@@ -229,8 +239,9 @@ final class Tv {
     private void handle(Pb.Msg m) throws IOException {
         if (m.has(1)) { // remote_configure
             Pb.Msg cfg = m.m(1);
-            int supported = (int) cfg.i(1, WANTED_FEATURES);
-            active = WANTED_FEATURES & supported;
+            int wanted = BASE_FEATURES | (ime ? IME_FEATURE : 0);
+            int supported = (int) cfg.i(1, wanted);
+            active = wanted & supported;
             write(new Pb().m(1, new Pb().i(1, active)
                     .m(2, new Pb().i(3, 1).s(4, "1").s(5, "atvremote").s(6, "1.0.0"))).framed());
         } else if (m.has(2)) { // remote_set_active
@@ -238,6 +249,26 @@ final class Tv {
         } else if (m.has(8)) { // ping request
             long v = m.m(8).i(1, 0);
             write(new Pb().m(9, new Pb().i(1, v)).framed());
+        } else if (m.has(20)) { // ime_key_inject: a text field has focus on the TV
+            Pb.Msg inj = m.m(20), app = inj.m(1), tf = inj.m(2);
+            imeCounter = app == null ? 0 : (int) app.i(1, 0);
+            imeFieldCounter = tf == null ? 0 : (int) tf.i(1, 0);
+            hasImeCounter = imeCounter != 0;
+            hasImeFieldCounter = imeFieldCounter != 0;
+        } else if (m.has(22)) { // ime_show_request: TV wants a keyboard
+            Pb.Msg sr = m.m(22), tf = sr == null ? null : sr.m(2);
+            if (tf != null) { imeFieldCounter = (int) tf.i(1, 0); hasImeFieldCounter = true; }
+            Listener l = listener;
+            if (l != null) l.textFieldFocused();
+        } else if (m.has(21)) { // ime_batch_edit echoed by the TV
+            Pb.Msg be = m.m(21);
+            if (!hasImeCounter) imeCounter = (int) be.i(1, 0);
+            if (!hasImeFieldCounter) imeFieldCounter = (int) be.i(2, 0);
+        } else if (m.has(3)) { // remote_error
+            Pb.Msg e = m.m(3);
+            byte[] msg = e == null ? null : e.b(2);
+            lastError = msg == null ? "" : new String(msg, java.nio.charset.StandardCharsets.UTF_8);
+            lastErrorAt = System.currentTimeMillis();
         } else if (m.has(40)) { // remote_start
             ready = true;
             started.countDown();
@@ -266,7 +297,7 @@ final class Tv {
     }
     void text(String s) throws Exception {
         Pb edit = new Pb().i(1, 1).m(2, new Pb().i(1, s.length()).i(2, s.length()).s(3, s));
-        send(new Pb().m(21, new Pb().i(1, 0).i(2, 0).m(3, edit)).framed());
+        send(new Pb().m(21, new Pb().i(1, imeCounter).i(2, imeFieldCounter).m(3, edit)).framed());
     }
     void setHost(String h) { this.host = h; }
 }
