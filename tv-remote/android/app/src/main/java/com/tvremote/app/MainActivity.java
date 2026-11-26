@@ -539,6 +539,11 @@ public class MainActivity extends Activity implements Tv.Listener {
         clear.setPadding(dp(4), dp(16), dp(4), dp(8));
         clear.setOnClickListener(v -> clearAll());
         c.addView(clear);
+        methodLink = text("", 13.5f, Ui.LABEL, Typeface.DEFAULT);
+        methodLink.setPadding(dp(4), dp(10), dp(4), dp(8));
+        methodLink.setOnClickListener(v -> cycleMethod());
+        c.addView(methodLink);
+        updateMethodLink();
         return scroll(c);
     }
 
@@ -570,6 +575,26 @@ public class MainActivity extends Activity implements Tv.Listener {
             else if (old.startsWith(target)) liveTyper.delete(mode, old.length() - target.length(), sink());
             else liveTyper.replace(mode, old.length(), target, sink());
         }, null);
+    }
+
+    private TextView methodLink;
+
+    private void updateMethodLink() {
+        if (methodLink == null) return;
+        methodLink.setText("Način upisa: " + Typer.NAMES[kbMode] + (kbMode == Typer.AUTO ? "" : " ✓")
+                + "  ·  ne upisuje na TV? Dodirni za drugi način");
+    }
+
+    /** Auto → Tipke → Mreža → Tekst → Auto. */
+    private void cycleMethod() {
+        int[] order = {Typer.AUTO, Typer.KEYS, Typer.GRID, Typer.TEXT};
+        int i = 0;
+        for (int k = 0; k < order.length; k++) if (order[k] == kbMode) i = k;
+        kbMode = order[(i + 1) % order.length];
+        prefs.edit().putInt("kbmode", kbMode).apply();
+        liveTyper.resetGrid();
+        updateMethodLink();
+        say("Način upisa: " + Typer.NAMES[kbMode], false);
     }
 
     private void deleteOne() {
@@ -882,8 +907,8 @@ public class MainActivity extends Activity implements Tv.Listener {
             prefs.edit().putBoolean("ime", on).apply(); tv.setIme(on);
             io.execute(tv::close); connectQuietly();
         }));
-        note(c, "Auto: ako TV otvori svoju tipkovnicu (YouTube i većina aplikacija), tekst ide izravno; inače se pišu slova na "
-                + "Netflixovoj tipkovnici (polje mora biti otvoreno s označenim razmakom). Ostale načine koristi samo ako Auto ne radi. "
+        note(c, "Auto: ako TV otvori polje za tekst, tekst ide izravno (YouTube); inače se slova šalju kao tipke s tipkovnice "
+                + "(Netflix). Mreža hoda po Netflixovoj tipkovnici na ekranu i može pogriješiti. "
                 + "Isključi \"Tipkovnica s mobitela\" ako TV zbog nje prikazuje čudnu poruku.");
 
         LinearLayout gs = group(c, "NAUČI");

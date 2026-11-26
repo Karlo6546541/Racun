@@ -9,11 +9,12 @@ import java.util.List;
  * TEXT  - the TV's system keyboard (IME) takes the text directly (YouTube, most apps);
  * KEYS  - one key press per letter, like a USB keyboard;
  * GRID  - walks an on-screen letter grid with the D-pad and presses OK (Netflix).
- * AUTO picks TEXT when the TV recently reported a system-keyboard field, else KEYS.
+ * AUTO picks TEXT when the TV reported a focused system-keyboard field, otherwise KEYS (also for Netflix:
+ * walking its grid blind drifts, because the TV never tells us where the focus is).
  */
 final class Typer {
     static final int AUTO = 0, TEXT = 1, KEYS = 2, GRID = 3;
-    static final String[] NAMES = {"Auto", "Tekst", "Tipke", "Netflix"};
+    static final String[] NAMES = {"Auto", "Tekst", "Tipke", "Mreža"};
 
     interface Sink {
         void key(int code) throws Exception;
@@ -56,6 +57,22 @@ final class Typer {
     static final class Grid {
         static final String[] ROWS = {"abcčćd", "đefghi", "jklmno", "pqrsšt", "uvwxyz", "ž12345", "67890"};
         int r = -1, c = 0; // r == -1: top row, c == 0 Space, c == 5 Delete
+        boolean anchored;  // position known for certain (after anchor())
+
+        /**
+         * Gets to a known place whatever was focused: LEFT to the first column (nothing is left of the grid),
+         * UP until the profile picture above the grid, then DOWN to Space, DOWN to the first row, LEFT again.
+         * Leaves the focus on 'a'.
+         */
+        List<Integer> anchor() {
+            List<Integer> k = new ArrayList<>();
+            for (int i = 0; i < 6; i++) k.add(LEFT);
+            for (int i = 0; i < 9; i++) k.add(UP);
+            k.add(DOWN); k.add(DOWN);
+            for (int i = 0; i < 6; i++) k.add(LEFT);
+            r = 0; c = 0; anchored = true;
+            return k;
+        }
 
         /** D-pad presses (ending in OK) that type one character, or nothing for unknown ones. */
         List<Integer> type(char ch) {
@@ -111,8 +128,7 @@ final class Typer {
     /** Auto: the TV's own keyboard when it asked for one, otherwise Netflix's on-screen grid. */
     static int resolve(int mode, boolean imeActive, String foregroundApp) {
         if (mode != AUTO) return mode;
-        if (foregroundApp != null && foregroundApp.toLowerCase().contains("netflix")) return GRID;
-        return imeActive ? TEXT : GRID;
+        return imeActive ? TEXT : KEYS;
     }
 
     /** Netflix drops a key that follows a move too closely, so leave time before every OK. */
@@ -121,24 +137,26 @@ final class Typer {
             int k = keys.get(i);
             out.key(k);
             boolean nextIsOk = i + 1 < keys.size() && keys.get(i + 1) == OK;
-            out.pause(k == OK ? 320 : nextIsOk ? 300 : 200);
+            out.pause(k == OK ? 350 : nextIsOk ? 320 : 240);
         }
     }
 
     void append(int mode, String s, Sink out) throws Exception {
         if (s.isEmpty()) return;
         if (mode == TEXT) { out.text(s); return; }
+        if (mode == GRID && !grid.anchored) press(grid.anchor(), out);
         if (mode == GRID) {
             for (char ch : gridText(s).toCharArray()) press(grid.type(ch), out);
             return;
         }
         for (char ch : plain(s).toCharArray()) {
             int k = keyFor(ch);
-            if (k > 0) { out.key(k); out.pause(90); }
+            if (k > 0) { out.key(k); out.pause(130); }
         }
     }
 
     void delete(int mode, int n, Sink out) throws Exception {
+        if (mode == GRID && n > 0 && !grid.anchored) press(grid.anchor(), out);
         for (int i = 0; i < n; i++) {
             if (mode == GRID) press(grid.delete(), out);
             else { out.key(DEL); out.pause(60); }
@@ -155,5 +173,5 @@ final class Typer {
         append(mode, text, out);
     }
 
-    void resetGrid() { grid.r = -1; grid.c = 0; }
+    void resetGrid() { grid.r = -1; grid.c = 0; grid.anchored = false; }
 }

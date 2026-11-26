@@ -9,6 +9,7 @@ public class TyperTest {
     private static String run(int mode, String... ops) throws Exception {
         final StringBuilder log = new StringBuilder();
         Typer t = new Typer();
+        if (mode == Typer.GRID) { t.grid.r = -1; t.grid.c = 0; t.grid.anchored = true; }   // focus on Space, known
         Typer.Sink sink = new Typer.Sink() {
             public void key(int k) { log.append(name(k)).append(' '); }
             public void text(String s) { log.append("TEXT(").append(s).append(") "); }
@@ -41,6 +42,7 @@ public class TyperTest {
         assertEquals("DEL DEL DEL DEL DEL TEXT(abc)", log.toString().trim());
         log.setLength(0);
         Typer g = new Typer();
+        g.grid.r = -1; g.grid.c = 0; g.grid.anchored = true;   // focus known to be on Space
         g.replace(Typer.GRID, 0, "ab", sink);     // empty Netflix field: just type
         g.replace(Typer.GRID, 2, "a", sink);      // two deletes, then "a" again
         // a: leave Space (D L x5), OK | b: R, OK | two deletes from b (col 1): R x4 to col 5, UP onto Delete, OK, OK
@@ -120,9 +122,35 @@ public class TyperTest {
 
     @Test public void autoPicksSystemKeyboardOnlyWhenTheTvAsked() {
         assertEquals(Typer.TEXT, Typer.resolve(Typer.AUTO, true, "com.google.android.youtube.tv"));
-        assertEquals(Typer.GRID, Typer.resolve(Typer.AUTO, false, "com.google.android.youtube.tv"));
-        assertEquals(Typer.GRID, Typer.resolve(Typer.AUTO, true, "com.netflix.ninja"));   // Netflix always uses its own grid
+        assertEquals(Typer.KEYS, Typer.resolve(Typer.AUTO, false, "com.netflix.ninja"));   // walking the grid blind drifts
+        assertEquals(Typer.GRID, Typer.resolve(Typer.GRID, true, ""));
         assertEquals(Typer.KEYS, Typer.resolve(Typer.KEYS, true, ""));
+    }
+
+    @Test public void gridAnchorsBeforeTheFirstKey() throws Exception {
+        final java.util.List<Integer> keys = new java.util.ArrayList<>();
+        Typer.Sink sink = new Typer.Sink() {
+            public void key(int k) { keys.add(k); }
+            public void text(String t) {}
+            public void pause(long ms) {}
+        };
+        new Typer().append(Typer.GRID, "a", sink);
+        // LEFT x6, UP x9 (to the profile picture), DOWN (Space), DOWN (first row), LEFT x6, then 'a' = OK
+        String expected = "21 21 21 21 21 21 19 19 19 19 19 19 19 19 19 20 20 21 21 21 21 21 21 23";
+        StringBuilder got = new StringBuilder();
+        for (int k : keys) got.append(got.length() == 0 ? "" : " ").append(k);
+        assertEquals(expected, got.toString());
+        // and only once per field
+        keys.clear();
+        Typer again = new Typer();
+        again.append(Typer.GRID, "a", sink); keys.clear();
+        again.append(Typer.GRID, "a", sink);
+        assertEquals("[23]", keys.toString());
+    }
+
+    @Test public void keysModeTypesWhatNetflixAcceptsFromAKeyboard() throws Exception {
+        assertEquals("f r o m", run(Typer.KEYS, "from"));
+        assertEquals("s t a SPC 1 DEL", run(Typer.KEYS, "Šta 1", "<DEL>"));
     }
 
     @Test public void gridKeepsCroatianLettersOnly() {
