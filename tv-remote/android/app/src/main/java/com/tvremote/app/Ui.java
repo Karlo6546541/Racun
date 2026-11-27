@@ -215,7 +215,12 @@ final class Ui {
         private android.view.VelocityTracker vt;
         private float downX, downY, lastX, lastY, accX, accY, touchX = -1, touchY = -1;
         private long downT;
-        private boolean moved, down, holding, holdUsed, edgeRight, edgeLeft, edgeBottom;
+        private boolean moved, down, holding, holdUsed, edgeRight, edgeLeft, edgeBottom, stepped;
+        private int axis;            // 0 = none yet, 1 = horizontal, 2 = vertical (locked after the first step)
+        private int lastStep = -1;   // direction of the last step, for the arrow
+        private long lastStepAt;
+        /** 0.8 = calm, 1 = normal, 1.3 = fast. */
+        float sensitivity = 1f;
         private String label;
         private long labelAt;
         boolean hint = true;
@@ -241,7 +246,9 @@ final class Ui {
 
         private void fire(int code, String text) {
             if (key == null) return;
-            performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            boolean step = code >= 19 && code <= 22;
+            performHapticFeedback(step ? HapticFeedbackConstants.CLOCK_TICK : HapticFeedbackConstants.KEYBOARD_TAP);
+            if (step) { lastStep = code; lastStepAt = System.currentTimeMillis(); h.postDelayed(this::invalidate, 280); }
             key.press(code);
             if (text != null) show(text);
             hint = false;
@@ -278,6 +285,16 @@ final class Ui {
                 c.drawCircle(touchX, touchY, d(holding ? 110 : 80), p);
                 p.setShader(null);
             }
+            long sAge = System.currentTimeMillis() - lastStepAt;
+            if (lastStep > 0 && sAge < 260) {
+                int a = (int) (170 * (1 - sAge / 260f));
+                int col = (a << 24) | 0xFFFFFF;
+                float px = lastStep == 21 ? d(36) : lastStep == 22 ? w - d(36) : w / 2;
+                float py = lastStep == 19 ? d(36) : lastStep == 20 ? hh - d(40) : hh / 2;
+                float rot = lastStep == 21 ? 0 : lastStep == 22 ? 180 : lastStep == 19 ? 90 : -90;
+                c.save(); c.rotate(rot, px, py); icon(c, BACK, px, py, d(8), col); c.restore();
+                invalidate();
+            }
             long age = System.currentTimeMillis() - labelAt;
             if (label != null && (age < 900 || holding)) {
                 int a = holding ? 255 : (int) (255 * Math.min(1f, (900 - age) / 300f));
@@ -308,11 +325,11 @@ final class Ui {
                 case MotionEvent.ACTION_DOWN:
                     if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
                     downX = lastX = touchX = e.getX(); downY = lastY = touchY = e.getY();
-                    accX = accY = 0; moved = holding = holdUsed = false; down = true;
+                    accX = accY = 0; moved = holding = holdUsed = stepped = false; down = true; axis = 0;
                     downT = System.currentTimeMillis();
-                    edgeBottom = downY > getHeight() - d(34);
-                    edgeRight = !edgeBottom && downX > getWidth() - d(30);
-                    edgeLeft = !edgeBottom && downX < d(30);
+                    edgeBottom = downY > getHeight() - d(44);
+                    edgeRight = !edgeBottom && downX > getWidth() - d(40);
+                    edgeLeft = !edgeBottom && downX < d(40);
                     vt = android.view.VelocityTracker.obtain(); vt.addMovement(e);
                     h.postDelayed(hold, 450);
                     invalidate();
@@ -339,10 +356,10 @@ final class Ui {
                         return true;
                     }
                     if (edgeRight || edgeLeft || edgeBottom) {
-                        if (Math.hypot(x - downX, y - downY) > d(10)) h.removeCallbacks(hold);
-                        if (edgeBottom && downY - y > d(60)) { edgeBottom = false; down = false; fire(3, "Početni zaslon"); }
-                        else if (edgeLeft && x - downX > d(60)) { edgeLeft = false; down = false; fire(4, "Natrag"); }
-                        else if (edgeRight && downX - x > d(60)) {
+                        if (Math.hypot(x - downX, y - downY) > d(12)) h.removeCallbacks(hold);
+                        if (edgeBottom && downY - y > d(48)) { edgeBottom = false; down = false; fire(3, "Početni zaslon"); }
+                        else if (edgeLeft && x - downX > d(48)) { edgeLeft = false; down = false; fire(4, "Natrag"); }
+                        else if (edgeRight && downX - x > d(48)) {
                             edgeRight = false; down = false;
                             performHapticFeedback(HapticFeedbackConstants.LONG_PRESS); hint = false;
                             if (onEdgeRight != null) onEdgeRight.run();
@@ -354,11 +371,23 @@ final class Ui {
                     }
                     accX += x - lastX; accY += y - lastY;
                     lastX = x; lastY = y;
-                    if (Math.hypot(x - downX, y - downY) > d(10)) { moved = true; h.removeCallbacks(hold); }
-                    float st = d(40);
-                    while (Math.abs(accX) >= st || Math.abs(accY) >= st) {
-                        if (Math.abs(accX) >= Math.abs(accY)) { fire(accX > 0 ? 22 : 21, null); accX -= Math.signum(accX) * st; accY = 0; }
-                        else { fire(accY > 0 ? 20 : 19, null); accY -= Math.signum(accY) * st; accX = 0; }
+                    if (Math.hypot(x - downX, y - downY) > d(12)) { moved = true; h.removeCallbacks(hold); }
+                    // like a trackpad: slow = precise, fast = covers more
+                    float speed = 0;
+                    if (vt != null) {
+                        vt.computeCurrentVelocity(1000);
+                        float dd = getResources().getDisplayMetrics().density;
+                        speed = (float) Math.hypot(vt.getXVelocity(), vt.getYVelocity()) / dd;
+                    }
+                    float st = d(40) / sensitivity * (speed > 900 ? .6f : speed > 500 ? .8f : 1f);
+                    // once a direction is chosen, the other one needs a clearly bigger push (no stray steps)
+                    float stX = axis == 2 ? st * 1.7f : st, stY = axis == 1 ? st * 1.7f : st;
+                    while (Math.abs(accX) >= stX || Math.abs(accY) >= stY) {
+                        boolean horiz = Math.abs(accX) / stX >= Math.abs(accY) / stY;
+                        if (horiz) { fire(accX > 0 ? 22 : 21, null); accX -= Math.signum(accX) * stX; accY = 0; axis = 1; }
+                        else { fire(accY > 0 ? 20 : 19, null); accY -= Math.signum(accY) * stY; accX = 0; axis = 2; }
+                        stepped = true;
+                        stX = axis == 2 ? st * 1.7f : st; stY = axis == 1 ? st * 1.7f : st;
                     }
                     invalidate();
                     return true;
@@ -370,15 +399,19 @@ final class Ui {
                     down = false;
                     long dur = System.currentTimeMillis() - downT;
                     if (holding) { if (!holdUsed) fire(85, "Play / Pauza"); holding = false; }
-                    else if (wasDown && !moved && dur < 450) fire(23, null);
-                    else if (wasDown && moved && vt != null) {
+                    else if (wasDown && !stepped && dur < 450 && Math.hypot(e.getX() - downX, e.getY() - downY) < d(20)) {
+                        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                        fire(23, null);
+                    }
+                    else if (wasDown && stepped && vt != null) {
                         vt.addMovement(e);
                         vt.computeCurrentVelocity(1000);
                         float dd = getResources().getDisplayMetrics().density;
                         float vx = vt.getXVelocity() / dd, vy = vt.getYVelocity() / dd;
                         float v = Math.max(Math.abs(vx), Math.abs(vy));
                         if (v > 1400) {
-                            final int code = Math.abs(vx) > Math.abs(vy) ? (vx > 0 ? 22 : 21) : (vy > 0 ? 20 : 19);
+                            boolean horiz = axis == 1 || (axis == 0 && Math.abs(vx) > Math.abs(vy));
+                            final int code = horiz ? (vx > 0 ? 22 : 21) : (vy > 0 ? 20 : 19);
                             int extra = Math.min(4, (int) (v / 1100));
                             for (int i = 1; i <= extra; i++) h.postDelayed(() -> fire(code, null), i * 90L);
                         }

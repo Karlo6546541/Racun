@@ -432,6 +432,7 @@ public class MainActivity extends Activity implements Tv.Listener {
     }
 
     private View scrim;
+    private Ui.TrackPad trackPad;
     private LinearLayout sheet;
 
     /** 0 = the touch surface; the others slide up as a sheet over it. */
@@ -474,6 +475,8 @@ public class MainActivity extends Activity implements Tv.Listener {
         FrameLayout f = new FrameLayout(this);
         f.setPadding(dp(12), dp(2), dp(12), dp(16));
         Ui.TrackPad pad = new Ui.TrackPad(this);
+        pad.sensitivity = prefs.getFloat("sens", 1f);
+        trackPad = pad;
         pad.key = this::press;
         pad.onEdgeRight = () -> { selectTab(TAB_KEYBOARD); showKeyboard(); };
         f.addView(pad, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -976,6 +979,24 @@ public class MainActivity extends Activity implements Tv.Listener {
         note(c, "Auto: ako TV otvori polje za tekst, tekst ide izravno (YouTube); inače se slova šalju kao tipke s tipkovnice "
                 + "(Netflix). Mreža hoda po Netflixovoj tipkovnici na ekranu i može pogriješiti. "
                 + "Isključi \"Tipkovnica s mobitela\" ako TV zbog nje prikazuje čudnu poruku.");
+
+        LinearLayout gg = group(c, "GESTE");
+        TextView sl2 = text("Brzina kretanja", 16, Ui.WHITE, Typeface.DEFAULT);
+        sl2.setPadding(dp(16), dp(14), dp(16), dp(8));
+        gg.addView(sl2);
+        final float[] sens = {0.8f, 1f, 1.3f};
+        int si = 1;
+        for (int i = 0; i < sens.length; i++) if (Math.abs(sens[i] - prefs.getFloat("sens", 1f)) < .01f) si = i;
+        LinearLayout segS = segmented(new String[]{"Mirno", "Normalno", "Brzo"}, si, new ArrayList<>(), idx -> {
+            prefs.edit().putFloat("sens", sens[idx]).apply();
+            if (trackPad != null) trackPad.sensitivity = sens[idx];
+        });
+        LinearLayout.LayoutParams sp2 = matchWrap(0);
+        sp2.leftMargin = sp2.rightMargin = dp(12); sp2.bottomMargin = dp(12);
+        gg.addView(segS, sp2);
+        divider(gg);
+        gg.addView(link("Prikaži geste", this::showGestures));
+        note(c, "Mirno: treba dulje povući za jedan korak (preciznije). Brzo: kraće povlačenje, brže listanje.");
 
         LinearLayout gv = group(c, "GLASNOĆA");
         gv.addView(toggle("Tipke za glasnoću na mobitelu mijenjaju glasnoću TV-a", prefs.getBoolean("volkeys", true),

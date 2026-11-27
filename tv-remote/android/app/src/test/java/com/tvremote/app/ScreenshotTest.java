@@ -181,6 +181,33 @@ public class ScreenshotTest {
         assertTrue(keys.toString(), keys.isEmpty());
     }
 
+    @Test public void directionLocksSoAWobblyDragOnlyMovesSideways() {
+        java.util.List<Integer> keys = new java.util.ArrayList<>();
+        Ui.TrackPad p = pad(keys);
+        // 120 dp to the right while drifting 50 dp down (a thumb arc): only RIGHT steps
+        drag(p, 0, 300, 600, 120, 50, 30, true, true);
+        assertTrue(keys.toString(), !keys.isEmpty() && keys.stream().allMatch(k -> k == 22));
+    }
+
+    @Test public void tapWithALittleThumbWobbleIsStillOk() {
+        java.util.List<Integer> keys = new java.util.ArrayList<>();
+        Ui.TrackPad p = pad(keys);
+        drag(p, 0, 500, 700, 9, 7, 3, true, true);   // ~11 dp of wobble, quick
+        assertTrue(keys.toString(), keys.equals(java.util.Collections.singletonList(23)));
+    }
+
+    @Test public void calmSensitivityNeedsALongerDrag() {
+        java.util.List<Integer> keys = new java.util.ArrayList<>();
+        Ui.TrackPad p = pad(keys);
+        p.sensitivity = 0.8f;                         // 50 dp per step
+        drag(p, 0, 300, 700, 100, 0, 25, true, true);
+        assertTrue(keys.toString(), keys.equals(java.util.Arrays.asList(22, 22)));
+        keys.clear();
+        p.sensitivity = 1.3f;                         // ~31 dp per step
+        drag(p, 5000, 300, 700, 100, 0, 25, true, true);
+        assertTrue(keys.toString(), keys.equals(java.util.Arrays.asList(22, 22, 22)));
+    }
+
     @Test public void secondFingerIsIgnored() {
         java.util.List<Integer> keys = new java.util.ArrayList<>();
         Ui.TrackPad p = pad(keys);
